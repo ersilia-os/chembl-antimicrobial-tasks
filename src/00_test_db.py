@@ -25,7 +25,7 @@ try:
     if df1.empty:
         print("No data retrieved. Check the query parameters.")
     else:
-        print("\n\nData retrieved successfully! Find an example below: \n\n")
+        print("\n\nData retrieved successfully! Find the example below: \n\n")
         print(df1.head(5))
 
 except Exception as e:

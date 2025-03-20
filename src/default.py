@@ -8,7 +8,7 @@ CHEMBL_USR = "chembl_user"
 CHEMBL_PWD = "1234"
 
 # Path defaults
-CONFIGPATH = os.path.join(abspath, "..", "config")
+DATAPATH = os.path.join(abspath, "..", "data")
 TMPDIR = os.path.join(abspath, "..", "tmp")
 PATHOGENSPATH = os.path.join(CONFIGPATH, "pathogens.csv")
 

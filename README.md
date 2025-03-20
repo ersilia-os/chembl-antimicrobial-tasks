@@ -22,7 +22,7 @@ pip install -r requirements.txt
 Access to a postgreSQL database server containing the ChEMBL database is required. You may install ChEMBL in your own computer by following these [instructions](install_ChEMBL.md). To check if the postgreSQL service with the ChEMBL database is up and accessible, you can run the following code with your username, password and database name:
 
 ```sh
-python src/00_test_db.py --username YOUR_USERNAME --password YOUR_PASSWORD --db_name chembl_35 --organism YOUR_ORGANISM
+python src/00_test_db.py --username YOUR_USERNAME --password YOUR_PASSWORD --db_name DB_NAME --organism YOUR_ORGANISM
 ```
 
-The code is ... to provide ...
+The code is designed to provide a quick check of your database connection and verify that the ChEMBL database is accessible.

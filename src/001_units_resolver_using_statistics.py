@@ -10,19 +10,19 @@ from scipy.stats import mannwhitneyu
 root = os.path.dirname(os.path.abspath(__file__))
 
 sys.path.append(root)
-from default import CONFIGPATH, TMPDIR
+from default_parameters import DATAPATH, TMPDIR
 
 
 def annotate_activities_with_activity_flag():
     print("Loading standard text table...")
-    df = pd.read_csv(os.path.join(CONFIGPATH, "standard_text.csv"))
+    df = pd.read_csv(os.path.join(DATAPATH, "standard_text.csv"))
     std_text = {}
     for v in df.values:
         if v[1] == 0:
             continue
         std_text[v[0]] = v[1]
     print("Loading activity comments table...")
-    df = pd.read_csv(os.path.join(CONFIGPATH, "activity_comments.csv"), low_memory=False)
+    df = pd.read_csv(os.path.join(DATAPATH, "activity_comments.csv"), low_memory=False)
     act_comm = {}
     for v in df[["activity_comment", "activity_classified"]].values:
         if not v[0]:
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     act = joblib.load(os.path.join(TMPDIR, "actives.pkl"))
     inact = joblib.load(os.path.join(TMPDIR, "inactives.pkl"))
     directions = assign_directions_with_statistical_test(act, inact)
-    file_path = os.path.join(CONFIGPATH, "activity_std_units.csv")
+    file_path = os.path.join(DATAPATH, "activity_std_units.csv")
     standard_units_resolver_with_statistical_test(file_path, directions, rewrite=False)
     os.remove(os.path.join(TMPDIR, "actives.pkl"))
     os.remove(os.path.join(TMPDIR, "inactives.pkl"))

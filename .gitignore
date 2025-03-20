@@ -162,7 +162,6 @@ cython_debug/
 #.idea/
 
 # Some directories
-tmb/
 data_old/
 results/
 output/

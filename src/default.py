@@ -5,7 +5,7 @@ abspath = os.path.dirname(os.path.abspath(__file__))
 # Database defaults
 DATABASE_NAME = "chembl_35"
 CHEMBL_USR = "chembl_user"
-CHEMBL_PWD = "aaa"
+CHEMBL_PWD = "1234"
 
 # Path defaults
 CONFIGPATH = os.path.join(abspath, "..", "config")

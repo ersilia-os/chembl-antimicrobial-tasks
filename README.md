@@ -47,7 +47,7 @@ Several configuration data files are needed before gathering and binarizing ChEM
 - standard_units_conversions.csv:
 
 
-🟡 Add brief explanation of each file - once data/README.md is ready!
+🟡 Add brief explanation of each file - once data/README.md is ready! ... I think this is not necessary anymore. 
 
 To download such data, you can use Git LFS:
 
@@ -62,7 +62,7 @@ Alternatively, we provide the code to generate such configuration data. To do it
 sh scripts/00_prepare_config.sh
 ```
 
-This bash script consecutively executes 4 python scripts extensively described in our [documentation](docs/src_info.md).
+This bash script consecutively executes 4 python files extensively described in our [documentation](docs/src_info.md).
 
 
 

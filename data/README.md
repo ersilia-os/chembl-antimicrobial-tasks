@@ -84,7 +84,7 @@ This table contains all ...
 
 ## chembl_35_chemreps.txt  # TO-CHECK @miquel
 
-This table contains all ...
+This file contains all ChEMBL compounds (2,474,591 for ChEMBL v35). Downloaded from https://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/
 
 ## pathogens.csv # TO-CHECK
 

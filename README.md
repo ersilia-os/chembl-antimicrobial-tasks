@@ -21,7 +21,7 @@ pip install -r requirements.txt
 
 ### Installing ChEMBL
 
-Access to a postgreSQL database server containing the ChEMBL database is required. You may install ChEMBL in your own computer by following these [instructions](install_ChEMBL.md). To check if the postgreSQL service with the ChEMBL database is up and accessible, you can run the following code with your username, password and database name:
+Access to a postgreSQL database server containing the ChEMBL database is required. You may install ChEMBL in your own computer by following these [instructions](docs/install_ChEMBL.md). To check if the postgreSQL service with the ChEMBL database is up and accessible, you can run the following code with your username, password and database name:
 
 ```sh
 sudo service postgresql start
@@ -49,7 +49,12 @@ Several configuration data files are needed before gathering and binarizing ChEM
 
 🟡 Add brief explanation of each file - once data/README.md is ready!
 
-To download such data, you can use Git LFS ... or download the zip file from Zenodo...
+To download such data, you can use Git LFS:
+
+
+
+
+or download the zip file from Zenodo 🟡 
 
 Alternatively, we provide the code to generate such configuration data. To do it, simply execute:
 
@@ -57,15 +62,9 @@ Alternatively, we provide the code to generate such configuration data. To do it
 sh scripts/00_prepare_config.sh
 ```
 
-This bash script consecutively executes 4 python scripts enumerated and detailed as follows:
-
-- `001_units_resolver_using_statistics.py`: 
-- `002_activity_binarizer_and_directions_with_llm.py`: 
-- `003_chembl_chemical_space.py`: 
-- `004_clean_all_activities.py`: 
+This bash script consecutively executes 4 python scripts extensively described in our [documentation](docs/src_info.md).
 
 
-Caution: slow
 
 
 ### Specifying parameters

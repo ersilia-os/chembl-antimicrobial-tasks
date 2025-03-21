@@ -50,7 +50,7 @@ This bash script consecutively executes 4 Python files extensively described in 
 
 We set many parameters to process and binarize ChEMBL bioactivity data, all of which are defined in `src/default_parameters.py`. 
 
-The following scripts assume that PostgreSQL is running locally, with the username, password, and database name configured in the same file. The output path for storing data is also specified there.
+The following scripts assume that PostgreSQL is running locally, with the username, password, and database name configured in the same file. 
 
 
 ## Creating datasets

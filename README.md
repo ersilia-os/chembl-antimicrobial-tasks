@@ -4,10 +4,10 @@ Get antimicrobial tasks from ChEMBL framed as binary classifications. This repos
 
 ## Setup
 
-To get started, first clone this repository:
+To get started, first clone this repository, avoiding large LFS-stored files:
 
 ```sh
-git clone https://github.com/ersilia-os/chembl-antimicrobial-tasks.git
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/ersilia-os/chembl-antimicrobial-tasks.git
 cd chembl-antimicrobial-tasks
 ```
 

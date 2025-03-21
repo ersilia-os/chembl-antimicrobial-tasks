@@ -39,8 +39,8 @@ git lfs pull --include="data"
 
 Alternatively, we provide the code to generate these data. To do it, simply execute:
 
-```bash
-sh scripts/00_prepare_config.sh
+```sh
+bash scripts/00_prepare_config.sh
 ```
 
 This bash script consecutively executes 4 Python files extensively described in our [documentation](docs/src_info.md).

@@ -84,7 +84,7 @@ This table contains all ...
 
 This table contains all ...
 
-## pathogens.csv # TODO
+## pathogens.csv # TO-CHECK
 
 List of pathogens to gather data from. Extend as needed. Includes columns:
 - pathogen_code: A short code for each pathogen. Lowercase, no spaces.

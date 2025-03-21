@@ -31,36 +31,19 @@ If a List of Relations is displayed, checks have been successfull! Make sure to 
 
 ### Downloading configuration data
 
-Several configuration data files are needed before gathering and binarizing ChEMBL data:
+Several configuration data files are needed before gathering and binarizing ChEMBL data, all of them documented [here](docs/src_info.md). You can pull such data using Git LFS:
 
-- activities.csv: 
-- activity_comments.csv:
-- activity_std_units.csv
-- activity_std_units_with_3_assay_descriptions.csv:
-- activity_stds_lookup.csv:
-- all_activities.csv:
-- all_molecules.csv:
-- assay_descriptions.csv:
-- chembl_35_chemreps.txt:
-- pathogens.csv:
-- standard_text.csv:
-- standard_units_conversions.csv:
+```bash
+git lfs pull --include="data"
+```
 
-
-🟡 Add brief explanation of each file - once data/README.md is ready! ... I think this is not necessary anymore. 
-
-To download such data, you can use Git LFS: ...
-
-
-or download the zip file from Zenodo 🟡 
-
-Alternatively, we provide the code to generate such configuration data. To do it, simply execute:
+Alternatively, we provide the code to generate all configuration data. To do it, simply execute:
 
 ```bash
 sh scripts/00_prepare_config.sh
 ```
 
-This bash script consecutively executes 4 python files extensively described in our [documentation](docs/src_info.md).
+This bash script consecutively executes 4 Python files extensively described in our [documentation](docs/src_info.md).
 
 
 ### Specifying parameters

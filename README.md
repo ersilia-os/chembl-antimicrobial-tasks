@@ -49,9 +49,7 @@ Several configuration data files are needed before gathering and binarizing ChEM
 
 🟡 Add brief explanation of each file - once data/README.md is ready! ... I think this is not necessary anymore. 
 
-To download such data, you can use Git LFS:
-
-
+To download such data, you can use Git LFS: ...
 
 
 or download the zip file from Zenodo 🟡 
@@ -65,26 +63,13 @@ sh scripts/00_prepare_config.sh
 This bash script consecutively executes 4 python files extensively described in our [documentation](docs/src_info.md).
 
 
-
-
 ### Specifying parameters
 
-Please check *Installing ChEMBL*
+We set many parameters to process and binarize ChEMBL bioactivity data, all of which are defined in `src/default_parameters.py`. 
 
-PCHEMBL_CUTOFFS = [7]
-PERCENTAGE_ACTIVITY_CUTOFFS = [90]
-PERCENTILES = [1]
-MIN_SIZE_ASSAY_TASK = 500
-MIN_SIZE_ASSAY_SUBTASK = 99
-MIN_SIZE_ANY_TASK = 99
-MAX_NUM_INDEPENDENT_ASSAYS = 5
-MAX_NUM_ASSAY_SUBTASKS = 3
-MIN_POSITIVES = 10
-MAX_NUM_INDEPENDENT_UNITS = 5
-DATASET_SIZE_LIMIT = 1e6
-
+The following scripts assume that PostgreSQL is running locally, with the username, password, and database name configured in the same file. The output path for storing data is also specified there.
 
 
 ## Creating datasets
 
-By default, following scripts assume that PostgreSQL is running in the local machine, and that the database user `chembl_user` with password `1234` has read access to the tables of ChEMBL (database name: `chembl_35`). This can be changed in , as well as the output path the data will be stored in, the minimum number of assays to consider and several parameters for binarization. Feel free to manually edit such variables and values as needed.  
+Bla bla 

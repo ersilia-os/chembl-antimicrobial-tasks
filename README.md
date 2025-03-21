@@ -1,6 +1,6 @@
 # Antimicrobial binary ML tasks from ChEMBL
 
-Get antimicrobial tasks from ChEMBL framed as binary classifications. This repository is the updated version of [chembl-binary-tasks](https://github.com/ersilia-os/chembl-binary-tasks).
+Get antimicrobial tasks from ChEMBL framed as binary classifications. This repository is the updated version of [chembl-binary-tasks](https://github.com/ersilia-os/chembl-binary-tasks). This repository is currently WORK IN PROGRESS.
 
 ## Setup
 
@@ -31,15 +31,41 @@ If a List of Relations is displayed, checks have been successfull! Make sure to 
 
 ### Downloading configuration data
 
-Several configuration data files are needed before gathering and binarizing ChEMBL data. 
+Several configuration data files are needed before gathering and binarizing ChEMBL data:
 
-These files correspond to ...
+- activities.csv: 
+- activity_comments.csv:
+- activity_std_units.csv
+- activity_std_units_with_3_assay_descriptions.csv:
+- activity_stds_lookup.csv:
+- all_activities.csv:
+- all_molecules.csv:
+- assay_descriptions.csv:
+- chembl_35_chemreps.txt:
+- pathogens.csv:
+- standard_text.csv:
+- standard_units_conversions.csv:
 
-To download such data, you can use Git LFS or 
 
-All data files have been ... 
+🟡 Add brief explanation of each file - once data/README.md is ready!
 
-Summary of 001, 002, 003, 004 and FILES. 
+To download such data, you can use Git LFS ... or download the zip file from Zenodo...
+
+Alternatively, we provide the code to generate such configuration data. To do it, simply execute:
+
+```bash
+sh scripts/00_prepare_config.sh
+```
+
+This bash script consecutively executes 4 python scripts enumerated and detailed as follows:
+
+- `001_units_resolver_using_statistics.py`: 
+- `002_activity_binarizer_and_directions_with_llm.py`: 
+- `003_chembl_chemical_space.py`: 
+- `004_clean_all_activities.py`: 
+
+
+Caution: slow
 
 
 ### Specifying parameters

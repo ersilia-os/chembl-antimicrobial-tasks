@@ -4,7 +4,9 @@ These files contains the descriptions and cutoffs used for the different assays.
 
 ## activities.csv  # TO-CHEK @miquel
 
-This table contains all ...
+This table contains all ChEMBL bioactivity data.
+
+🟡 How was it downloaded?
 
 
 ## activity_commments.csv

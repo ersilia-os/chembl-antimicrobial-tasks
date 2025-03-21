@@ -31,13 +31,13 @@ If a List of Relations is displayed, checks have been successfull! Make sure to 
 
 ### Downloading configuration data
 
-Several configuration data files are needed before gathering and binarizing ChEMBL data, all of them documented [here](docs/src_info.md). You can pull such data using Git LFS:
+Several configuration data files are needed before gathering and binarizing ChEMBL data, all of them documented [here](data/README.md). You can pull such data using Git LFS:
 
 ```bash
 git lfs pull --include="data"
 ```
 
-Alternatively, we provide the code to generate all configuration data. To do it, simply execute:
+Alternatively, we provide the code to generate these data. To do it, simply execute:
 
 ```bash
 sh scripts/00_prepare_config.sh

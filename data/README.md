@@ -1,6 +1,6 @@
 # Data Files
 
-These files contains the descriptions and cutoffs used for the different assays. The files contained within this folder were generated during the preparation of the current repository. High-level instructions on how to generate these files are given here.
+These files contains the descriptions and cutoffs used for the different assays. The files contained within this folder were generated during the preparation of the current repository. High-level instructions on how to generate these files and their content are given here.
 
 ## pathogens.csv # TODO
 

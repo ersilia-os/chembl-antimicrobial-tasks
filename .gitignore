@@ -163,5 +163,4 @@ cython_debug/
 
 # Some directories
 data_old/
-results/
 output/

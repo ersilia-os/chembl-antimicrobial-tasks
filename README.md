@@ -14,8 +14,8 @@ cd chembl-antimicrobial-tasks
 We recommend creating a Conda environment to run this code:
 
 ```sh
-conda create -n adda4tb python=3.10
-conda activate adda4tb
+conda create -n camt python=3.10
+conda activate camt
 pip install -r requirements.txt
 ```
 

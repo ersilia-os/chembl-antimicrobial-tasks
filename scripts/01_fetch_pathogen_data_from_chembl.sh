@@ -49,7 +49,7 @@ fi
 
 echo "Fetching data for pathogen $PATHOGEN_CODE and storing in $OUTPUT_DIR"
 
-python $SCRIPT_DIR/../src/pathogen_getter.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR 
+python $SCRIPT_DIR/../src/011_pathogen_getter.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR 
 # python $SCRIPT_DIR/../src/clean_fetched_pathogen_data.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR
 # python $SCRIPT_DIR/../src/binarize_fetched_pathogen_data.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR
 # python $SCRIPT_DIR/../src/datasets_modelability.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR

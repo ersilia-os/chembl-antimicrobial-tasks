@@ -4,7 +4,9 @@ These files contains the descriptions and cutoffs used for the different assays.
 
 ## pathogens.csv # TODO
 
-List of pathogens used to create the standard files. If other pathogens are used, consider re-doing the pipeline and adding the necessary fields on the `_manual.csv` files. See notebooks/units.ipynb for more information
+List of pathogens to gather data from. Extend as needed. Includes columns:
+- pathogen_code: A short code for each pathogen. Lowercase, no spaces.
+- search_text: Full name of the pathogen as documented in ChEMBL (?).
 
 ## activity_commments.csv
 
@@ -78,26 +80,26 @@ This table contains all the standard units observed in the activities table of t
 TO '/path/to/data/activity_std_units.csv' WITH CSV HEADER;
 ```
 
-This table was annotated in several ways to 
+## activities.csv  # TO-CHEK @miquel
 
-The steps to obtain this table are as follows:
+This table contains all ...
 
-### Statis
+## assay_descriptions.csv  # TO-CHECK @miquel
 
-1. Download the full activities table into the ´tmp´ directory.
-2. 
+This table contains all ...
 
+## chembl_35_chemreps.txt  # TO-CHECK @miquel
 
+This table contains all ...
 
+## all_molecules.csv  # TO-CHECK @miquel
 
+This table contains all ...
 
-## units.csv and ucum.csv # TODO
+## all_activities.csv  # TO-CHECK @miquel
 
-The units file contains all the units that appear in the datasets obtained from ChEMBL_33 using the pathogens specified in pathogens.csv. These units have been processed in the [UCUM server](https://ucum.nlm.nih.gov/ucum-lhc/demo.html) to obtain the Unified Code for Units of Measure.
-The ucum.csv file, correspondingly, contains the units and its standardisation to ucum units, as well as the necessary conversions to final units, like umol/L. If a unit does not appear in the file, it will not be processed. The units are strings (case sensitive)
+This table contains all ...
 
-## st_type_summary.csv and st_type_summary_manual.csv # TODO
-A count of how many standard_type - final_unit combinations exist in the data collected from ChEMBL33 (using the pathogens specified in pathogens.csv). Only combinations with more than 250 instances are considered, and a manual curation has been performed to decide which assays will be used in this pipeline. Simply change the `use` column from 0 to 1 to include a standard_type - final_unit combination, and define its cutoff in the following files. we also include information about the direction of activity (-1 for assays where smaller values are preferred and 1 for assays where larger values are preferred)
+## standard_units_conversions.csv  # TO-CHECK @miquel
 
-## percentiles and cutoffs_manual.csv
-The percentiles file contain the percentile distribution of the standard_type - final_unit combinations identified in `st_type_summary_manual.csv`, and whether the cut-off has been defined by expertise or by the percentiles. Final cut-offs can be found on the `cutoffs_manual.csv` file under Low_cut (for a non-stringent activity cut-off) and High_cut (for a more restrictive activity cut-off)
+This table contains all ...

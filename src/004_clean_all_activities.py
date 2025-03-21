@@ -6,31 +6,31 @@ from tqdm import tqdm
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(root)
 
-from default import CONFIGPATH, TMPDIR
+from default_parameters import DATAPATH
 
 def main():
     print("Loading activities table...")
-    df = pd.read_csv(os.path.join(TMPDIR, "activities.csv"), low_memory=False)
+    df = pd.read_csv(os.path.join(DATAPATH, "activities.csv"), low_memory=False)
     print(df.columns)
     print("Getting activity comments...")
-    dc = pd.read_csv(os.path.join(CONFIGPATH, "activity_comments.csv"))
+    dc = pd.read_csv(os.path.join(DATAPATH, "activity_comments.csv"))
     activity_comments = {}
     for v in dc[["activity_comment", "activity_classified"]].values:
         activity_comments[v[0]] = v[1]
     print("Getting standard text...")
-    ds = pd.read_csv(os.path.join(CONFIGPATH, "standard_text.csv"))
+    ds = pd.read_csv(os.path.join(DATAPATH, "standard_text.csv"))
     standard_text = {}
     for v in ds.values:
         if v[1] == 0:
             continue
         standard_text[v[0]] = v[1]
     print("Getting directions from lookup table...")
-    dl = pd.read_csv(os.path.join(CONFIGPATH, "activity_stds_lookup.csv"))
+    dl = pd.read_csv(os.path.join(DATAPATH, "activity_stds_lookup.csv"))
     directions_lookup = {}
     for v in dl[["standard_type", "standard_units", "activity_direction"]].values:
         directions_lookup[(v[0], v[1])] = v[2]
     print("Getting directions from standard units table...")
-    du = pd.read_csv(os.path.join(CONFIGPATH, "activity_std_units.csv"))
+    du = pd.read_csv(os.path.join(DATAPATH, "activity_std_units.csv"))
     directions = {}
     for v in du[["standard_type", "standard_units", "activity_direction"]].values:
         directions[(v[0], v[1])] = v[2]
@@ -101,9 +101,9 @@ def main():
     df.loc[df["standard_relation"] == ">>", "standard_relation"] = ">"
     activity_flags = [int(x) for x in df["activity_flag"].tolist()]
     df["activity_flag"] = activity_flags
-    df.to_csv(os.path.join(CONFIGPATH, "all_activities.csv"), index=False)
+    df.to_csv(os.path.join(DATAPATH, "all_activities.csv"), index=False)
 
-    standard_units_file = os.path.join(CONFIGPATH, "standard_units_conversions.csv")
+    standard_units_file = os.path.join(DATAPATH, "standard_units_conversions.csv")
     if os.path.exists(standard_units_file):
         su_cache = {}
         du = pd.read_csv(standard_units_file)
@@ -118,7 +118,7 @@ def main():
             R += [[k, v, su_cache[k][0], su_cache[k][1]]]
         else:
             R += [[k, v, "", ""]]
-    pd.DataFrame(R, columns=["standard_units", "count", "conversion_formula", "new_unit"]).to_csv(os.path.join(CONFIGPATH, "standard_units_conversions.csv"), index=False)
+    pd.DataFrame(R, columns=["standard_units", "count", "conversion_formula", "new_unit"]).to_csv(os.path.join(DATAPATH, "standard_units_conversions.csv"), index=False)
 
 if __name__ == "__main__":
     main()

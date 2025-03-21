@@ -35,7 +35,7 @@ def annotate_activities_with_activity_flag():
             continue
         act_comm[v[0]] = int(v[1])
     print("Loading activities table...")
-    df = pd.read_csv(os.path.join(TMPDIR, "activities.csv"), low_memory=False)
+    df = pd.read_csv(os.path.join(DATAPATH, "activities.csv"), low_memory=False)
     print(df.columns)
     flags = []
     for v in tqdm(df[["activity_id", "activity_comment", "standard_text_value"]].values):
@@ -47,12 +47,12 @@ def annotate_activities_with_activity_flag():
             flags += [0]
     print("Adding activity flag to activities table...")
     df["activity_flag"] = flags
-    df.to_csv(os.path.join(TMPDIR, "activities.csv"), index=False)
+    df.to_csv(os.path.join(DATAPATH, "activities.csv"), index=False)
 
 
 def create_annotated_actives_and_inactives_dictionaries():
     print("Loading activities table...")
-    df = pd.read_csv(os.path.join(TMPDIR, "activities.csv"), low_memory=False)
+    df = pd.read_csv(os.path.join(DATAPATH, "activities.csv"), low_memory=False)
     actives = collections.defaultdict(list)
     inactives = collections.defaultdict(list)
     for v in tqdm(df[["assay_id", "standard_type", "standard_units", "standard_value", "activity_flag"]].values):

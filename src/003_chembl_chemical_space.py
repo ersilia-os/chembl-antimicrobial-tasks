@@ -8,9 +8,7 @@ root = os.path.dirname(os.path.abspath(__file__))
 
 sys.path.append(root)
 
-from default import CONFIGPATH
-
-TMPDIR = os.path.join(root, "..", "tmp")
+from default_parameters import DATAPATH
 
 def get_num_heavy_atoms(smiles):
     mol = Chem.MolFromSmiles(smiles)
@@ -26,7 +24,7 @@ def get_inchikey(smiles):
 
 def main():
     R = []
-    with open(os.path.join(TMPDIR, "chembl_35_chemreps.txt"), "r") as f:
+    with open(os.path.join(DATAPATH, "chembl_35_chemreps.txt"), "r") as f:
         reader = csv.reader(f, delimiter="\t")
         next(reader)
         for r in tqdm(reader):
@@ -35,7 +33,7 @@ def main():
             num_heavy_atoms = get_num_heavy_atoms(smiles)
             inchikey = get_inchikey(smiles)
             R += [[chembl_id, smiles, num_heavy_atoms, inchikey]]
-    with open(os.path.join(CONFIGPATH, "all_molecules.csv"), "w") as f:
+    with open(os.path.join(DATAPATH, "all_molecules.csv"), "w") as f:
         writer = csv.writer(f)
         writer.writerow(["chembl_id", "smiles", "num_heavy_atoms", "inchikey"])
         for r in R:

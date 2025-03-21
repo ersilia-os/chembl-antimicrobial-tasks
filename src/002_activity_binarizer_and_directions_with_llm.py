@@ -13,7 +13,7 @@ from llama_index.llms.llamafile import Llamafile
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(root)
 
-from default import CONFIGPATH, TMPDIR
+from default_parameters import DATAPATH
 
 LLM_BIN_FILENAME = "gemma-2-9b-it.Q6_K.llamafile"
 
@@ -198,12 +198,12 @@ def classify_activity_standards_with_direction(file_path, rewrite=False):
 def get_sample_assay_descriptions_for_standard_units():
     print("Getting sample assay descriptions for standard units...")
     print("Getting assay descriptions...")
-    df_ass = pd.read_csv(os.path.join(TMPDIR, "assay_descriptions.csv"), low_memory=False)
+    df_ass = pd.read_csv(os.path.join(DATAPATH, "assay_descriptions.csv"), low_memory=False)
     assay_descs = {}
     for v in df_ass[["assay_id", "description"]].values:
         assay_descs[v[0]] = v[1]
     print("Getting activities")
-    df_act = pd.read_csv(os.path.join(TMPDIR, "activities.csv"), low_memory=False)
+    df_act = pd.read_csv(os.path.join(DATAPATH, "activities.csv"), low_memory=False)
     print("Done reading activities")
     std_unit_assays = collections.defaultdict(list)
     for v in tqdm(df_act[["assay_id", "standard_type", "standard_units"]].values):
@@ -222,7 +222,7 @@ def get_sample_assay_descriptions_for_standard_units():
             pass
         R += [[k[0], k[1], v[0], v[1], v[2]]]
     df = pd.DataFrame(R, columns = ["standard_type", "standard_unit", "assay_description_1", "assay_description_2", "assay_description_3"])
-    df.to_csv(os.path.join(CONFIGPATH, "activity_std_units_with_3_assay_descriptions.csv"), index=False)
+    df.to_csv(os.path.join(DATAPATH, "activity_std_units_with_3_assay_descriptions.csv"), index=False)
 
 
 def classify_all_activity_standards_with_direction(file_path, rewrite=False):
@@ -230,7 +230,7 @@ def classify_all_activity_standards_with_direction(file_path, rewrite=False):
     Classify all activity standard units with the right direction (-1: the lower the more active, 1: the higher the more active, 0: inconclusive).
     """
     df = pd.read_csv(file_path, dtype=str)
-    da = pd.read_csv(os.path.join(CONFIGPATH, "activity_std_units_with_3_assay_descriptions.csv"), dtype=str)
+    da = pd.read_csv(os.path.join(DATAPATH, "activity_std_units_with_3_assay_descriptions.csv"), dtype=str)
     std_unit_descriptions = {}
     for v in da.values:
         std_unit_descriptions[(v[0], v[1])] = [v[2], v[3], v[4]]
@@ -310,16 +310,16 @@ def classify_all_activity_standards_with_direction(file_path, rewrite=False):
 
 if __name__ == "__main__":
     print("Starting with activity comments classification...")
-    file_path = os.path.join(CONFIGPATH, "activity_comments.csv")
+    file_path = os.path.join(DATAPATH, "activity_comments.csv")
     classify_activity_comments(file_path, rewrite=False)
     print("Activity comments classification done.")
     print("Starting with activity standards classification (direction)...")
-    file_path = os.path.join(CONFIGPATH, "activity_stds_lookup.csv")
+    file_path = os.path.join(DATAPATH, "activity_stds_lookup.csv")
     classify_activity_standards_with_direction(file_path, rewrite=False)
     print("Activity standards classification done.")
     print("Getting sample assay descriptions for standard units...")
     #get_sample_assay_descriptions_for_standard_units()
     print("Sample assay descriptions for standard units done.")
     print("Starting with all activity standards classification (direction)...")
-    file_path = os.path.join(CONFIGPATH, "activity_std_units.csv")
+    file_path = os.path.join(DATAPATH, "activity_std_units.csv")
     classify_all_activity_standards_with_direction(file_path, rewrite=False)

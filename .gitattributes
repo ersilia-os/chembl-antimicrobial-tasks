@@ -4,4 +4,6 @@ config/all_activities.csv filter=lfs diff=lfs merge=lfs -text
 config/all_molecules.csv filter=lfs diff=lfs merge=lfs -text
 tmp/chembl_35_chemreps.txt filter=lfs diff=lfs merge=lfs -text
 */fingerprints.npy filter=lfs diff=lfs merge=lfs -text
+data/*.csv filter=lfs diff=lfs merge=lfs -text
+data/*.txt filter=lfs diff=lfs merge=lfs -text
 data/chembl_35_smallmolecules.tsv filter=lfs diff=lfs merge=lfs -text

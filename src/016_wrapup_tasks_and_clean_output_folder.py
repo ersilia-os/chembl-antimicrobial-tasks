@@ -12,20 +12,20 @@ args = parser.parse_args()
 pathogen_code = args.pathogen_code
 data_dir = args.output_dir
 
-ds = pd.read_csv(os.path.join(data_dir, pathogen_code, "05_selected_tasks.csv"))
+ds = pd.read_csv(os.path.join(data_dir, pathogen_code, "015_selected_tasks.csv"))
 
-if os.path.exists(os.path.join(data_dir, pathogen_code, "tasks")):
-    shutil.rmtree(os.path.join(data_dir, pathogen_code, "tasks"))
-os.makedirs(os.path.join(data_dir, pathogen_code, "tasks"))
+if os.path.exists(os.path.join(data_dir, pathogen_code, "016_tasks")):
+    shutil.rmtree(os.path.join(data_dir, pathogen_code, "016_tasks"))
+os.makedirs(os.path.join(data_dir, pathogen_code, "016_tasks"))
 
 for task in ds["task"].tolist():
-    shutil.copy(os.path.join(data_dir, pathogen_code, "02_raw_tasks", task+".csv"), os.path.join(data_dir, pathogen_code, "tasks", task+".csv"))
+    shutil.copy(os.path.join(data_dir, pathogen_code, "013_raw_tasks", task+".csv"), os.path.join(data_dir, pathogen_code, "016_tasks", task+".csv"))
 
-ds.to_csv(os.path.join(data_dir, pathogen_code, "tasks_summary.csv"), index=False)
+ds.to_csv(os.path.join(data_dir, pathogen_code, "016_tasks_summary.csv"), index=False)
 
-if args.flush:
-    shutil.rmtree(os.path.join(data_dir, pathogen_code, "02_raw_tasks"))
-    os.remove(os.path.join(data_dir, pathogen_code, "05_selected_tasks.csv"))
-    os.remove(os.path.join(data_dir, pathogen_code, "01_abaumannii_cleaned.csv"))
-    os.remove(os.path.join(data_dir, pathogen_code, "04_modelability.csv"))
-    # os.remove(os.path.join(data_dir, pathogen_code, "00_abaumannii_original.csv"))
+# if args.flush:
+#     shutil.rmtree(os.path.join(data_dir, pathogen_code, "02_raw_tasks"))
+#     os.remove(os.path.join(data_dir, pathogen_code, "05_selected_tasks.csv"))
+#     os.remove(os.path.join(data_dir, pathogen_code, "01_abaumannii_cleaned.csv"))
+#     os.remove(os.path.join(data_dir, pathogen_code, "04_modelability.csv"))
+#     # os.remove(os.path.join(data_dir, pathogen_code, "00_abaumannii_original.csv"))

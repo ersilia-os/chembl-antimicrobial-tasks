@@ -72,7 +72,7 @@ def modelability(df, X, inchikeys):
     skf = StratifiedKFold(n_splits=5, shuffle=True)
     aurocs = []
     for train, test in tqdm(skf.split(X, y)):
-        clf = RandomForestClassifier(n_estimators=100)
+        clf = RandomForestClassifier(n_estimators=100, n_jobs=8)
         print("Fitting model")
         clf.fit(X[train], y[train])
         aurocs += [roc_auc_score(y[test], clf.predict_proba(X[test])[:, 1])]

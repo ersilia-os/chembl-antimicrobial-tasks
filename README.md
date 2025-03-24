@@ -77,7 +77,7 @@ Many files will be generated when creating the ChEMBL tasks/datasets. Overall, t
 - `011_{YOUR_PATHOGEN_CODE}_original.csv`: Compounds extracted from ChEMBL and associated to the pathogen of interest. Includes compound information, bioactivity data, assay details, and related metadata. 
 - `011_{YOUR_PATHOGEN_CODE}_cleaned.csv`: A cleaned and processed version of the original dataset.
 - `014_modelability.csv`: Modelability for each task. Includes AUROC scores to evaluate how well a binary classification model can be trained. Higher AUROCs indicate higher modelability. Tasks have been enumerated on the basis of the parameters specified in `src/default_parameters.py`. 
-- `013_raw_tasks and 016_tasks:` For each task, list of active (1) and inactive (0) compounds. `013_raw_tasks` includes all tasks; `016_tasks` include only the TOP-25 modelable tasks. 
+- `013_raw_tasks and 016_tasks:` For each task, list of active (1) and inactive (0) compounds. `013_raw_tasks` includes all tasks; `016_tasks` includes only the TOP-25 modelable tasks. 
 - **`016_tasks_summary.csv`**: Summary of the TOP-25 modelable tasks, accompanied by aggregated statistics and evaluation metrics. 
 - **`016_{YOUR_PATHOGEN_CODE}_summary.csv`**: Summary of the final selected tasks specific to the pathogen of interest. 
 

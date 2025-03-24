@@ -7,7 +7,7 @@ from rdkit import Chem
 
 abspath = os.path.abspath(__file__)
 sys.path.append(abspath)
-from default import CHEMBL_PWD, CHEMBL_USR, PATHOGENSPATH, DATABASE_NAME
+from default_parameters import CHEMBL_PWD, CHEMBL_USR, PATHOGENSPATH, DATABASE_NAME
 import argparse
 
 
@@ -189,11 +189,20 @@ class PathogenGetter():
 
         # Count rows
         cursor.execute("SELECT count(*) FROM tmp_activity_target_parent")
-        print(f'{cursor.fetchone()[0]} rows extracted from ChEMBL:')
+        total_rows = cursor.fetchone()[0]
+        print(f'{total_rows} rows extracted from ChEMBL:')
+        
+
+        # Define the row limit
+        row_limit = 10000000
+
+        # Warn if the data is truncated
+        if total_rows > row_limit:
+            print(f"WARNING: Retrieved {row_limit} rows, but the total dataset contains {total_rows} rows. "
+                "Some data may be missing. Consider increasing the limit or refining the query.")
         
         # NOTE: Selected rows are limited in case there are too many
-        # Pending to give a warning if not all rows are shown
-        sql = "SELECT * FROM tmp_activity_target_parent limit 10000000"
+        sql = f"SELECT * FROM tmp_activity_target_parent LIMIT {row_limit}"
         df = sqlio.read_sql_query(sql, conn)
         print(df.head())
         conn.close()  # Close database connection
@@ -282,4 +291,4 @@ if __name__ == "__main__":
 
         if not os.path.exists(os.path.join(args.output_dir, patho_code)):
             os.makedirs(os.path.join(args.output_dir, patho_code))
-        df.to_csv(os.path.join(args.output_dir, patho_code, "00_{}_original.csv".format(patho_code)), index=False)
+        df.to_csv(os.path.join(args.output_dir, patho_code, "011_{}_original.csv".format(patho_code)), index=False)

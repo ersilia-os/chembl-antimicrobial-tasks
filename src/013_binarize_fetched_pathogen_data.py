@@ -8,7 +8,7 @@ import sys
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root))
-from default import *
+from default_parameters import *
 
 parser = argparse.ArgumentParser(description='Binarize fetched pathogen data')
 parser.add_argument('--pathogen_code', type=str, help='Pathogen code')
@@ -19,7 +19,7 @@ data_dir = args.output_dir
 pathogen_code = args.pathogen_code
 
 # Loading the data
-df = pd.read_csv(os.path.join(data_dir, pathogen_code, "01_{0}_cleaned.csv".format(pathogen_code)))
+df = pd.read_csv(os.path.join(data_dir, pathogen_code, "012_{0}_cleaned.csv".format(pathogen_code)))
 print("Considering only organism target types")
 print("Before: {0}".format(df.shape))
 df = df[df["target_type"] == "ORGANISM"]
@@ -32,7 +32,7 @@ df = df[df["assay_type"] == "F"]
 print("After: {0}".format(df.shape))
 df.drop(columns=["assay_type"], inplace=True)
 
-tasks_dir = os.path.join(data_dir, pathogen_code, "02_raw_tasks")
+tasks_dir = os.path.join(data_dir, pathogen_code, "013_raw_tasks")
 if not os.path.exists(tasks_dir):
     os.makedirs(tasks_dir)
 

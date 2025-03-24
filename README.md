@@ -55,9 +55,13 @@ The following scripts assume that PostgreSQL is running locally, with the userna
 
 ## Creating datasets
 
-For each pathogen specified in ``,  
+The primary purpose of this repository is to automatically get microbial tasks from ChEMBL framed as a binary classification. To do it, for each pathogen of interest, execute:
 
-6 Python scripts:
+```bash
+bash scripts/01_fetch_pathogen_data_from_chembl.sh --pathogen_code YOUR_PATHOGEN_CODE --output_dir YOUR_OUTPUT_DIR
+```
+
+Note that available pathogen codes are listed in `data/pathogens.csv`. The bash script consecutevely executes 6 Python scripts briefly described as follows:
 
 - `011_pathogen_getter.py`: Retrieves pathogen-related bioactivity data from the ChEMBL database, processes and filters the data, and saves it into structured CSV files for further analysis.
 - `012_clean_fetched_pathogen_data.py`:  Reads raw data, applies unit conversions, standardizes activity values, filters relevant information, computes pChEMBL values, and outputs a cleaned dataset in CSV format for further analysis.
@@ -65,3 +69,4 @@ For each pathogen specified in ``,
 - `014_datasets_modelability.py`: Computes molecular fingerprints, trains a Random Forest classifier using stratified cross-validation, and evaluates dataset modelability by calculating AUROC scores for each task.
 - `015_select_tasks.py`: Selects 25 modelable tasks based on AUROC scores, positive sample ratios, and overlap filtering.
 - `016_wrapup_tasks_and_clean_output_folder.py`: Organizes selected tasks into a new directory and creates 2 summary files.
+

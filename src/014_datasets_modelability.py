@@ -77,10 +77,11 @@ def modelability(df, X, inchikeys):
         clf.fit(X[train], y[train])
         aurocs += [roc_auc_score(y[test], clf.predict_proba(X[test])[:, 1])]
         print("AUROC", aurocs[-1])
-    results = {"auroc_avg": np.mean(aurocs),
-               "auroc_std": np.std(aurocs),
+    results = {"auroc_avg": round(np.mean(aurocs), 4),
+               "auroc_std": round(np.std(aurocs), 4),
                "num_samples": X.shape[0],
-               "num_pos_samples": np.sum(y),}
+               "num_pos_samples": np.sum(y),
+               "pos:neg": round(np.sum(y) / (X.shape[0] - np.sum(y)), 4)}
     return results
 
 R = []
@@ -89,7 +90,7 @@ for l in os.listdir(tasks_dir):
     df = pd.read_csv(os.path.join(tasks_dir, l))
     results = modelability(df, X, inchikeys)
     fname = l[:-4]
-    R += [(fname, results["auroc_avg"], results["auroc_std"], results["num_samples"], results["num_pos_samples"])]
+    R += [(fname, results["auroc_avg"], results["auroc_std"], results["num_samples"], results["num_pos_samples"], results["pos:neg"])]
 
-pd.DataFrame(R, columns=["task", "auroc_avg", "auroc_std", "num_samples", "num_pos_samples"]).to_csv(os.path.join(data_dir, pathogen_code, "014_modelability.csv"), index=False)
+pd.DataFrame(R, columns=["task", "auroc_avg", "auroc_std", "num_samples", "num_pos_samples", "pos:neg"]).to_csv(os.path.join(data_dir, pathogen_code, "014_modelability.csv"), index=False)
 

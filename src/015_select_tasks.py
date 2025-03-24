@@ -12,9 +12,9 @@ args = parser.parse_args()
 
 data_dir = args.output_dir
 pathogen_code = args.pathogen_code
-tasks_dir = os.path.join(data_dir, pathogen_code, "02_raw_tasks")
+tasks_dir = os.path.join(data_dir, pathogen_code, "013_raw_tasks")
 
-dm = pd.read_csv(os.path.join(data_dir, pathogen_code, "04_modelability.csv"))
+dm = pd.read_csv(os.path.join(data_dir, pathogen_code, "014_modelability.csv"))
 ratios = []
 priorities = []
 for r in dm.iterrows():
@@ -138,8 +138,8 @@ to_remove = set(to_remove)
 dm = dm[~dm["task"].isin(to_remove)]
 
 dm = dm.sort_values(by = ["priority", "auroc_avg"], ascending=[True, False]).head(25)
-dm.to_csv(os.path.join(data_dir, pathogen_code, "05_selected_tasks.csv"), index=False)
+dm.to_csv(os.path.join(data_dir, pathogen_code, "015_selected_tasks.csv"), index=False)
 
-print("Removing fingerprints and other unnecessary files")
-os.remove(os.path.join(data_dir, pathogen_code, "03_fingerprints.npy"))
-os.remove(os.path.join(data_dir, pathogen_code, "03_fingerprints_inchikeys.txt"))
+# print("Removing fingerprints and other unnecessary files")
+# os.remove(os.path.join(data_dir, pathogen_code, "014_fingerprints.npy"))
+# os.remove(os.path.join(data_dir, pathogen_code, "014_fingerprints_inchikeys.txt"))

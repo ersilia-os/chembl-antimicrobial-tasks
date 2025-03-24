@@ -50,9 +50,18 @@ This bash script consecutively executes 4 Python files extensively described in 
 
 We set many parameters to process and binarize ChEMBL bioactivity data, all of which are defined in `src/default_parameters.py`. 
 
-The following scripts assume that PostgreSQL is running locally, with the username, password, and database name configured in the same file. 
+The following scripts assume that PostgreSQL is running locally, with the username, password, and database name configured in the same file. Parameters for binarization are also specified herein. 
 
 
 ## Creating datasets
 
-Bla bla 
+For each pathogen specified in ``,  
+
+6 Python scripts:
+
+- `011_pathogen_getter.py`: Retrieves pathogen-related bioactivity data from the ChEMBL database, processes and filters the data, and saves it into structured CSV files for further analysis.
+- `012_clean_fetched_pathogen_data.py`:  Reads raw data, applies unit conversions, standardizes activity values, filters relevant information, computes pChEMBL values, and outputs a cleaned dataset in CSV format for further analysis.
+- `013_binarize_fetched_pathogen_data.py`: Processes pathogen assay data and binarizes it into datasets using different criteria for machine learning models. Datasets may correspond to specific assays or targets, pChEMBL values, % of activity or global percentiles (sorted by priority).
+- `014_datasets_modelability.py`: Computes molecular fingerprints, trains a Random Forest classifier using stratified cross-validation, and evaluates dataset modelability by calculating AUROC scores for each task.
+- `015_select_tasks.py`: Selects 25 modelable tasks based on AUROC scores, positive sample ratios, and overlap filtering, while removing redundant tasks and unnecessary files.
+- `016_wrapup_tasks_and_clean_output_folder.py`:

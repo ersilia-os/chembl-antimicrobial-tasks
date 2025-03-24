@@ -10,24 +10,24 @@ root = os.path.dirname(os.path.abspath(__file__))
 
 import sys
 sys.path.append(root)
-from default import CONFIGPATH
+from default_parameters import DATAPATH
 
 
 def main(pathogen_code, data_dir):
     
     print(f"Cleaning data for pathogen {pathogen_code}")
-    df = pd.read_csv(f"{data_dir}/{pathogen_code}/00_{pathogen_code}_original.csv", low_memory=False)
+    df = pd.read_csv(f"{data_dir}/{pathogen_code}/011_{pathogen_code}_original.csv", low_memory=False)
     initial_len = len(df)
     print(f"Initial length: {initial_len}")
     
     print("Reading all activity data from the config of this repo")
-    da = pd.read_csv(os.path.join(CONFIGPATH, "all_activities.csv"))
+    da = pd.read_csv(os.path.join(DATAPATH, "all_activities.csv"))
     activities = {}
     for v in da.values:
         activities[v[0]] = (v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8])
     
     print("Reading conversions")
-    dc = pd.read_csv("../config/standard_units_conversions.csv")
+    dc = pd.read_csv(os.path.join(DATAPATH, "standard_units_conversions.csv"))
     dc = dc[dc["conversion_formula"].notnull()]
     dc = dc[dc["new_unit"].notnull()]
     conversions = {}
@@ -150,7 +150,7 @@ def main(pathogen_code, data_dir):
     
     print("Final length: ", len(df))
     print("Saving cleaned data to {0}".format(f"{data_dir}/{pathogen_code}/{pathogen_code}_cleaned.csv"))
-    df.to_csv(f"{data_dir}/{pathogen_code}/01_{pathogen_code}_cleaned.csv", index=False)
+    df.to_csv(f"{data_dir}/{pathogen_code}/012_{pathogen_code}_cleaned.csv", index=False)
 
 
 if __name__ == "__main__":

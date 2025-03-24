@@ -22,7 +22,7 @@ args = parser.parse_args()
 
 pathogen_code = args.pathogen_code
 data_dir = args.output_dir
-tasks_dir = os.path.join(data_dir, pathogen_code, "02_raw_tasks")
+tasks_dir = os.path.join(data_dir, pathogen_code, "013_raw_tasks")
 
 def get_binary_fingerprints_from_smiles(smiles):
     mol = Chem.MolFromSmiles(smiles)
@@ -45,14 +45,14 @@ keys = []
 for i, (ik, smi) in tqdm(enumerate(ik_smi_pairs)):
     X[i] = get_binary_fingerprints_from_smiles(smi)
     keys.append(ik)
-np.save(os.path.join(data_dir, pathogen_code, "03_fingerprints.npy"), X)
-with open(os.path.join(data_dir, pathogen_code, "03_fingerprints_inchikeys.txt"), "w") as f:
+np.save(os.path.join(data_dir, pathogen_code, "014_fingerprints.npy"), X)
+with open(os.path.join(data_dir, pathogen_code, "014_fingerprints_inchikeys.txt"), "w") as f:
     for k in keys:
         f.write(k + "\n")
 
 def load_fingerprints(data_dir):
-    X = np.load(os.path.join(data_dir, pathogen_code, "03_fingerprints.npy"))
-    with open(os.path.join(data_dir, pathogen_code, "03_fingerprints_inchikeys.txt"), "r") as f:
+    X = np.load(os.path.join(data_dir, pathogen_code, "014_fingerprints.npy"))
+    with open(os.path.join(data_dir, pathogen_code, "014_fingerprints_inchikeys.txt"), "r") as f:
         keys = f.read().splitlines()
     return X, keys
 
@@ -91,5 +91,5 @@ for l in os.listdir(tasks_dir):
     fname = l[:-4]
     R += [(fname, results["auroc_avg"], results["auroc_std"], results["num_samples"], results["num_pos_samples"])]
 
-pd.DataFrame(R, columns=["task", "auroc_avg", "auroc_std", "num_samples", "num_pos_samples"]).to_csv(os.path.join(data_dir, pathogen_code, "04_modelability.csv"), index=False)
+pd.DataFrame(R, columns=["task", "auroc_avg", "auroc_std", "num_samples", "num_pos_samples"]).to_csv(os.path.join(data_dir, pathogen_code, "014_modelability.csv"), index=False)
 

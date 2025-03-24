@@ -55,7 +55,7 @@ The following scripts assume that PostgreSQL is running locally, with the userna
 
 ## Creating datasets
 
-The primary purpose of this repository is to automatically get microbial tasks from ChEMBL framed as a binary classification. To do it, for each pathogen of interest, execute:
+The primary goal of this repository is to automatically get microbial tasks from ChEMBL framed as a binary classification. To do it, for each pathogen of interest, execute:
 
 ```bash
 bash scripts/01_fetch_pathogen_data_from_chembl.sh --pathogen_code YOUR_PATHOGEN_CODE --output_dir YOUR_OUTPUT_DIR
@@ -69,4 +69,20 @@ Note that available pathogen codes are listed in `data/pathogens.csv`. The bash 
 - `014_datasets_modelability.py`: Computes molecular fingerprints, trains a Random Forest classifier using stratified cross-validation, and evaluates dataset modelability by calculating AUROC scores for each task.
 - `015_select_tasks.py`: Selects 25 modelable tasks based on AUROC scores, positive sample ratios, and overlap filtering.
 - `016_wrapup_tasks_and_clean_output_folder.py`: Organizes selected tasks into a new directory and creates 2 summary files.
+
+### Output
+
+Many files will be generated when creating the ChEMBL tasks/datasets. Overall, the most important files are:
+
+- `011_{YOUR_PATHOGEN_CODE}_original.csv`: Compounds extracted from ChEMBL and associated to the pathogen of interest. Includes compound information, bioactivity data, assay details, and related metadata. 
+- `011_{YOUR_PATHOGEN_CODE}_cleaned.csv`: A cleaned and processed version of the original dataset.
+- `014_modelability.csv`: Modelability for each task. Includes AUROC scores to evaluate how well a binary classification model can be trained. Higher AUROCs indicate higher modelability. Tasks have been enumerated on the basis of the parameters specified in `src/default_parameters.py`. 
+- `013_raw_tasks and 016_tasks:` For each task, list of active (1) and inactive (0) compounds. `013_raw_tasks` includes all tasks; `016_tasks` include only the TOP-25 modelable tasks. 
+- **`016_tasks_summary.csv`**: Summary of the TOP-25 modelable tasks, accompanied by aggregated statistics and evaluation metrics. 
+- **`016_{YOUR_PATHOGEN_CODE}_summary.csv`**: Summary of the final selected tasks specific to the pathogen of interest. 
+
+
+## About the Ersilia Open Source Initiative
+
+This repository is developed by the [Ersilia Open Source Initiative](https://ersilia.io). Ersilia develops AI/ML tools to support drug discovery research in the Global South. To learn more about us, please visit our [GitBook Documentation](https://ersilia.gitbook.io) and our [GitHub profile](https://github.com/ersilia-os/).
 

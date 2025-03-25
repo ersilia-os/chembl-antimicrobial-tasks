@@ -390,6 +390,9 @@ def disambiguate_data(df):
 
 all_datasets = {k: disambiguate_data(v) for k,v in all_datasets.items()}
 
+# print("Printing created datasets:")
+# print([[i, len(all_datasets[i])] for i in sorted(all_datasets)])
+
 all_datasets_filtered = {}
 for k,v in all_datasets.items():
     if v.shape[0] < MIN_SIZE_ANY_TASK:

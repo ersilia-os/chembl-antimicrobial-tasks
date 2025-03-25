@@ -1,3 +1,6 @@
+#!/bin/bash
+set -e  # Exit immediately if any command fails
+
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
 # Function to display usage

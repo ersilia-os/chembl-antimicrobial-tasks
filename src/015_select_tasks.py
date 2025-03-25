@@ -4,8 +4,10 @@ import numpy as np
 from tqdm import tqdm
 import collections
 import argparse
+from default_parameters import MAX_TASKS_PER_PATHOGEN
 
-parser = argparse.ArgumentParser("Select 25 tasks")
+
+parser = argparse.ArgumentParser(f"Select {MAX_TASKS_PER_PATHOGEN}] tasks")
 parser.add_argument("--pathogen_code", type=str)
 parser.add_argument("--output_dir", type=str)
 args = parser.parse_args()
@@ -137,7 +139,7 @@ for k,v in percentage_activity_names.items():
 to_remove = set(to_remove)
 dm = dm[~dm["task"].isin(to_remove)]
 
-dm = dm.sort_values(by = ["priority", "auroc_avg"], ascending=[True, False]).head(25)
+dm = dm.sort_values(by = ["priority", "auroc_avg"], ascending=[True, False]).head(MAX_TASKS_PER_PATHOGEN)
 dm.to_csv(os.path.join(data_dir, pathogen_code, "015_selected_tasks.csv"), index=False)
 
 # print("Removing fingerprints and other unnecessary files")

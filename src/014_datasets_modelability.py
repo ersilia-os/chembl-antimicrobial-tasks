@@ -69,13 +69,17 @@ def modelability(df, X, inchikeys):
     idxs = [indices[ik] for ik in inchikeys_]
     X = X[idxs]
     print("Ready to model dataset with {0} samples".format(X.shape[0]))
-    skf = StratifiedKFold(n_splits=5, shuffle=True)
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     aurocs = []
     for train, test in tqdm(skf.split(X, y)):
-        clf = RandomForestClassifier(n_estimators=100, n_jobs=8)
+        clf = RandomForestClassifier(n_estimators=100, n_jobs=8, random_state=42)
         print("Fitting model")
         clf.fit(X[train], y[train])
-        aurocs += [roc_auc_score(y[test], clf.predict_proba(X[test])[:, 1])]
+        try:
+            aurocs += [roc_auc_score(y[test], clf.predict_proba(X[test])[:, 1])]
+        except:
+            print("Caution. AUROC calculation failed. Probably no positives or negatives are found.")
+            aurocs += [np.nan]
         print("AUROC", aurocs[-1])
     results = {"auroc_avg": round(np.mean(aurocs), 4),
                "auroc_std": round(np.std(aurocs), 4),

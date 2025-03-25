@@ -3,3 +3,4 @@ rdkit==2023.9.5
 tqdm==4.67.1
 scikit-learn==1.6.0
 psycopg2-binary==2.9.10
+matplotlib==3.10.1

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e  # Exit immediately if any command fails
 
 # Define the list of pathogens
 PATHOGENS=("abaumannii" "calbicans" "campylobacter" "ecoli" "efaecium" "enterobacter" "hpylori" "kpneumoniae" "mtuberculosis" "ngonorrhoeae" "paeruginosa" "pfalciparum" "saureus" "smansoni" "spneumoniae")

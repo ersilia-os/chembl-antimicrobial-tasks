@@ -1,7 +1,3 @@
-pandas==2.2.1
-rdkit==2023.9.5
-tqdm==4.67.1
-scikit-learn==1.6.0
-psycopg2-binary==2.9.10
-matplotlib==3.10.1
-umap-learn==0.5.1
+version https://git-lfs.github.com/spec/v1
+oid sha256:8d0d421fbe8a503ee6565c650ff86339745787cb8686b5b5f93267baa50d568f
+size 123

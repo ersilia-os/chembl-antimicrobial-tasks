@@ -1,6 +1,8 @@
 # Antimicrobial binary ML tasks from ChEMBL 💊🦠
 
-Get antimicrobial tasks from ChEMBL framed as binary classifications. This repository is the updated version of [chembl-binary-tasks](https://github.com/ersilia-os/chembl-binary-tasks). This repository is currently WORK IN PROGRESS.
+Get antimicrobial tasks from ChEMBL framed as binary classifications. This repository is the updated version of [chembl-binary-tasks](https://github.com/ersilia-os/chembl-binary-tasks). 
+
+This repository is currently **WORK IN PROGRESS**. ⚠️
 
 ## Setup 🛠️
 
@@ -11,7 +13,7 @@ GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/ersilia-os/chembl-antimicrobi
 cd chembl-antimicrobial-tasks
 ```
 
-We recommend creating a Conda environment to run this code. Dependencies are minimal.
+We recommend creating a Conda environment to run this code. Dependencies are minimal. 🐍
 
 ```sh
 conda create -n camt python=3.10
@@ -19,7 +21,7 @@ conda activate camt
 pip install -r requirements.txt
 ```
 
-### Installing ChEMBL ⚙️
+### Installing ChEMBL 🗃️
 
 Access to a postgreSQL database server containing the ChEMBL database is required. You may install ChEMBL in your own computer by following these [instructions](docs/install_ChEMBL.md). To check if the postgreSQL service with the ChEMBL database is up and accessible, you can run the following code with your username, password and database name:
 
@@ -27,9 +29,9 @@ Access to a postgreSQL database server containing the ChEMBL database is require
 sudo service postgresql start
 PGPASSWORD=YOUR_PASSWORD psql -h localhost -p 5432 -U YOUR_USERNAME -d YOUR_DB_NAME -c "\dt"
 ```
-If a List of Relations is displayed, checks have been successfull! Make sure to adapt the variables CHEMBL_USR, CHEMBL_PWD and DATABASE_NAME in `src/default_parameters.py` with your username, password and database name, respectively.
+✅ If a *List of Relations* is displayed, checks have been successfull! Make sure to adapt the variables CHEMBL_USR, CHEMBL_PWD and DATABASE_NAME in `src/default_parameters.py` with your username, password and database name, respectively.
 
-### Downloading configuration data
+### Downloading configuration data ⚙️
 
 Several configuration data files are needed before gathering and binarizing ChEMBL data, all of them documented [here](data/README.md). You can pull such data using Git LFS:
 
@@ -46,14 +48,14 @@ bash scripts/00_prepare_config.sh
 This bash script consecutively executes 4 Python files extensively described in our [documentation](docs/src_info.md).
 
 
-### Specifying parameters
+### Specifying parameters 🧾
 
 We set many parameters to process and binarize ChEMBL bioactivity data, all of which are defined in `src/default_parameters.py`. 
 
 The following scripts assume that PostgreSQL is running locally, with the username, password, and database name configured in the same file. Parameters for binarization are also specified herein. 
 
 
-## Creating datasets
+## Creating datasets 🔍
 
 The primary goal of this repository is to automatically get microbial tasks from ChEMBL framed as a binary classification. To do it, for each pathogen of interest, execute:
 
@@ -70,7 +72,7 @@ Note that available pathogen codes are listed in `data/pathogens.csv`. The bash 
 - `015_select_tasks.py`: Selects 25 modelable tasks based on AUROC scores, positive sample ratios, and overlap filtering.
 - `016_wrapup_tasks_and_clean_output_folder.py`: Organizes selected tasks into a new directory and creates 2 summary files.
 
-### Output
+### Output 📊
 
 Many files will be generated when creating the ChEMBL tasks/datasets. Overall, the most important files are:
 
@@ -82,7 +84,7 @@ Many files will be generated when creating the ChEMBL tasks/datasets. Overall, t
 - **`016_{YOUR_PATHOGEN_CODE}_summary.csv`**: Summary of the final selected tasks specific to the pathogen of interest. 
 
 
-## About the Ersilia Open Source Initiative
+## About the Ersilia Open Source Initiative 🌍🤝
 
 This repository is developed by the [Ersilia Open Source Initiative](https://ersilia.io). Ersilia develops AI/ML tools to support drug discovery research in the Global South. To learn more about us, please visit our [GitBook Documentation](https://ersilia.gitbook.io) and our [GitHub profile](https://github.com/ersilia-os/).
 

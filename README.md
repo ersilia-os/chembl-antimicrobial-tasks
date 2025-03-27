@@ -1,8 +1,8 @@
-# Antimicrobial binary ML tasks from ChEMBL
+# Antimicrobial binary ML tasks from ChEMBL 💊🦠
 
 Get antimicrobial tasks from ChEMBL framed as binary classifications. This repository is the updated version of [chembl-binary-tasks](https://github.com/ersilia-os/chembl-binary-tasks). This repository is currently WORK IN PROGRESS.
 
-## Setup
+## Setup 🛠️
 
 To get started, first clone this repository, avoiding large LFS-stored files:
 
@@ -19,7 +19,7 @@ conda activate camt
 pip install -r requirements.txt
 ```
 
-### Installing ChEMBL
+### Installing ChEMBL ⚙️
 
 Access to a postgreSQL database server containing the ChEMBL database is required. You may install ChEMBL in your own computer by following these [instructions](docs/install_ChEMBL.md). To check if the postgreSQL service with the ChEMBL database is up and accessible, you can run the following code with your username, password and database name:
 

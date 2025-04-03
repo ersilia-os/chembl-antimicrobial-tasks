@@ -69,8 +69,9 @@ Note that available pathogen codes are listed in `data/pathogens.csv`, which can
 - `012_clean_fetched_pathogen_data.py`:  Reads raw data, applies unit conversions, standardizes activity values, filters relevant information, computes pChEMBL values, and outputs a cleaned dataset in CSV format for further analysis.
 - `013_binarize_fetched_pathogen_data.py`: Processes pathogen assay data and binarizes it into datasets using different criteria for machine learning models. Datasets may correspond to specific assays or targets, pChEMBL values, % of activity or global percentiles (sorted by priority).
 - `014_datasets_modelability.py`: Computes molecular fingerprints, trains a Random Forest classifier using stratified cross-validation, and evaluates dataset modelability by calculating AUROC scores for each task.
-- `015_select_tasks.py`: Selects 25 modelable tasks based on AUROC scores, positive sample ratios, and overlap filtering.
-- `016_wrapup_tasks_and_clean_output_folder.py`: Organizes selected tasks into a new directory and creates 2 summary files.
+- `015_datasets_distinguishability.py`: Analogous to dataset modelability, but negative compounds are randomly sampled from ChEMBL. 
+- `016_select_tasks.py`: Selects 25 modelable tasks based on AUROC scores, positive sample ratios, and overlap filtering.
+- `017_wrapup_tasks_and_clean_output_folder.py`: Organizes selected tasks into a new directory and creates 2 summary files.
 
 ### Output 📊
 
@@ -79,9 +80,9 @@ Many files will be generated when creating the ChEMBL tasks/datasets. Overall, t
 - `011_{YOUR_PATHOGEN_CODE}_original.csv`: Compounds extracted from ChEMBL and associated to the pathogen of interest. Includes compound information, bioactivity data, assay details, and related metadata. 
 - `011_{YOUR_PATHOGEN_CODE}_cleaned.csv`: A cleaned and processed version of the original dataset.
 - `014_modelability.csv`: Modelability for each task. Includes AUROC scores to evaluate how well a binary classification model can be trained. Higher AUROCs indicate higher modelability. Tasks have been enumerated on the basis of the parameters specified in `src/default_parameters.py`. 
-- `013_raw_tasks and 016_tasks:` For each task, list of active (1) and inactive (0) compounds. `013_raw_tasks` includes all tasks; `016_tasks` includes only the TOP-25 modelable tasks. 
-- **`016_tasks_summary.csv`**: Summary of the TOP-25 modelable tasks, accompanied by aggregated statistics and evaluation metrics. 
-- **`016_{YOUR_PATHOGEN_CODE}_summary.csv`**: Summary of the final selected tasks specific to the pathogen of interest. 
+- `013_raw_tasks and 016_tasks:` For each task, list of active (1) and inactive (0) compounds. `013_raw_tasks` includes all tasks; `017_tasks` includes only the TOP-50 modelable tasks. 
+- **`017_tasks_summary.csv`**: Summary of the TOP-25 modelable tasks, accompanied by aggregated statistics and evaluation metrics. 
+- **`017_{YOUR_PATHOGEN_CODE}_summary.csv`**: Summary of the final selected tasks specific to the pathogen of interest. 
 
 
 ## About the Ersilia Open Source Initiative 🌍🤝

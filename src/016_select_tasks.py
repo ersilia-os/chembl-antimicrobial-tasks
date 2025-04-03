@@ -26,6 +26,7 @@ for r in dm.iterrows():
 dm["ratio"] = ratios
 dm["priority"] = priorities
 modelable_tasks = set(dm[(dm["auroc_avg"] >= 0.7) & (dm["ratio"] <= 0.5)]["task"])
+# distinguishable_tasks = 
 
 positive_sets = {}
 for task in os.listdir(tasks_dir):
@@ -140,7 +141,7 @@ to_remove = set(to_remove)
 dm = dm[~dm["task"].isin(to_remove)]
 
 dm = dm.sort_values(by = ["priority", "auroc_avg"], ascending=[True, False]).head(MAX_TASKS_PER_PATHOGEN)
-dm.to_csv(os.path.join(data_dir, pathogen_code, "015_selected_tasks.csv"), index=False)
+dm.to_csv(os.path.join(data_dir, pathogen_code, "016_selected_tasks.csv"), index=False)
 
 # print("Removing fingerprints and other unnecessary files")
 # os.remove(os.path.join(data_dir, pathogen_code, "014_fingerprints.npy"))

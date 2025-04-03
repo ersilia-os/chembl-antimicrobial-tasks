@@ -89,7 +89,7 @@ def modelability(df, X, inchikeys):
     return results
 
 R = []
-for l in os.listdir(tasks_dir):
+for l in sorted(os.listdir(tasks_dir)):
     print("Modeling task", l)
     df = pd.read_csv(os.path.join(tasks_dir, l))
     results = modelability(df, X, inchikeys)

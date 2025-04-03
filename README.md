@@ -1,8 +1,8 @@
-# Antimicrobial binary ML tasks from ChEMBL 💊🦠
+# 💊 Antimicrobial binary ML tasks from ChEMBL 🦠
 
 Get antimicrobial tasks from ChEMBL framed as binary classifications. This repository is the updated version of [chembl-binary-tasks](https://github.com/ersilia-os/chembl-binary-tasks). 
 
-This repository is currently **WORK IN PROGRESS**. ⚠️
+This repository is currently **WORK IN PROGRESS**. ⚠️🚧
 
 ## Setup 🛠️
 

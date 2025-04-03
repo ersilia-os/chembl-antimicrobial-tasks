@@ -49,5 +49,7 @@ def load_random_compounds_from_chembl(chembl_data, N):
 X, inchikeys = load_fingerprints(data_dir)
 
 # Load random compounds from ChEMBL and generate fingerprints
-chembl_random = sorted(load_random_compounds_from_chembl("../data/chembl_35_smallmolecules.tsv", 10000))
+chembl_random = sorted(load_random_compounds_from_chembl("./data/chembl_35_smallmolecules.tsv", 10000))
 chembl_random_fps = np.array([get_binary_fingerprints_from_smiles(i) for i in chembl_random])
+
+print(len(chembl_random), len(chembl_random_fps))

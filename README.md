@@ -1,4 +1,4 @@
-# 💊 Antimicrobial binary ML tasks from ChEMBL 🦠
+# 🦠 Antimicrobial binary ML tasks from ChEMBL 💊
 
 Get antimicrobial tasks from ChEMBL framed as binary classifications. This repository is the updated version of [chembl-binary-tasks](https://github.com/ersilia-os/chembl-binary-tasks). 
 
@@ -29,7 +29,7 @@ Access to a postgreSQL database server containing the ChEMBL database is require
 sudo service postgresql start
 PGPASSWORD=YOUR_PASSWORD psql -h localhost -p 5432 -U YOUR_USERNAME -d YOUR_DB_NAME -c "\dt"
 ```
-✅ If a *List of Relations* is displayed, checks have been successfull! Make sure to adapt the variables CHEMBL_USR, CHEMBL_PWD and DATABASE_NAME in `src/default_parameters.py` with your username, password and database name, respectively.
+✅ If a *List of Relations* is displayed, checks have been successfull! ⚠️ Make sure to adapt the variables CHEMBL_USR, CHEMBL_PWD and DATABASE_NAME in `src/default_parameters.py` with your username, password and database name, respectively.
 
 ### Downloading configuration data ⚙️
 
@@ -63,7 +63,7 @@ The primary goal of this repository is to automatically get microbial tasks from
 bash scripts/01_fetch_pathogen_data_from_chembl.sh --pathogen_code YOUR_PATHOGEN_CODE --output_dir YOUR_OUTPUT_DIR
 ```
 
-Note that available pathogen codes are listed in `data/pathogens.csv`. The bash script consecutevely executes 6 Python scripts briefly described as follows:
+Note that available pathogen codes are listed in `data/pathogens.csv`, which can be edited manually. The bash script consecutevely executes 6 Python scripts briefly described as follows:
 
 - `011_pathogen_getter.py`: Retrieves pathogen-related bioactivity data from the ChEMBL database, processes and filters the data, and saves it into structured CSV files for further analysis.
 - `012_clean_fetched_pathogen_data.py`:  Reads raw data, applies unit conversions, standardizes activity values, filters relevant information, computes pChEMBL values, and outputs a cleaned dataset in CSV format for further analysis.

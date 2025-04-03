@@ -268,7 +268,7 @@ def create_datasets_by_major_types(df, all_datasets, priority):
     for v in df[["target_id", "standard_type", "standard_units"]].values:
         counter[(v[0], v[1].lower(), v[2])] += 1
     selected_units = sorted(counter.items(), key=lambda x: x[1], reverse=True)[:MAX_NUM_INDEPENDENT_ASSAYS]
-    print(selected_units)
+    # print(selected_units)
     for r in selected_units:
         r = r[0]
         target_id = r[0]

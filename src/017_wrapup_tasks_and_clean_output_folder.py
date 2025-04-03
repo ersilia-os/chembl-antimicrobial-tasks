@@ -31,9 +31,12 @@ ds.to_csv(os.path.join(data_dir, pathogen_code, "016_tasks_summary.csv"), index=
 mols_original = pd.read_csv(os.path.join(data_dir, pathogen_code, f"011_{pathogen_code}_original.csv"), low_memory=False)
 mols_cleaned = pd.read_csv(os.path.join(data_dir, pathogen_code, f"012_{pathogen_code}_cleaned.csv"), low_memory=False)
 num_tasks = pd.read_csv(os.path.join(data_dir, pathogen_code, "014_modelability.csv"), low_memory=False)
+modelable_tasks = num_tasks[num_tasks['auroc_avg'] >= 0.7]
+num_tasks = pd.read_csv(os.path.join(data_dir, pathogen_code, "015_distinguishability.csv"), low_memory=False)
+distinguishable_tasks = num_tasks[num_tasks['auroc_avg'] >= 0.7]
 selected_tasks = pd.read_csv(os.path.join(data_dir, pathogen_code, "016_selected_tasks.csv"), low_memory=False)
-df = pd.DataFrame([[pathogen_code, len(mols_original), len(mols_cleaned), len(num_tasks), len(selected_tasks)]], 
-                  columns=['pathogen code', 'num mols original', 'num mols cleaned', 'num tasks', 'num modelable tasks'])
+df = pd.DataFrame([[pathogen_code, len(mols_original), len(mols_cleaned), len(num_tasks), len(modelable_tasks), len(distinguishable_tasks), len(selected_tasks)]], 
+                  columns=['pathogen code', 'num mols original', 'num mols cleaned', 'num tasks', 'num modelable tasks', 'num distinguishable tasks', 'num selected tasks'])
 
 df.to_csv(os.path.join(data_dir, pathogen_code, f"017_{pathogen_code}_summary.csv"), index=False)
 

@@ -86,9 +86,9 @@ This table contains all ...
 
 This file contains all ChEMBL compounds (2,474,591 for ChEMBL v35). Downloaded from https://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/.
 
-## chembl_35_smallmolecules.csv
+## chembl_35_smallmolecules.tsv
 
-This file contains all ChEMBL compounds labeled as small molecules (). Downloaded from https://www.ebi.ac.uk/chembl/explore/compounds/STATE_ID:5MGyr_6jSrpBOaI_pEonIw%3D%3D.
+This file contains all ChEMBL compounds labeled as small molecules (1,920,809). Downloaded manually from https://www.ebi.ac.uk/chembl/explore/compounds/STATE_ID:5MGyr_6jSrpBOaI_pEonIw%3D%3D.
 
 ## pathogens.csv # TO-CHECK
 

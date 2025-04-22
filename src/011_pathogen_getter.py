@@ -275,7 +275,7 @@ if __name__ == "__main__":
     df_pathogens = pd.read_csv(PATHOGENSPATH)
     list_pathogen_codes = list(df_pathogens.pathogen_code)
     list_pathogen_search_text = list(df_pathogens.search_text)
-    print(list_pathogen_codes)
+    #print(list_pathogen_codes)
     if args.pathogen_code is not None:
         if args.pathogen_code not in list_pathogen_codes:
             raise ValueError(f'Pathogen code {args.pathogen_code} not found in pathogens.csv')

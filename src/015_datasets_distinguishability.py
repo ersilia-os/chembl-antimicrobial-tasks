@@ -51,7 +51,7 @@ X, inchikeys = load_fingerprints(data_dir)
 # Load random compounds from ChEMBL and generate fingerprints
 N = 200000
 print(f"Sampling {N} compounds from ChEMBL to perform distinguishability studies")
-chembl_random = sorted(load_random_compounds_from_chembl("./data/chembl_35_smallmolecules.tsv", N))
+chembl_random = sorted(load_random_compounds_from_chembl("../data/chembl_35_smallmolecules.tsv", N))
 chembl_random_fps = np.array([get_binary_fingerprints_from_smiles(i) for i in chembl_random])
 
 # Get list of tasks to distinguish

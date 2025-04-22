@@ -23,7 +23,7 @@ os.makedirs(os.path.join(data_dir, pathogen_code, "017_tasks"))
 for task in ds["task"].tolist():
     shutil.copy(os.path.join(data_dir, pathogen_code, "013_raw_tasks", task+".csv"), os.path.join(data_dir, pathogen_code, "017_tasks", task+".csv"))
 
-ds.to_csv(os.path.join(data_dir, pathogen_code, "016_tasks_summary.csv"), index=False)
+ds.to_csv(os.path.join(data_dir, pathogen_code, "017_tasks_summary.csv"), index=False)
 
 
 ### SUMMARY FOR THE ORGANISM ###

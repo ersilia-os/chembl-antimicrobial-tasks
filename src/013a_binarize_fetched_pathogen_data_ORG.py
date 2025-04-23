@@ -178,6 +178,23 @@ def active_inactive_binarizer(df, prefix):
     return data
 
 def others_binarizer(df, prefix):
+    """
+    Description:
+    Generates binary classification datasets based on standard value percentiles
+    for various directionally flagged bioactivity data. It separates compounds
+    into active and inactive based on whether higher or lower values indicate activity,
+    depending on the 'direction' parameter.
+
+    Input:
+    df (pd.DataFrame): DataFrame with columns 'standard_value', 'standard_relation',
+                    'inchikey', and 'smiles'.
+    prefix (str): Prefix for naming the resulting datasets.
+
+    Output:
+    dict: A dictionary of DataFrames indexed by formatted keys including the prefix,
+        direction, and percentile. Each DataFrame includes 'inchikey', 'smiles',
+        and a binary column indicating activity (1 = active, 0 = inactive).
+    """
     def split_by_percentiles(df_, direction, inner_prefix):
         data = {}
         for percentile in PERCENTILES:
@@ -321,7 +338,7 @@ def create_datasets_by_major_types(df, all_datasets, priority):
     for v in df[["target_id", "standard_type", "standard_units"]].values:
         counter[(v[0], v[1].lower(), v[2])] += 1
     selected_units = sorted(counter.items(), key=lambda x: x[1], reverse=True)[:MAX_NUM_INDEPENDENT_ASSAYS]
-    print(selected_units)
+    # print(selected_units)
     for r in selected_units:
         r = r[0]
         target_id = r[0]
@@ -384,10 +401,10 @@ def create_datasets_by_grouping_percentiles(df, all_datasets, priority):
     data_actives = collections.defaultdict(list)
     data_inactives = collections.defaultdict(list)
     for v in df[["target_id", "standard_type", "standard_units"]].values:
-        all_units.append((v[0], v[1], v[2]))
+        all_units.append((v[0], v[1].lower(), v[2]))
     all_units = list(set(all_units))
     for r in tqdm(all_units):
-        dp = df[(df["target_id"] == r[0]) & (df["standard_type"] == r[1]) & (df["standard_units"] == r[2])]
+        dp = df[(df["target_id"] == r[0]) & (df["standard_type"].str.lower() == r[1]) & (df["standard_units"] == r[2])]
         for direction in [1, -1]:
             if direction == 1:
                 dp = dp[dp["standard_relation"] != ">"]
@@ -448,6 +465,13 @@ summary_raw_tasks = []
 # print("Printing created datasets:")
 # print([[i, len(all_datasets[i])] for i in sorted(all_datasets)])
 
+print("Printing tasks before last filtering...")
+for dt in sorted(all_datasets):
+    l = len(all_datasets[dt])
+    columns = list(all_datasets[dt].columns)
+    ratio = round(sum(all_datasets[dt][columns[2]].tolist()) / l, 3)
+    print("{0}--{1}--{2}".format(dt, str(l), str(ratio)))
+
 for k,v in all_datasets.items():
     if v.shape[0] < MIN_SIZE_ANY_TASK:
         continue
@@ -456,10 +480,11 @@ for k,v in all_datasets.items():
     n = v[columns[2]].sum()
     if n < MIN_POSITIVES:
         continue
-    file_name = os.path.join(tasks_dir, "{0}.csv".format(k))
-    print("Saving data in {0}".format(file_name))
-    v.to_csv(file_name, index=False)
-    summary_raw_tasks.append([k, 'ORGANISM', len(v), n])
+    if n / len(v) < 0.5:
+        file_name = os.path.join(tasks_dir, "{0}.csv".format(k))
+        print("Saving data in {0}".format(file_name))
+        v.to_csv(file_name, index=False)
+        summary_raw_tasks.append([k, 'ORGANISM', len(v), n])
 
 # Store summary file
 summary_raw_tasks = pd.DataFrame(summary_raw_tasks, columns=["task_id", "target_type", "num_molecules", "num_positives"])

@@ -67,8 +67,27 @@ Note that available pathogen codes are listed in `data/pathogens.csv`, which can
 
 - `011_pathogen_getter.py`: Retrieves pathogen-related bioactivity data from the ChEMBL database, processes and filters the data, and saves it into structured CSV files for further analysis. 
 - `012_clean_fetched_pathogen_data.py`:  Reads raw data, applies unit conversions, standardizes activity values, filters relevant information, computes pChEMBL values, and outputs a cleaned dataset in CSV format for further analysis.
-- `013a_binarize_fetched_pathogen_data_ORG.py`: Processes phenotypic-based pathogen assay data and binarizes it into datasets using different criteria for machine learning models. Datasets may correspond to specific assays or targets (i.e. the organism itself), pChEMBL values, % of activity or global percentiles (sorted by priority).
-- `013b_binarize_fetched_pathogen_data_SP.py`: Processes single target-based pathogen assay data and binarizes it into datasets using different criteria for machine learning models. Datasets may correspond to specific assays or targets (e.g. a given protein), pChEMBL values, % of activity or global percentiles (sorted by priority).
+- `013a_binarize_fetched_pathogen_data_ORG.py`: Processes phenotypic-based pathogen assay data and organizes it into datasets that are binarized using different criteria for machine learning models (e.g. pChEMBL, %inhibition, etc). Datasets may correspond to specific assays or targets (i.e. the organism itself), global pChEMBL values, % of activity or comprehensive percentiles (sorted by priority). Datasets are created with six different strategies:
+
+    - 1. Compounds grouped by assays: fixed assay ID. If the assay has multiple activity types, it's split into several datasets.
+    - 2. Compounds grouped by targets: fixed target ID and activity type and units. Assays may differ. 
+    - 3. Compounds grouped by pChEMBL: assumes the target ID is fixed (i.e. the organism) and integrates all pChEMBL data.
+    - 4. Compounds grouped by percentage: assumes the target ID is fixed (i.e. the organism) and integrates all percentage data.
+    - 5. Compounds grouped by percentiles: fixed target ID (i.e. the organism) - integrates percentile data taking all units into account.
+    - 6. Compounds grouped by activity labels:
+
+Datasets are binarized following X different strategies:
+
+    - 1. pChEMBL cut-offs
+    - 2. pChEMBL percentiles
+    - 3. Percentage cut-offs
+    - 4. Percentage percentiles
+
+Datasets not satifying the requirements specified in `src/default_parameters.py` or having a proportion of positives < 0.5 are discarded and not reported. 
+
+- `013b_binarize_fetched_pathogen_data_SP.py`: Processes single protein-based pathogen assay data (both "Binding" and "Functional", separately) and organizes it into datasets that are binarized using different criteria for machine learning models (e.g. pChEMBL, %inhibition, etc). Datasets may correspond to specific assays or targets (e.g. a given protein), global pChEMBL values, % of activity or comprehensive percentiles (sorted by priority). For further information on dataset creation and binarization please see the previous point. IMPORTANT. TARGET.
+
+
 - `014_datasets_modelability.py`: Computes molecular fingerprints, trains a Random Forest classifier using stratified cross-validation, and evaluates dataset modelability by calculating AUROC scores for each task.
 - `015_datasets_distinguishability.py`: Analogous to dataset modelability, but negative compounds are randomly sampled from ChEMBL. 
 - `016_select_tasks.py`: Selects 25 modelable tasks based on AUROC scores, positive sample ratios, and overlap filtering.
@@ -80,9 +99,9 @@ Many files will be generated when creating the ChEMBL tasks/datasets. Overall, t
 
 - `011_{YOUR_PATHOGEN_CODE}_original.csv`: Compounds extracted from ChEMBL and associated to the pathogen of interest. Includes compound information, bioactivity data, assay details, and related metadata. Each row corresponds to a given bioactivity measurement. 
 - `011_{YOUR_PATHOGEN_CODE}_cleaned.csv`: A cleaned and processed version of the original dataset. Includes pChEMBL values, %Inhibition, etc.
-- `013a_raw_tasks_ORG_summary.csv`: Raw list of phenotypic-based tasks (datasets) created for the pathogen of interest.
-- `013b_raw_tasks_SP_summary_B.csv`: Raw list of target-based (binding) tasks (datasets) created for the pathogen of interest. 
-- `013b_raw_tasks_SP_summary_F.csv`: Raw list of target-based (functional) tasks (datasets) created for the pathogen of interest. 
+- `013a_raw_tasks_ORG_summary.csv`: Raw list of phenotypic-based tasks (datasets) created for the pathogen of interest. Only those tasks having a proportion of positives < 0.5 are kept.
+- `013b_raw_tasks_SP_summary_B.csv`: Raw list of target-based (binding) tasks (datasets) created for the pathogen of interest. Only those tasks having a proportion of positives < 0.5 are kept.
+- `013b_raw_tasks_SP_summary_F.csv`: Raw list of target-based (functional) tasks (datasets) created for the pathogen of interest. Only those tasks having a proportion of positives < 0.5 are kept.
 
 
 - `014_modelability.csv`: Modelability for each task. Includes AUROC scores to evaluate how well a binary classification model can be trained. Higher AUROCs indicate higher modelability. Tasks have been enumerated on the basis of the parameters specified in `src/default_parameters.py`. 

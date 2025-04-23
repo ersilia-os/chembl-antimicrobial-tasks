@@ -348,72 +348,80 @@ def create_datasets_by_major_types(df, all_datasets, priority):
                         all_datasets = append_data(all_datasets, data)
     return all_datasets 
 
-def create_datasets_by_all_pchembl(df, all_datasets, priority):
+def create_datasets_by_all_pchembl_target(df, all_datasets, priority):
     print("Considering only pchembl values")
-    dtp = df[df["pchembl_value"].notnull()]
-    if dtp.shape[0] < MIN_SIZE_ANY_TASK:
-        return all_datasets
-    prefix = "{0}_all".format(priority)
-    data = pchembl_binarizer(dtp, prefix=prefix)
-    all_datasets = append_data(all_datasets, data)
+    all_targetids = sorted(set(df["target_id"].tolist()))
+    for targetid in all_targetids:
+        print("Target ID pChEMBL: {0}".format(targetid))
+        dtp = df[(df["pchembl_value"].notnull()) & (df["target_id"] == targetid)]
+        if dtp.shape[0] > MIN_SIZE_ANY_TASK:
+            prefix = "{0}_all_{1}".format(priority, targetid)
+            data = pchembl_binarizer(dtp, prefix=prefix)
+            all_datasets = append_data(all_datasets, data)
     return all_datasets
 
-def create_datasets_by_all_percentage(df, all_datasets, priority):
+def create_datasets_by_all_percentage_target(df, all_datasets, priority):
     print("Considering only percentage activity")
     dtp = df[df["standard_units"] == "%"]
     dtp = dtp[dtp["standard_value"].notnull()]
     dtp = dtp[dtp["standard_relation"].notnull()]
     dtp = dtp[dtp["direction_flag"] == 1]
-    if dtp.shape[0] < MIN_SIZE_ANY_TASK:
-        return all_datasets
-    prefix = "{0}_all".format(priority)
-    data = percentage_activity_binarizer(dtp, prefix=prefix)
-    all_datasets = append_data(all_datasets, data)
+    all_targetids = sorted(set(dtp["target_id"].tolist()))
+    for targetid in all_targetids:
+        print("Target ID %: {0}".format(targetid))
+        dtp_ = dtp[dtp["target_id"] == targetid]
+        if dtp_.shape[0] > MIN_SIZE_ANY_TASK:
+            prefix = "{0}_all_{1}".format(priority, targetid)
+            data = percentage_activity_binarizer(dtp_, prefix=prefix)
+            all_datasets = append_data(all_datasets, data)
     return all_datasets
 
-def create_datasets_by_grouping_percentiles(df, all_datasets, priority):
+def create_datasets_by_grouping_percentiles_target(df, all_datasets, priority):
     print("Grouping percentiles")
-    all_units = []
-    data_actives = collections.defaultdict(list)
-    data_inactives = collections.defaultdict(list)
-    for v in df[["target_id", "standard_type", "standard_units"]].values:
-        all_units.append((v[0], v[1], v[2]))
-    all_units = list(set(all_units))
-    for r in tqdm(all_units):
-        dp = df[(df["target_id"] == r[0]) & (df["standard_type"] == r[1]) & (df["standard_units"] == r[2])]
-        for direction in [1, -1]:
-            if direction == 1:
-                dp = dp[dp["standard_relation"] != ">"]
-                dp.loc[dp["standard_relation"] == "<", "standard_value"] = 0
-                dp = dp.sort_values("standard_value", ascending=False)
-            elif direction == -1:
-                dp = dp[dp["standard_relation"] != "<"]
-                dp.loc[dp["standard_relation"] == ">", "standard_value"] = 10**15
-                dp = dp.sort_values("standard_value", ascending=True)
-            else:
-                continue
-            N = dp.shape[0]
-            for percentile in PERCENTILES:
-                n = int(N * percentile / 100)
-                if n == 0:
+    all_targetids = sorted(set(df["target_id"].tolist()))
+    for targetid in all_targetids:
+        all_units = []
+        data_actives = collections.defaultdict(list)
+        data_inactives = collections.defaultdict(list)
+        for v in df[["target_id", "standard_type", "standard_units"]].values:
+            if v[0] == targetid:
+                all_units.append((v[0], v[1].lower(), v[2]))
+        all_units = list(set(all_units))
+        for r in tqdm(all_units):
+            dp = df[(df["target_id"] == r[0]) & (df["standard_type"].str.lower() == r[1]) & (df["standard_units"] == r[2])]
+            for direction in [1, -1]:
+                if direction == 1:
+                    dp = dp[dp["standard_relation"] != ">"]
+                    dp.loc[dp["standard_relation"] == "<", "standard_value"] = 0
+                    dp = dp.sort_values("standard_value", ascending=False)
+                elif direction == -1:
+                    dp = dp[dp["standard_relation"] != "<"]
+                    dp.loc[dp["standard_relation"] == ">", "standard_value"] = 10**15
+                    dp = dp.sort_values("standard_value", ascending=True)
+                else:
                     continue
-                da = dp.head(n)
-                di = dp.tail(N - n)
-                actives = [(ik, smi) for ik, smi in da[["inchikey", "smiles"]].values]
-                inactives = [(ik, smi) for ik, smi in di[["inchikey", "smiles"]].values]
-                data_actives[percentile] += actives
-                data_inactives[percentile] += inactives
-    prefix = "{0}_grouped_percentiles".format(priority)
-    data = {}
-    for percentile in PERCENTILES:
-        data["{0}_{1}".format(prefix, percentile)] = pd.DataFrame({"inchikey": [x[0] for x in data_actives[percentile]] + [x[0] for x in data_inactives[percentile]],
-                                         "smiles": [x[1] for x in data_actives[percentile]] + [x[1] for x in data_inactives[percentile]],
-                                         "percentile_{0}".format(percentile): [1] * len(data_actives[percentile]) + [0] * len(data_inactives[percentile])})
-    all_datasets = append_data(all_datasets, data)
+                N = dp.shape[0]
+                for percentile in PERCENTILES:
+                    n = int(N * percentile / 100)
+                    if n == 0: 
+                        continue
+                    da = dp.head(n)
+                    di = dp.tail(N - n)
+                    actives = [(ik, smi) for ik, smi in da[["inchikey", "smiles"]].values]
+                    inactives = [(ik, smi) for ik, smi in di[["inchikey", "smiles"]].values]
+                    data_actives[percentile] += actives
+                    data_inactives[percentile] += inactives
+        prefix = "{0}_{1}_grouped_percentiles".format(priority, targetid)
+        data = {}
+        for percentile in PERCENTILES:
+            data["{0}_{1}".format(prefix, percentile)] = pd.DataFrame({"inchikey": [x[0] for x in data_actives[percentile]] + [x[0] for x in data_inactives[percentile]],
+                                            "smiles": [x[1] for x in data_actives[percentile]] + [x[1] for x in data_inactives[percentile]],
+                                            "percentile_{0}".format(percentile): [1] * len(data_actives[percentile]) + [0] * len(data_inactives[percentile])})
+        all_datasets = append_data(all_datasets, data)
     return all_datasets
 
 
-for label in sorted(labels):
+for label in sorted(labels)[:1]:
 
     # Binding or Functional
     df = labels[label]
@@ -426,9 +434,9 @@ for label in sorted(labels):
     all_datasets = {}
     all_datasets = create_datasets_by_top_assays(df, all_datasets, priority=1)
     all_datasets = create_datasets_by_major_types(df, all_datasets, priority=2)
-    # all_datasets = create_datasets_by_all_pchembl(df, all_datasets, priority=3)
-    # all_datasets = create_datasets_by_all_percentage(df, all_datasets, priority=4)
-    # all_datasets = create_datasets_by_grouping_percentiles(df, all_datasets, priority=5)
+    all_datasets = create_datasets_by_all_pchembl_target(df, all_datasets, priority=3)  # Adapted function, all pchembl values PER TARGET
+    all_datasets = create_datasets_by_all_percentage_target(df, all_datasets, priority=4)  # Adapted function, all percentages PER TARGET
+    all_datasets = create_datasets_by_grouping_percentiles_target(df, all_datasets, priority=5)
     # all_datasets = create_datasets_by_active_inactive(df, all_datasets, priority=6)
 
     def disambiguate_data(df):
@@ -446,9 +454,16 @@ for label in sorted(labels):
             R += [[k, ik2smi[k], v]]
         return pd.DataFrame(R, columns=columns)
 
+    # Disambiguate data
     all_datasets = {k: disambiguate_data(v) for k,v in all_datasets.items()}
     summary_raw_tasks = []
 
+    print("Printing tasks before last filtering...")
+    for dt in sorted(all_datasets):
+        l = len(all_datasets[dt])
+        columns = list(all_datasets[dt].columns)
+        ratio = round(sum(all_datasets[dt][columns[2]].tolist()) / l, 3)
+        print("{0}--{1}--{2}".format(dt, str(l), str(ratio)))
 
     for k,v in all_datasets.items():
         if v.shape[0] < MIN_SIZE_ANY_TASK:
@@ -458,11 +473,11 @@ for label in sorted(labels):
         n = v[columns[2]].sum()
         if n < MIN_POSITIVES:
             continue
-        file_name = os.path.join(tasks_dir, "{0}_SINGLE_TARGET.csv".format(k))
-        print("Saving data in {0}".format(file_name))
-        v.to_csv(file_name, index=False)
-        summary_raw_tasks.append([k, f'SINGLE TARGET - {label}', len(v), n])
-
+        if n / len(v) < 0.5:
+            file_name = os.path.join(tasks_dir, "{0}_SINGLE_TARGET.csv".format(k))
+            print("Saving data in {0}".format(file_name))
+            v.to_csv(file_name, index=False)
+            summary_raw_tasks.append([k, f'SINGLE TARGET - {label}', len(v), n])
 
     # Store summary file
     summary_raw_tasks = pd.DataFrame(summary_raw_tasks, columns=["task_id", "target_type", "num_molecules", "num_positives"])

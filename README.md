@@ -65,9 +65,10 @@ bash scripts/01_fetch_pathogen_data_from_chembl.sh --pathogen_code YOUR_PATHOGEN
 
 Note that available pathogen codes are listed in `data/pathogens.csv`, which can be edited manually. The bash script consecutevely executes 6 Python scripts briefly described as follows:
 
-- `011_pathogen_getter.py`: Retrieves pathogen-related bioactivity data from the ChEMBL database, processes and filters the data, and saves it into structured CSV files for further analysis.
+- `011_pathogen_getter.py`: Retrieves pathogen-related bioactivity data from the ChEMBL database, processes and filters the data, and saves it into structured CSV files for further analysis. 
 - `012_clean_fetched_pathogen_data.py`:  Reads raw data, applies unit conversions, standardizes activity values, filters relevant information, computes pChEMBL values, and outputs a cleaned dataset in CSV format for further analysis.
-- `013_binarize_fetched_pathogen_data.py`: Processes pathogen assay data and binarizes it into datasets using different criteria for machine learning models. Datasets may correspond to specific assays or targets, pChEMBL values, % of activity or global percentiles (sorted by priority).
+- `013a_binarize_fetched_pathogen_data_ORG.py`: Processes phenotypic-based pathogen assay data and binarizes it into datasets using different criteria for machine learning models. Datasets may correspond to specific assays or targets (i.e. the organism itself), pChEMBL values, % of activity or global percentiles (sorted by priority).
+- `013b_binarize_fetched_pathogen_data_SP.py`: Processes single target-based pathogen assay data and binarizes it into datasets using different criteria for machine learning models. Datasets may correspond to specific assays or targets (e.g. a given protein), pChEMBL values, % of activity or global percentiles (sorted by priority).
 - `014_datasets_modelability.py`: Computes molecular fingerprints, trains a Random Forest classifier using stratified cross-validation, and evaluates dataset modelability by calculating AUROC scores for each task.
 - `015_datasets_distinguishability.py`: Analogous to dataset modelability, but negative compounds are randomly sampled from ChEMBL. 
 - `016_select_tasks.py`: Selects 25 modelable tasks based on AUROC scores, positive sample ratios, and overlap filtering.
@@ -77,8 +78,13 @@ Note that available pathogen codes are listed in `data/pathogens.csv`, which can
 
 Many files will be generated when creating the ChEMBL tasks/datasets. Overall, the most important files are:
 
-- `011_{YOUR_PATHOGEN_CODE}_original.csv`: Compounds extracted from ChEMBL and associated to the pathogen of interest. Includes compound information, bioactivity data, assay details, and related metadata. 
-- `011_{YOUR_PATHOGEN_CODE}_cleaned.csv`: A cleaned and processed version of the original dataset.
+- `011_{YOUR_PATHOGEN_CODE}_original.csv`: Compounds extracted from ChEMBL and associated to the pathogen of interest. Includes compound information, bioactivity data, assay details, and related metadata. Each row corresponds to a given bioactivity measurement. 
+- `011_{YOUR_PATHOGEN_CODE}_cleaned.csv`: A cleaned and processed version of the original dataset. Includes pChEMBL values, %Inhibition, etc.
+- `013a_raw_tasks_ORG_summary.csv`: Raw list of phenotypic-based tasks (datasets) created for the pathogen of interest.
+- `013b_raw_tasks_SP_summary_B.csv`: Raw list of target-based (binding) tasks (datasets) created for the pathogen of interest. 
+- `013b_raw_tasks_SP_summary_F.csv`: Raw list of target-based (functional) tasks (datasets) created for the pathogen of interest. 
+
+
 - `014_modelability.csv`: Modelability for each task. Includes AUROC scores to evaluate how well a binary classification model can be trained. Higher AUROCs indicate higher modelability. Tasks have been enumerated on the basis of the parameters specified in `src/default_parameters.py`. 
 - `015_distinguishability.csv`: Distinguishability for each task. Includes AUROC scores to evaluate how well a binary classification model using randomly sampled ChEMBL compounds as inactives can be trained. Higher AUROCs indicate higher distinguishability. 
 - `013_raw_tasks and 016_tasks:` For each task, list of active (1) and inactive (0) compounds. `013_raw_tasks` includes all tasks; `017_tasks` includes only all modelable or dist .......... tasks. 

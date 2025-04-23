@@ -469,8 +469,11 @@ print("Printing tasks before last filtering...")
 for dt in sorted(all_datasets):
     l = len(all_datasets[dt])
     columns = list(all_datasets[dt].columns)
-    ratio = round(sum(all_datasets[dt][columns[2]].tolist()) / l, 3)
-    print("{0}--{1}--{2}".format(dt, str(l), str(ratio)))
+    if l != 0:
+        ratio = round(sum(all_datasets[dt][columns[2]].tolist()) / l, 3)
+    else:
+        ratio = 0
+    print("{0} -- {1} -- {2}".format(dt, str(l), str(ratio)))
 
 for k,v in all_datasets.items():
     if v.shape[0] < MIN_SIZE_ANY_TASK:

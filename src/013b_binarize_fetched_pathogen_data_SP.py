@@ -308,6 +308,15 @@ def create_datasets_by_top_assays(df, all_datasets, priority):
                             all_datasets = append_data(all_datasets, data)
     return all_datasets
 
+def create_datasets_by_active_inactive(df, all_datasets, priority):
+    all_targetids = sorted(set(df["target_id"].tolist()))
+    for targetid in all_targetids:
+        prefix = "{0}_all_{1}".format(priority, targetid)
+        df_ = df[df["target_id"] == targetid]
+        data = active_inactive_binarizer(df_, prefix=prefix)
+        all_datasets = append_data(all_datasets, data)
+    return all_datasets
+
 def create_datasets_by_major_types(df, all_datasets, priority):
     counter = collections.defaultdict(int)
     for v in df[["target_id", "standard_type", "standard_units"]].values:
@@ -421,7 +430,7 @@ def create_datasets_by_grouping_percentiles_target(df, all_datasets, priority):
     return all_datasets
 
 
-for label in sorted(labels)[:1]:
+for label in sorted(labels):
 
     # Binding or Functional
     df = labels[label]
@@ -436,8 +445,8 @@ for label in sorted(labels)[:1]:
     all_datasets = create_datasets_by_major_types(df, all_datasets, priority=2)
     all_datasets = create_datasets_by_all_pchembl_target(df, all_datasets, priority=3)  # Adapted function, all pchembl values PER TARGET
     all_datasets = create_datasets_by_all_percentage_target(df, all_datasets, priority=4)  # Adapted function, all percentages PER TARGET
-    all_datasets = create_datasets_by_grouping_percentiles_target(df, all_datasets, priority=5)
-    # all_datasets = create_datasets_by_active_inactive(df, all_datasets, priority=6)
+    all_datasets = create_datasets_by_grouping_percentiles_target(df, all_datasets, priority=5)  # Adapted function, all percentiles PER TARGET
+    all_datasets = create_datasets_by_active_inactive(df, all_datasets, priority=6)
 
     def disambiguate_data(df):
         ik2smi = {}
@@ -462,8 +471,11 @@ for label in sorted(labels)[:1]:
     for dt in sorted(all_datasets):
         l = len(all_datasets[dt])
         columns = list(all_datasets[dt].columns)
-        ratio = round(sum(all_datasets[dt][columns[2]].tolist()) / l, 3)
-        print("{0}--{1}--{2}".format(dt, str(l), str(ratio)))
+        if l != 0:
+            ratio = round(sum(all_datasets[dt][columns[2]].tolist()) / l, 3)
+        else:
+            ratio = 0
+        print("{0} -- {1} -- {2}".format(dt, str(l), str(ratio)))
 
     for k,v in all_datasets.items():
         if v.shape[0] < MIN_SIZE_ANY_TASK:

@@ -69,23 +69,23 @@ Note that available pathogen codes are listed in `data/pathogens.csv`, which can
 - `012_clean_fetched_pathogen_data.py`:  Reads raw data, applies unit conversions, standardizes activity values, filters relevant information, computes pChEMBL values, and outputs a cleaned dataset in CSV format for further analysis.
 - `013a_binarize_fetched_pathogen_data_ORG.py`: Processes phenotypic-based pathogen assay data and organizes it into datasets that are binarized using different criteria for machine learning models (e.g. pChEMBL, %inhibition, etc). Datasets may correspond to specific assays or targets (i.e. the organism itself), global pChEMBL values, % of activity or comprehensive percentiles (sorted by priority). Datasets are created with six different strategies:
 
-    - 1. Compounds grouped by assays: fixed assay ID. If the assay has multiple activity types, it's split into several datasets.
-    - 2. Compounds grouped by targets: fixed target ID and activity type and units. Assays may differ. 
-    - 3. Compounds grouped by pChEMBL: assumes the target ID is fixed (i.e. the organism) and integrates all pChEMBL data.
-    - 4. Compounds grouped by percentage: assumes the target ID is fixed (i.e. the organism) and integrates all percentage data.
-    - 5. Compounds grouped by percentiles: fixed target ID (i.e. the organism) - integrates percentile data taking all units into account.
-    - 6. Compounds grouped by activity labels:
+    1. Compounds grouped by assays: fixed assay ID. If the assay has multiple activity types, it's split into several datasets.
+    2. Compounds grouped by targets: fixed target ID and activity type and units. Assays may differ. 
+    3. Compounds grouped by pChEMBL: assumes the target ID is fixed (i.e. the organism) and integrates all pChEMBL data.
+    4. Compounds grouped by percentage: assumes the target ID is fixed (i.e. the organism) and integrates all percentage data.
+    5. Compounds grouped by percentiles: fixed target ID (i.e. the organism) - integrates percentile data taking all units into account.
+    6. Compounds grouped by activity labels: assumes the target ID is fixed (i.e. the organism) and integrates data using the corresponding activity flag.
 
-Datasets are binarized following X different strategies:
+    Datasets are binarized following 4 different approaches:
 
-    - 1. pChEMBL cut-offs
-    - 2. pChEMBL percentiles
-    - 3. Percentage cut-offs
-    - 4. Percentage percentiles
+    1. pChEMBL cut-offs
+    2. pChEMBL percentiles
+    3. Percentage cut-offs
+    4. Percentage percentiles
 
-Datasets not satifying the requirements specified in `src/default_parameters.py` or having a proportion of positives < 0.5 are discarded and not reported. 
+    Datasets not satifying the requirements specified in `src/default_parameters.py` or having a proportion of positives > 0.5 are discarded and not reported. 
 
-- `013b_binarize_fetched_pathogen_data_SP.py`: Processes single protein-based pathogen assay data (both "Binding" and "Functional", separately) and organizes it into datasets that are binarized using different criteria for machine learning models (e.g. pChEMBL, %inhibition, etc). Datasets may correspond to specific assays or targets (e.g. a given protein), global pChEMBL values, % of activity or comprehensive percentiles (sorted by priority). For further information on dataset creation and binarization please see the previous point. IMPORTANT. TARGET.
+- `013b_binarize_fetched_pathogen_data_SP.py`: Processes single protein-based pathogen assay data (both "Binding" and "Functional", separately) and organizes it into datasets that are binarized using different criteria for machine learning models (e.g. pChEMBL, %inhibition, etc). Datasets may correspond to specific assays or targets (e.g. a given protein), global pChEMBL values against a speficic protein, % of activity or comprehensive percentiles (sorted by priority). For further information on dataset creation and binarization please see the previous point. IMPORTANT: in this step strategies (1) and (2) are analogous to `013a_binarize_fetched_pathogen_data_ORG.py`. However, strategies (3), (4), (5) and (6) have been adapted to report results in a target-centric manner (i.e. targets are no longer full organisms but single proteins). 
 
 
 - `014_datasets_modelability.py`: Computes molecular fingerprints, trains a Random Forest classifier using stratified cross-validation, and evaluates dataset modelability by calculating AUROC scores for each task.

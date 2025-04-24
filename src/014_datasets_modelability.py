@@ -9,6 +9,7 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import roc_auc_score
 from sklearn.ensemble import RandomForestClassifier
 import argparse
+import joblib
 
 random_seed = 54
 
@@ -22,7 +23,9 @@ args = parser.parse_args()
 
 pathogen_code = args.pathogen_code
 data_dir = args.output_dir
-tasks_dir_ORG = os.path.join(data_dir, pathogen_code, "013_raw_tasks")
+tasks_dir_ORG = os.path.join(data_dir, pathogen_code, "013a_raw_tasks_ORG")
+tasks_dir_SP_B = os.path.join(data_dir, pathogen_code, "013b_raw_tasks_SP", "B")
+tasks_dir_SP_F = os.path.join(data_dir, pathogen_code, "013b_raw_tasks_SP", "F")
 
 def get_binary_fingerprints_from_smiles(smiles):
     mol = Chem.MolFromSmiles(smiles)
@@ -33,11 +36,12 @@ def get_binary_fingerprints_from_smiles(smiles):
     return fp
 
 ik_smi_pairs = []
-for f in os.listdir(tasks_dir):
-    print("Reading task", f)
-    df = pd.read_csv(os.path.join(tasks_dir, f))
-    for i, row in df.iterrows():
-        ik_smi_pairs.append((row['inchikey'], row['smiles']))
+for tasks_dir in [tasks_dir_ORG, tasks_dir_SP_B, tasks_dir_SP_F]:
+    for f in os.listdir(tasks_dir):
+        print("Reading task", f)
+        df = pd.read_csv(os.path.join(tasks_dir, f))
+        for i, row in df.iterrows():
+            ik_smi_pairs.append((row['inchikey'], row['smiles']))
 ik_smi_pairs = list(set(ik_smi_pairs))
 
 X = np.zeros((len(ik_smi_pairs), 1024), dtype=int)
@@ -88,13 +92,53 @@ def modelability(df, X, inchikeys):
                "pos:neg": round(np.sum(y) / (X.shape[0] - np.sum(y)), 4)}
     return results
 
+def save_model(df, X, inchikeys):
+    inchikeys_ = list(df['inchikey'])
+    columns = list(df.columns)
+    assert len(columns) == 3, "The dataframe must have 3 columns"
+    y = np.array(df[columns[-1]], dtype=int)
+    indices = {}
+    for i, ik in enumerate(inchikeys):
+        indices[ik] = i
+    idxs = [indices[ik] for ik in inchikeys_]
+    X = X[idxs]
+    print("Ready to save full model for dataset with {0} samples".format(X.shape[0]))
+    # skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    # aurocs = []
+    # for train, test in tqdm(skf.split(X, y)):
+    clf = RandomForestClassifier(n_estimators=100, n_jobs=8, random_state=42)
+    print("Fitting model")
+    clf.fit(X, y)
+    try:
+        auroc = roc_auc_score(y, clf.predict_proba(X)[:, 1])
+    except:
+        print("Caution. AUROC calculation failed. Probably no positives or negatives are found.")
+        auroc = np.nan
+    print("AUROC", auroc)
+    results = {"auroc": round(auroc, 4),
+               "num_samples": X.shape[0],
+               "num_pos_samples": np.sum(y),
+               "pos:neg": round(np.sum(y) / (X.shape[0] - np.sum(y)), 4)}
+    return clf, results
+
+# Directory to save the models
+models_dir = os.path.join(data_dir, pathogen_code, "014_models_MOD")
+os.makedirs(models_dir, exist_ok=True)
+
 R = []
-for l in sorted(os.listdir(tasks_dir)):
-    print("Modeling task", l)
-    df = pd.read_csv(os.path.join(tasks_dir, l))
-    results = modelability(df, X, inchikeys)
-    fname = l[:-4]
-    R += [(fname, results["auroc_avg"], results["auroc_std"], results["num_samples"], results["num_pos_samples"], results["pos:neg"])]
+R_models = []
+for tasks_dir in [tasks_dir_ORG, tasks_dir_SP_B, tasks_dir_SP_F]:
+    for l in sorted(os.listdir(tasks_dir)[:10]):
+        print("Modeling task", l)
+        df = pd.read_csv(os.path.join(tasks_dir, l))
+        results = modelability(df, X, inchikeys)
+        fname = l[:-4]
+        R += [(fname, results["auroc_avg"], results["auroc_std"], results["num_samples"], results["num_pos_samples"], results["pos:neg"])]
+        print("Saving full model for", l)
+        clf, results = save_model(df, X, inchikeys)
+        R_models += [(fname, results["auroc"], results["num_samples"], results["num_pos_samples"], results["pos:neg"])]
+        joblib.dump(clf, os.path.join(models_dir, fname + ".joblib"), compress=9)
 
 pd.DataFrame(R, columns=["task", "auroc_avg", "auroc_std", "num_samples", "num_pos_samples", "pos:neg"]).to_csv(os.path.join(data_dir, pathogen_code, "014_modelability.csv"), index=False)
+pd.DataFrame(R_models, columns=["task", "auroc", "num_samples", "num_pos_samples", "pos:neg"]).to_csv(os.path.join(data_dir, pathogen_code, "014_models_MOD.csv"), index=False)
 

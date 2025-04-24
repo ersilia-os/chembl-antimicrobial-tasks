@@ -487,7 +487,7 @@ for label in sorted(labels):
         if n < MIN_POSITIVES:
             continue
         # if n / len(v) < 0.5:
-        file_name = os.path.join(tasks_dir, "{0}_SINGLE_TARGET.csv".format(k))
+        file_name = os.path.join(tasks_dir, "{0}_SINGLE_TARGET_{1}.csv".format(k, label))
         print("Saving data in {0}".format(file_name))
         v.to_csv(file_name, index=False)
         summary_raw_tasks.append([k, f'SINGLE TARGET - {label}', len(v), n])

@@ -483,11 +483,11 @@ for k,v in all_datasets.items():
     n = v[columns[2]].sum()
     if n < MIN_POSITIVES:
         continue
-    if n / len(v) < 0.5:
-        file_name = os.path.join(tasks_dir, "{0}.csv".format(k))
-        print("Saving data in {0}".format(file_name))
-        v.to_csv(file_name, index=False)
-        summary_raw_tasks.append([k, 'ORGANISM', len(v), n])
+    # if n / len(v) < 0.5:
+    file_name = os.path.join(tasks_dir, "{0}.csv".format(k))
+    print("Saving data in {0}".format(file_name))
+    v.to_csv(file_name, index=False)
+    summary_raw_tasks.append([k, 'ORGANISM', len(v), n])
 
 # Store summary file
 summary_raw_tasks = pd.DataFrame(summary_raw_tasks, columns=["task_id", "target_type", "num_molecules", "num_positives"])

@@ -264,6 +264,7 @@ def create_datasets_by_top_assays(df, all_datasets, priority):
     counts = [x for x in df.value_counts("assay_id")]  # Notice this counts the number of rows, not the number of compounds!
     sel_assay_ids = []
     for aid, count in zip(assay_ids, counts):
+        # print(aid, count)
         if count >= MIN_SIZE_ASSAY_TASK:
             sel_assay_ids.append(aid)
         else:
@@ -485,11 +486,11 @@ for label in sorted(labels):
         n = v[columns[2]].sum()
         if n < MIN_POSITIVES:
             continue
-        if n / len(v) < 0.5:
-            file_name = os.path.join(tasks_dir, "{0}_SINGLE_TARGET.csv".format(k))
-            print("Saving data in {0}".format(file_name))
-            v.to_csv(file_name, index=False)
-            summary_raw_tasks.append([k, f'SINGLE TARGET - {label}', len(v), n])
+        # if n / len(v) < 0.5:
+        file_name = os.path.join(tasks_dir, "{0}_SINGLE_TARGET.csv".format(k))
+        print("Saving data in {0}".format(file_name))
+        v.to_csv(file_name, index=False)
+        summary_raw_tasks.append([k, f'SINGLE TARGET - {label}', len(v), n])
 
     # Store summary file
     summary_raw_tasks = pd.DataFrame(summary_raw_tasks, columns=["task_id", "target_type", "num_molecules", "num_positives"])

@@ -22,7 +22,7 @@ args = parser.parse_args()
 
 pathogen_code = args.pathogen_code
 data_dir = args.output_dir
-tasks_dir = os.path.join(data_dir, pathogen_code, "013_raw_tasks")
+tasks_dir_ORG = os.path.join(data_dir, pathogen_code, "013_raw_tasks")
 
 def get_binary_fingerprints_from_smiles(smiles):
     mol = Chem.MolFromSmiles(smiles)

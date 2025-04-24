@@ -111,11 +111,11 @@ Many files will be generated when creating the ChEMBL tasks/datasets. Overall, t
 - `013b_raw_tasks_SP_summary_F.csv`: Raw list of target-based (functional) tasks (datasets) created for the pathogen of interest.
 - `013a_raw_tasks_SP directory`: For each target-based (both binding and functional) task (dataset), list of compounds and associated binarized bioactivities.
 - `014_modelability.csv`: Modelability for each task. Includes AUROC scores to evaluate how well a binary classification model discriminates actives from inactives. Higher AUROCs indicate higher modelability.
-- `014_models_MOD.csv`: ...
-- `014_models_MOD directory`: ...
+- `014_models_MOD.csv`: For each task, performance of a binary classification model trained and tested on the full task data.
+- `014_models_MOD directory`: For each task, joblib file including the binary classification model mentioned in the immediately preceding file. 
 - `015_distinguishability.csv`: Distinguishability for each task. Includes AUROC scores to evaluate how well a binary classification model using randomly sampled ChEMBL compounds as inactives discriminates actives from inactives. Higher AUROCs indicate higher distinguishability. 
-- `015_models_DIS.csv`: ...
-- `015_models_DIS directory`: ...
+- `015_models_DIS.csv`: For each task, performance of a binary classification model trained and tested on the full task data (negatives are randomly sampled from ChEMBL compounds).
+- `015_models_DIS directory`: For each task, joblib file including the binary classification model mentioned in the immediately preceding file.
 
 <!--
 - `013_raw_tasks and 016_tasks:` For each task, list of active (1) and inactive (0) compounds. `013_raw_tasks` includes all tasks; `017_tasks` includes only all modelable or dist .......... tasks. 

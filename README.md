@@ -111,17 +111,21 @@ Many files will be generated when creating the ChEMBL tasks/datasets. Overall, t
 - `013b_raw_tasks_SP_summary_F.csv`: Raw list of target-based (functional) tasks (datasets) created for the pathogen of interest.
 - `013a_raw_tasks_SP directory`: For each target-based (both binding and functional) task (dataset), list of compounds and associated binarized bioactivities.
 - `014_modelability.csv`: Modelability for each task. Includes AUROC scores to evaluate how well a binary classification model discriminates actives from inactives. Higher AUROCs indicate higher modelability.
-- `014_models.csv`: ...
-- `014_models directory`: ...
+- `014_models_MOD.csv`: ...
+- `014_models_MOD directory`: ...
 - `015_distinguishability.csv`: Distinguishability for each task. Includes AUROC scores to evaluate how well a binary classification model using randomly sampled ChEMBL compounds as inactives discriminates actives from inactives. Higher AUROCs indicate higher distinguishability. 
+- `015_models_DIS.csv`: ...
+- `015_models_DIS directory`: ...
 
 <!--
-
-
 - `013_raw_tasks and 016_tasks:` For each task, list of active (1) and inactive (0) compounds. `013_raw_tasks` includes all tasks; `017_tasks` includes only all modelable or dist .......... tasks. 
 - **`017_tasks_summary.csv`**: Summary of the TOP-25 ........... modelable tasks, accompanied by aggregated statistics and evaluation metrics. 
 - **`017_{YOUR_PATHOGEN_CODE}_summary.csv`**: Summary of the final selected tasks specific to the pathogen of interest. 
 -->
+
+## TL;DR 🚩
+
+Bla bla
 
 ## About the Ersilia Open Source Initiative 🌍🤝
 

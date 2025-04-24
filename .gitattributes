@@ -7,4 +7,5 @@ output/** filter=lfs diff=lfs merge=lfs -text
 *.npy filter=lfs diff=lfs merge=lfs -text
 *.csv filter=lfs diff=lfs merge=lfs -text
 *.txt filter=lfs diff=lfs merge=lfs -text
+*.joblib filter=lfs diff=lfs merge=lfs -text
 data/chembl_35_smallmolecules.tsv filter=lfs diff=lfs merge=lfs -text

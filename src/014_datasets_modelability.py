@@ -46,12 +46,17 @@ ik_smi_pairs = list(set(ik_smi_pairs))
 
 X = np.zeros((len(ik_smi_pairs), 1024), dtype=int)
 keys = []
+keys_SMILES = []
 for i, (ik, smi) in tqdm(enumerate(ik_smi_pairs)):
     X[i] = get_binary_fingerprints_from_smiles(smi)
     keys.append(ik)
+    keys_SMILES.append(smi)
 np.save(os.path.join(data_dir, pathogen_code, "014_fingerprints.npy"), X)
 with open(os.path.join(data_dir, pathogen_code, "014_fingerprints_inchikeys.txt"), "w") as f:
     for k in keys:
+        f.write(k + "\n")
+with open(os.path.join(data_dir, pathogen_code, "014_fingerprints_SMILES.txt"), "w") as f:
+    for k in keys_SMILES:
         f.write(k + "\n")
 
 def load_fingerprints(data_dir):

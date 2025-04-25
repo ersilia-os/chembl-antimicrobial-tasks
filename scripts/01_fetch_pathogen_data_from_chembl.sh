@@ -57,6 +57,6 @@ echo "Fetching data for pathogen $PATHOGEN_CODE and storing in $OUTPUT_DIR"
 # python $SCRIPT_DIR/../src/013a_binarize_fetched_pathogen_data_ORG.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR
 # python $SCRIPT_DIR/../src/013b_binarize_fetched_pathogen_data_SP.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR
 python $SCRIPT_DIR/../src/014_datasets_modelability.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR
-python $SCRIPT_DIR/../src/015_datasets_distinguishability.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR
+# python $SCRIPT_DIR/../src/015_datasets_distinguishability.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR
 # python $SCRIPT_DIR/../src/016_select_tasks.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR
 # python $SCRIPT_DIR/../src/017_wrapup_tasks_and_clean_output_folder.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR

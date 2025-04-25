@@ -289,6 +289,6 @@ if __name__ == "__main__":
         patho_getter = PathogenGetter(list_pathogen_search_text[i], strict_match=args.strict_match)
         df = patho_getter.chembl_activity_target(max_heavy_atoms=args.max_heavy_atoms)
 
-        if not os.path.exists(os.path.join(args.output_dir, patho_code)):
-            os.makedirs(os.path.join(args.output_dir, patho_code))
-        df.to_csv(os.path.join(args.output_dir, patho_code, "011_{}_original.csv".format(patho_code)), index=False)
+        if not os.path.exists(os.path.join(args.output_dir)):
+            os.makedirs(os.path.join(args.output_dir))
+        df.to_csv(os.path.join(args.output_dir, "011_{}_original.csv".format(patho_code)), index=False)

@@ -16,7 +16,7 @@ from default_parameters import DATAPATH
 def main(pathogen_code, data_dir):
     
     print(f"Cleaning data for pathogen {pathogen_code}")
-    df = pd.read_csv(f"{data_dir}/{pathogen_code}/011_{pathogen_code}_original.csv", low_memory=False)
+    df = pd.read_csv(f"{data_dir}/011_{pathogen_code}_original.csv", low_memory=False)
     initial_len = len(df)
     print(f"Initial length: {initial_len}")
     
@@ -149,8 +149,8 @@ def main(pathogen_code, data_dir):
     df = df[columns]
     
     print("Final length: ", len(df))
-    print("Saving cleaned data to {0}".format(f"{data_dir}/{pathogen_code}/{pathogen_code}_cleaned.csv"))
-    df.to_csv(f"{data_dir}/{pathogen_code}/012_{pathogen_code}_cleaned.csv", index=False)
+    print("Saving cleaned data to {0}".format(f"{data_dir}/{pathogen_code}_cleaned.csv"))
+    df.to_csv(f"{data_dir}/012_{pathogen_code}_cleaned.csv", index=False)
 
 
 if __name__ == "__main__":

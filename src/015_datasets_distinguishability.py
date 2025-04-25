@@ -39,7 +39,9 @@ def load_fingerprints(data_dir):
     X = np.load(os.path.join(data_dir, pathogen_code, "014_fingerprints.npy"))
     with open(os.path.join(data_dir, pathogen_code, "014_fingerprints_inchikeys.txt"), "r") as f:
         keys = f.read().splitlines()
-    return X, keys
+    with open(os.path.join(data_dir, pathogen_code, "014_fingerprints_SMILES.txt"), "r") as f:
+        keys_SMILES = f.read().splitlines()
+    return X, keys, keys_SMILES
 
 def load_random_compounds_from_chembl(chembl_data, N):
     np.random.seed(42)
@@ -50,7 +52,7 @@ def load_random_compounds_from_chembl(chembl_data, N):
     return chembl_data[:,0], chembl_data[:,1]
 
 # Fingerprints are generated in 014_datasets_modelability.py, we just load them here
-X, inchikeys = load_fingerprints(data_dir)
+X, inchikeys, SMILES = load_fingerprints(data_dir)
 
 # Load random compounds from ChEMBL and generate fingerprints
 N = 10000
@@ -99,8 +101,9 @@ def distinguishability(df, X, inchikeys, chembl_random_fps):
                "pos:neg": round(np.sum(y) / (X.shape[0] - np.sum(y)), 4)}
     return results
     
-def save_model(df, X, inchikeys, chembl_random_fps, chembl_random_SMILES, chembl_random_IK, task, dist_tasks_dir):
+def save_model_and_task(df, X, inchikeys, SMILES, chembl_random_fps, chembl_random_IK, chembl_random_SMILES, task, dist_tasks_dir):
     inchikeys_ = list(df['inchikey'])
+    smiles_ = list(df['smiles'])
     columns = list(df.columns)
     assert len(columns) == 3, "The dataframe must have 3 columns"
     y = np.array(df[columns[-1]], dtype=int)
@@ -125,6 +128,12 @@ def save_model(df, X, inchikeys, chembl_random_fps, chembl_random_SMILES, chembl
     print(f"{len(chembl_random_fps)} randomly sampled negatives")
     X = np.concatenate((X[pos_idxs], chembl_random_fps_subset), axis=0)
     y = np.concatenate((y[pos_idxs], np.array([0] * len(chembl_random_fps_subset))))
+    smiles_ = np.array(smiles_)[pos_idxs]
+    inchikeys_ = np.array(inchikeys_)[pos_idxs]
+    smiles_ = list(smiles_) + chembl_random_SMILES_subset
+    inchikeys_ = list(inchikeys_) + chembl_random_IK_subset
+    df_DIS = pd.DataFrame({columns[0]: inchikeys_, columns[1]: smiles_, columns[2]: y})
+    df_DIS.to_csv(os.path.join())
     # skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     # aurocs = []
     # for train, test in tqdm(skf.split(X, y)):
@@ -162,7 +171,7 @@ for tasks_dir in [tasks_dir_ORG, tasks_dir_SP_B, tasks_dir_SP_F]:
         results = distinguishability(df, X, inchikeys, chembl_random_fps)
         R += [(task, results["auroc_avg"], results["auroc_std"], results["num_samples"], results["num_pos_samples"], results["pos:neg"])]
         print("Saving full model for", task)
-        clf, results = save_model(df, X, inchikeys, chembl_random_fps, chembl_random_SMILES, chembl_random_IK, task, dist_tasks_dir)
+        clf, results = save_model_and_task(df, X, inchikeys, SMILES, chembl_random_fps, chembl_random_IK, chembl_random_SMILES, task, dist_tasks_dir)
         R_models += [(task, results["auroc"], results["num_samples"], results["num_pos_samples"], results["pos:neg"])]
         joblib.dump(clf, os.path.join(models_dir, task + ".joblib"), compress=9)
 

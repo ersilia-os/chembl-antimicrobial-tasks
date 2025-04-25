@@ -23,7 +23,7 @@ data_dir = args.output_dir
 pathogen_code = args.pathogen_code
 
 # Loading the data
-df = pd.read_csv(os.path.join(data_dir, pathogen_code, "012_{0}_cleaned.csv".format(pathogen_code)))
+df = pd.read_csv(os.path.join(data_dir, "012_{0}_cleaned.csv".format(pathogen_code)))
 print("Considering only single protein target types")
 print("Before: {0}".format(df.shape))
 df = df[df["target_type"] == "SINGLE PROTEIN"]
@@ -430,16 +430,18 @@ def create_datasets_by_grouping_percentiles_target(df, all_datasets, priority):
         all_datasets = append_data(all_datasets, data)
     return all_datasets
 
+# Specify tasks directory
+tasks_dir = os.path.join(data_dir, "013b_raw_tasks_MOD")
+if not os.path.exists(tasks_dir):
+    os.makedirs(tasks_dir)
+
+# Store here summary results
+summary_raw_tasks = []
 
 for label in sorted(labels):
 
     # Binding or Functional
     df = labels[label]
-
-    # Specify tasks directory
-    tasks_dir = os.path.join(data_dir, pathogen_code, "013b_raw_tasks_SP", label)
-    if not os.path.exists(tasks_dir):
-        os.makedirs(tasks_dir)
 
     all_datasets = {}
     all_datasets = create_datasets_by_top_assays(df, all_datasets, priority=1)
@@ -466,7 +468,6 @@ for label in sorted(labels):
 
     # Disambiguate data
     all_datasets = {k: disambiguate_data(v) for k,v in all_datasets.items()}
-    summary_raw_tasks = []
 
     print("Printing tasks before last filtering...")
     for dt in sorted(all_datasets):
@@ -492,6 +493,6 @@ for label in sorted(labels):
         v.to_csv(file_name, index=False)
         summary_raw_tasks.append([k, f'SINGLE TARGET - {label}', len(v), n])
 
-    # Store summary file
-    summary_raw_tasks = pd.DataFrame(summary_raw_tasks, columns=["task_id", "target_type", "num_molecules", "num_positives"])
-    summary_raw_tasks.to_csv(os.path.join(data_dir, pathogen_code, f"013b_raw_tasks_SP_summary_{label}.csv"), index=False)
+# Store summary file
+summary_raw_tasks = pd.DataFrame(summary_raw_tasks, columns=["task_id", "target_type", "num_molecules", "num_positives"])
+summary_raw_tasks.to_csv(os.path.join(data_dir, f"013b_raw_tasks_MOD_summary.csv"), index=False)

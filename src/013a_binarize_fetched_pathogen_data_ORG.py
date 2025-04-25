@@ -23,7 +23,7 @@ data_dir = args.output_dir
 pathogen_code = args.pathogen_code
 
 # Loading the data
-df = pd.read_csv(os.path.join(data_dir, pathogen_code, "012_{0}_cleaned.csv".format(pathogen_code)))
+df = pd.read_csv(os.path.join(data_dir, "012_{0}_cleaned.csv".format(pathogen_code)))
 print("Considering only organism target types")
 print("Before: {0}".format(df.shape))
 df = df[df["target_type"] == "ORGANISM"]
@@ -36,7 +36,7 @@ df = df[df["assay_type"] == "F"]
 print("After: {0}".format(df.shape))
 df.drop(columns=["assay_type"], inplace=True)
 
-tasks_dir = os.path.join(data_dir, pathogen_code, "013a_raw_tasks_ORG")
+tasks_dir = os.path.join(data_dir, "013a_raw_tasks_MOD")
 if not os.path.exists(tasks_dir):
     os.makedirs(tasks_dir)
 
@@ -491,4 +491,4 @@ for k,v in all_datasets.items():
 
 # Store summary file
 summary_raw_tasks = pd.DataFrame(summary_raw_tasks, columns=["task_id", "target_type", "num_molecules", "num_positives"])
-summary_raw_tasks.to_csv(os.path.join(data_dir, pathogen_code, "013a_raw_tasks_ORG_summary.csv"), index=False)
+summary_raw_tasks.to_csv(os.path.join(data_dir, "013a_raw_tasks_MOD_summary.csv"), index=False)

@@ -57,7 +57,7 @@ def load_random_compounds_from_chembl(chembl_data, N):
 X, inchikeys = load_fingerprints(data_dir)
 
 # Load random compounds from ChEMBL and generate fingerprints
-N = 10000  # set to e.g. 250k
+N = 250000  # set to e.g. 250k
 print(f"Sampling {N} compounds from ChEMBL to perform distinguishability studies")
 chembl_random_SMILES, chembl_random_IK = load_random_compounds_from_chembl("../data/chembl_35_smallmolecules.tsv", N)
 chembl_random_fps = np.array([get_binary_fingerprints_from_smiles(i) for i in chembl_random_SMILES])
@@ -148,7 +148,7 @@ def save_model_and_task(df, X, inchikeys, chembl_random_fps, chembl_random_IK, c
     smiles_ = list(smiles_) + list(chembl_random_SMILES_subset)
     inchikeys_ = list(inchikeys_) + list(chembl_random_IK_subset)
     df_DIS = pd.DataFrame({columns[0]: inchikeys_, columns[1]: smiles_, columns[2]: y})
-    df_DIS.to_csv(os.path.join(dist_tasks_dir, task + ".csv"))
+    df_DIS.to_csv(os.path.join(dist_tasks_dir, task + ".csv"), index=False)
     # skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     # aurocs = []
     # for train, test in tqdm(skf.split(X, y)):

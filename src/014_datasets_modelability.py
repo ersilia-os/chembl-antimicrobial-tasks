@@ -19,13 +19,17 @@ random.seed(random_seed)
 parser = argparse.ArgumentParser("Estimate modelability of datasets")
 parser.add_argument("--pathogen_code", type=str)
 parser.add_argument("--output_dir", type=str)
+parser.add_argument("--organism", action="store_true", help="Flag for organism task")
+parser.add_argument("--protein", action="store_true", help="Flag for protein task")
 args = parser.parse_args()
 
 pathogen_code = args.pathogen_code
 data_dir = args.output_dir
-tasks_dir_ORG = os.path.join(data_dir, pathogen_code, "013a_raw_tasks_ORG")
-tasks_dir_SP_B = os.path.join(data_dir, pathogen_code, "013b_raw_tasks_SP", "B")
-tasks_dir_SP_F = os.path.join(data_dir, pathogen_code, "013b_raw_tasks_SP", "F")
+
+if args.organism == True:
+    tasks_dir = os.path.join(data_dir, "013a_raw_tasks_MOD")
+elif args.protein == True:
+    tasks_dir = os.path.join(data_dir, "013b_raw_tasks_MOD")
 
 def get_binary_fingerprints_from_smiles(smiles):
     mol = Chem.MolFromSmiles(smiles)
@@ -36,32 +40,26 @@ def get_binary_fingerprints_from_smiles(smiles):
     return fp
 
 ik_smi_pairs = []
-for tasks_dir in [tasks_dir_ORG, tasks_dir_SP_B, tasks_dir_SP_F]:
-    for f in os.listdir(tasks_dir):
-        print("Reading task", f)
-        df = pd.read_csv(os.path.join(tasks_dir, f))
-        for i, row in df.iterrows():
-            ik_smi_pairs.append((row['inchikey'], row['smiles']))
+for f in os.listdir(tasks_dir):
+    print("Reading task", f)
+    df = pd.read_csv(os.path.join(tasks_dir, f))
+    for i, row in df.iterrows():
+        ik_smi_pairs.append((row['inchikey'], row['smiles']))
 ik_smi_pairs = list(set(ik_smi_pairs))
 
 X = np.zeros((len(ik_smi_pairs), 1024), dtype=int)
 keys = []
-keys_SMILES = []
 for i, (ik, smi) in tqdm(enumerate(ik_smi_pairs)):
     X[i] = get_binary_fingerprints_from_smiles(smi)
     keys.append(ik)
-    keys_SMILES.append(smi)
-np.save(os.path.join(data_dir, pathogen_code, "014_fingerprints.npy"), X)
-with open(os.path.join(data_dir, pathogen_code, "014_fingerprints_inchikeys.txt"), "w") as f:
+np.save(os.path.join(data_dir, "014_fingerprints.npy"), X)
+with open(os.path.join(data_dir, "014_fingerprints_inchikeys.txt"), "w") as f:
     for k in keys:
-        f.write(k + "\n")
-with open(os.path.join(data_dir, pathogen_code, "014_fingerprints_SMILES.txt"), "w") as f:
-    for k in keys_SMILES:
         f.write(k + "\n")
 
 def load_fingerprints(data_dir):
-    X = np.load(os.path.join(data_dir, pathogen_code, "014_fingerprints.npy"))
-    with open(os.path.join(data_dir, pathogen_code, "014_fingerprints_inchikeys.txt"), "r") as f:
+    X = np.load(os.path.join(data_dir, "014_fingerprints.npy"))
+    with open(os.path.join(data_dir, "014_fingerprints_inchikeys.txt"), "r") as f:
         keys = f.read().splitlines()
     return X, keys
 
@@ -127,23 +125,22 @@ def save_model(df, X, inchikeys):
     return clf, results
 
 # Directory to save the models
-models_dir = os.path.join(data_dir, pathogen_code, "014_models_MOD")
+models_dir = os.path.join(data_dir, "014_models_MOD")
 os.makedirs(models_dir, exist_ok=True)
 
 R = []
 R_models = []
-for tasks_dir in [tasks_dir_ORG, tasks_dir_SP_B, tasks_dir_SP_F]:
-    for l in sorted(os.listdir(tasks_dir)[:10]):
-        print("Modeling task", l)
-        df = pd.read_csv(os.path.join(tasks_dir, l))
-        results = modelability(df, X, inchikeys)
-        fname = l[:-4]
-        R += [(fname, results["auroc_avg"], results["auroc_std"], results["num_samples"], results["num_pos_samples"], results["pos:neg"])]
-        print("Saving full model for", l)
-        clf, results = save_model(df, X, inchikeys)
-        R_models += [(fname, results["auroc"], results["num_samples"], results["num_pos_samples"], results["pos:neg"])]
-        joblib.dump(clf, os.path.join(models_dir, fname + ".joblib"), compress=9)
+for l in sorted(os.listdir(tasks_dir)[:10]):
+    print("Modeling task", l)
+    df = pd.read_csv(os.path.join(tasks_dir, l))
+    results = modelability(df, X, inchikeys)
+    fname = l[:-4]
+    R += [(fname, results["auroc_avg"], results["auroc_std"], results["num_samples"], results["num_pos_samples"], results["pos:neg"])]
+    print("Saving full model for", l)
+    clf, results = save_model(df, X, inchikeys)
+    R_models += [(fname, results["auroc"], results["num_samples"], results["num_pos_samples"], results["pos:neg"])]
+    joblib.dump(clf, os.path.join(models_dir, fname + ".joblib"), compress=9)
 
-pd.DataFrame(R, columns=["task", "auroc_avg", "auroc_std", "num_samples", "num_pos_samples", "pos:neg"]).to_csv(os.path.join(data_dir, pathogen_code, "014_modelability.csv"), index=False)
-pd.DataFrame(R_models, columns=["task", "auroc", "num_samples", "num_pos_samples", "pos:neg"]).to_csv(os.path.join(data_dir, pathogen_code, "014_models_MOD.csv"), index=False)
+pd.DataFrame(R, columns=["task", "auroc_avg", "auroc_std", "num_samples", "num_pos_samples", "pos:neg"]).to_csv(os.path.join(data_dir, "014_modelability.csv"), index=False)
+pd.DataFrame(R_models, columns=["task", "auroc", "num_samples", "num_pos_samples", "pos:neg"]).to_csv(os.path.join(data_dir, "014_models_MOD.csv"), index=False)
 

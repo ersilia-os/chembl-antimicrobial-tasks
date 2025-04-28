@@ -130,7 +130,7 @@ os.makedirs(models_dir, exist_ok=True)
 
 R = []
 R_models = []
-for l in sorted(os.listdir(tasks_dir)[:10]):
+for l in sorted(os.listdir(tasks_dir)):
     print("Modeling task", l)
     df = pd.read_csv(os.path.join(tasks_dir, l))
     results = modelability(df, X, inchikeys)

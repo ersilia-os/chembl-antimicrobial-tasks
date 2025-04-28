@@ -141,7 +141,7 @@ def save_model_and_task(df, X, inchikeys, chembl_random_fps, chembl_random_IK, c
         chembl_random_fps_subset = chembl_random_fps
         chembl_random_SMILES_subset = chembl_random_SMILES
         chembl_random_IK_subset = chembl_random_IK
-    print(f"{len(chembl_random_fps)} randomly sampled negatives")
+    print(f"{len(chembl_random_fps_subset)} randomly sampled negatives")
     # Merge task positives with ChEMBL negatives
     X = np.concatenate((X, chembl_random_fps_subset), axis=0)
     y = np.concatenate((y, np.array([0] * len(chembl_random_fps_subset))))
@@ -178,7 +178,7 @@ os.makedirs(dist_tasks_dir, exist_ok=True)
 
 R = []
 R_models = []
-for task in sorted(os.listdir(tasks_dir)[:10]):
+for task in sorted(os.listdir(tasks_dir)):
     task = task.replace(".csv", "")
     print("Distinguishing task", task)
     df = pd.read_csv(os.path.join(tasks_dir, task + ".csv"))

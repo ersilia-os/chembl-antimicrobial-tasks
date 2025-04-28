@@ -176,3 +176,6 @@ dm = dm.sort_values(by = ["priority", "auroc_avg_MOD"], ascending=[True, False])
 dm.to_csv(os.path.join(data_dir, "017_selected_tasks_RED.csv"), index=False)
 
 print(f"Number of tasks being selected by RED: {len(dm[dm['RED'] != 0])}")
+
+dm = dm[dm["RED"] == 1]
+dm.to_csv(os.path.join(data_dir, "017_selected_tasks_final.csv"), index=False)

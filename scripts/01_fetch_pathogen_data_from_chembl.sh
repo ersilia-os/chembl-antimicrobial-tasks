@@ -88,9 +88,9 @@ echo "Fetching data for pathogen $PATHOGEN_CODE and storing in $OUTPUT_DIR"
 # fi
 
 
-# python $SCRIPT_DIR/../src/014_datasets_modelability.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR --$TASK_TYPE  # Task type is organism or protein
-# python $SCRIPT_DIR/../src/015_datasets_distinguishability.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR --$TASK_TYPE  # Task type is organism or protein
-# python $SCRIPT_DIR/../src/016_select_tasks_MOD_DIS.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR
+python $SCRIPT_DIR/../src/014_datasets_modelability.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR --$TASK_TYPE  # Task type is organism or protein
+python $SCRIPT_DIR/../src/015_datasets_distinguishability.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR --$TASK_TYPE  # Task type is organism or protein
+python $SCRIPT_DIR/../src/016_select_tasks_MOD_DIS.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR
 python $SCRIPT_DIR/../src/017_select_tasks_RED.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR --$TASK_TYPE  # Task type is organism or protein
 python $SCRIPT_DIR/../src/018_calculate_correlations.py --pathogen_code $PATHOGEN_CODE --output_dir $OUTPUT_DIR --$TASK_TYPE  # Task type is organism or protein
 

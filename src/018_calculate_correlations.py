@@ -22,7 +22,7 @@ if args.organism == True:
 elif args.protein == True:
     tasks_dir = os.path.join(data_dir, "013b_raw_tasks_MOD")
 
-selected_tasks = pd.read_csv(os.path.join(data_dir, "017_selected_tasks_final.csv"))
+selected_tasks = pd.read_csv(os.path.join(data_dir, "017_selected_tasks_RED_filtered.csv"))
 tasks = selected_tasks['task'].tolist()
 sel_reason = selected_tasks['SELECTED'].tolist()
 
@@ -138,7 +138,7 @@ CORRELATIONS = []
 
 # Calculate correlations between each pair of tasks
 for c, task1 in enumerate(tasks):
-    for task2 in tasks[c:]:
+    for task2 in tasks[c+1:]:
         p1 = PREDICTIONS[task1]
         p2 = PREDICTIONS[task2]
         s = spearmanr(p1, p2)
@@ -153,3 +153,39 @@ CORRELATIONS.to_csv(os.path.join(data_dir, "018_correlations.csv"), index=False)
 
 print("Correlations between tasks have been calculated!")
 
+# Load data
+selected_tasks = pd.read_csv(os.path.join(data_dir, "017_selected_tasks_RED_filtered.csv"))
+
+# Sort tasks by number of positive samples
+selected_tasks.sort_values('num_pos_samples', ascending=False, inplace=True)
+
+# Set Spearman correlation cutoff
+CORR_CUTOFF = 0.8
+
+task_too_correlated = []
+
+# For each task
+for task in selected_tasks['task']:
+
+    # If task is not discarded yet
+    if task not in task_too_correlated:
+
+        # Get the correlations for the task
+        task_correlations = CORRELATIONS[(CORRELATIONS['task1'] == task) | (CORRELATIONS['task2'] == task)]
+
+        # For each task within the task under study
+        for t1, t2, spearman in zip(task_correlations['task1'], task_correlations['task2'], task_correlations['Spearman']):
+
+            # If the task is too correlated with another task
+            if spearman > CORR_CUTOFF:
+                if t1 == task:
+                    task_too_correlated.append(t2)
+                elif t2 == task:
+                    task_too_correlated.append(t1)
+
+# Save filtered tasks
+selected_tasks = pd.read_csv(os.path.join(data_dir, "017_selected_tasks_RED_filtered.csv"))
+selected_tasks =selected_tasks[~selected_tasks['task'].isin(task_too_correlated)]
+selected_tasks.to_csv(os.path.join(data_dir, "018_selected_tasks_FINAL.csv"), index=False)
+
+print(f"{len(task_too_correlated)} tasks have been discarded since they are too correlated to others")

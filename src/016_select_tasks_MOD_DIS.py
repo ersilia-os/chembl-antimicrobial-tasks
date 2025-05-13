@@ -57,7 +57,8 @@ merged_df.loc[
 merged_df.loc[
     (merged_df['SELECTED'] == 0) & 
     (merged_df['auroc_avg_DIS'] > 0.7) & 
-    (merged_df['pos:neg_MOD'] > 1), 
+    (merged_df['pos:neg_MOD'] > 1) & 
+    (merged_df['num_pos_samples'] > 100), 
     'SELECTED'
 ] = 2
 
@@ -66,9 +67,11 @@ merged_df.loc[
     (merged_df['SELECTED'] == 0) & 
     (merged_df['auroc_avg_DIS'] > 0.7) & 
     (merged_df['auroc_avg_MOD'] < 0.7) & 
-    (merged_df['num_samples_MOD'] > 1000), 
+    (merged_df['num_samples_MOD'] > 1000) &
+    (~merged_df['task'].astype(str).str.contains('grouped_percentile')), # grouped_percentile should now be fixed, but we exclude it just in case
     'SELECTED'
 ] = 3
+
 
 merged_df.to_csv(os.path.join(data_dir, "016_selected_tasks_MOD_DIS.csv"), index=False)
 print(f"Number of tasks being selected by MOD/DIS: {len(merged_df[merged_df['SELECTED'] != 0])}")

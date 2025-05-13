@@ -175,7 +175,7 @@ dm['priority'] = [int(i[0]) for i in dm['task']]
 dm = dm.sort_values(by = ["priority", "auroc_avg_MOD"], ascending=[True, False]).head(MAX_TASKS_PER_PATHOGEN)
 dm.to_csv(os.path.join(data_dir, "017_selected_tasks_RED.csv"), index=False)
 
-print(f"Number of tasks being selected by RED: {len(dm[dm['RED'] != 0])}")
+print(f"Number of tasks being selected by RED: {len(dm[dm['RED'] == 1])}")
 
 dm = dm[dm["RED"] == 1]
-dm.to_csv(os.path.join(data_dir, "017_selected_tasks_final.csv"), index=False)
+dm.to_csv(os.path.join(data_dir, "017_selected_tasks_RED_filtered.csv"), index=False)

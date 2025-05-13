@@ -419,6 +419,8 @@ def create_datasets_by_grouping_percentiles(df, all_datasets, priority):
             N = dp.shape[0]
             for percentile in PERCENTILES:
                 n = int(N * percentile / 100)
+                # if r[1] == "mic100":
+                #     print(r, N, n)
                 if n == 0:
                     continue
                 da = dp.head(n)
@@ -427,9 +429,24 @@ def create_datasets_by_grouping_percentiles(df, all_datasets, priority):
                 inactives = [(ik, smi) for ik, smi in di[["inchikey", "smiles"]].values]
                 data_actives[percentile] += actives
                 data_inactives[percentile] += inactives
+
     prefix = "{0}_grouped_percentiles".format(priority)
     data = {}
     for percentile in PERCENTILES:
+        # Fixing bug described in issue https://github.com/ersilia-os/chembl-antimicrobial-tasks/issues/5
+        counter_actives = collections.Counter(data_actives[percentile])
+        actives = []
+        sorted_actives = sorted(counter_actives, key=lambda x: counter_actives[x], reverse=True)
+        inactives = [x for x in data_inactives[percentile] if x not in counter_actives]
+        n = int(len(set(data_actives[percentile]).union(set(data_inactives[percentile]))) * percentile / 100)
+        
+        for c, act in enumerate(sorted_actives):
+            if c < n-1:
+                actives += [act]
+            else:
+                inactives += [act]
+        data_actives[percentile] = actives
+        data_inactives[percentile] = inactives
         data["{0}_{1}".format(prefix, percentile)] = pd.DataFrame({"inchikey": [x[0] for x in data_actives[percentile]] + [x[0] for x in data_inactives[percentile]],
                                          "smiles": [x[1] for x in data_actives[percentile]] + [x[1] for x in data_inactives[percentile]],
                                          "percentile_{0}".format(percentile): [1] * len(data_actives[percentile]) + [0] * len(data_inactives[percentile])})
@@ -437,12 +454,12 @@ def create_datasets_by_grouping_percentiles(df, all_datasets, priority):
     return all_datasets
 
 all_datasets = {}
-all_datasets = create_datasets_by_top_assays(df, all_datasets, priority=1)
-all_datasets = create_datasets_by_major_types(df, all_datasets, priority=2)
-all_datasets = create_datasets_by_all_pchembl(df, all_datasets, priority=3)
-all_datasets = create_datasets_by_all_percentage(df, all_datasets, priority=4)
+# all_datasets = create_datasets_by_top_assays(df, all_datasets, priority=1)
+# all_datasets = create_datasets_by_major_types(df, all_datasets, priority=2)
+# all_datasets = create_datasets_by_all_pchembl(df, all_datasets, priority=3)
+# all_datasets = create_datasets_by_all_percentage(df, all_datasets, priority=4)
 all_datasets = create_datasets_by_grouping_percentiles(df, all_datasets, priority=5)
-all_datasets = create_datasets_by_active_inactive(df, all_datasets, priority=6)
+# all_datasets = create_datasets_by_active_inactive(df, all_datasets, priority=6)
 
 def disambiguate_data(df):
     ik2smi = {}

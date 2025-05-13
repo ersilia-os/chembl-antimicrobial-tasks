@@ -323,7 +323,6 @@ def create_datasets_by_major_types(df, all_datasets, priority):
     for v in df[["target_id", "standard_type", "standard_units"]].values:
         counter[(v[0], v[1].lower(), v[2])] += 1
     selected_units = sorted(counter.items(), key=lambda x: x[1], reverse=True)[:MAX_NUM_INDEPENDENT_ASSAYS]
-    print(selected_units)
     # print(selected_units)
     for r in selected_units:
         r = r[0]
@@ -421,9 +420,24 @@ def create_datasets_by_grouping_percentiles_target(df, all_datasets, priority):
                     inactives = [(ik, smi) for ik, smi in di[["inchikey", "smiles"]].values]
                     data_actives[percentile] += actives
                     data_inactives[percentile] += inactives
+
         prefix = "{0}_{1}_grouped_percentiles".format(priority, targetid)
         data = {}
         for percentile in PERCENTILES:
+            # Fixing bug described in issue https://github.com/ersilia-os/chembl-antimicrobial-tasks/issues/5
+            counter_actives = collections.Counter(data_actives[percentile])
+            actives = []
+            sorted_actives = sorted(counter_actives, key=lambda x: counter_actives[x], reverse=True)
+            inactives = [x for x in data_inactives[percentile] if x not in counter_actives]
+            n = int(len(set(data_actives[percentile]).union(set(data_inactives[percentile]))) * percentile / 100)
+            
+            for c, act in enumerate(sorted_actives):
+                if c < n-1:
+                    actives += [act]
+                else:
+                    inactives += [act]
+            data_actives[percentile] = actives
+            data_inactives[percentile] = inactives
             data["{0}_{1}".format(prefix, percentile)] = pd.DataFrame({"inchikey": [x[0] for x in data_actives[percentile]] + [x[0] for x in data_inactives[percentile]],
                                             "smiles": [x[1] for x in data_actives[percentile]] + [x[1] for x in data_inactives[percentile]],
                                             "percentile_{0}".format(percentile): [1] * len(data_actives[percentile]) + [0] * len(data_inactives[percentile])})

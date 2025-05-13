@@ -81,6 +81,7 @@ def pchembl_binarizer(df, prefix):
         df.loc[df["pchembl_relation"] == "<", "pchembl_value"] = 0
         N = df.shape[0]
         n = int(N * percentile / 100)
+        # print(percentile, N, n)
         if n < MIN_POSITIVES:
             continue
         df = df.sort_values("pchembl_value", ascending=False)
@@ -88,6 +89,8 @@ def pchembl_binarizer(df, prefix):
         di = df.tail(N - n)
         actives = [(ik, smi) for ik, smi in da[["inchikey", "smiles"]].values]
         inactives = [(ik, smi) for ik, smi in di[["inchikey", "smiles"]].values]
+        # print("Actives: {0}, Inactives: {1}".format(len(actives), len(inactives)))
+        # print("Sets -- Actives: {0}, Inactives: {1}".format(len(set(actives)), len(set(inactives))))
         data["{0}_pchembl_percentile_{1}".format(prefix, percentile)] = pd.DataFrame({"inchikey": [x[0] for x in actives] + [x[0] for x in inactives],
                                              "smiles": [x[1] for x in actives] + [x[1] for x in inactives],
                                              "pchembl_percentile_{}".format(percentile): [1] * len(actives) + [0] * len(inactives)})
@@ -456,9 +459,9 @@ def create_datasets_by_grouping_percentiles(df, all_datasets, priority):
 all_datasets = {}
 # all_datasets = create_datasets_by_top_assays(df, all_datasets, priority=1)
 # all_datasets = create_datasets_by_major_types(df, all_datasets, priority=2)
-# all_datasets = create_datasets_by_all_pchembl(df, all_datasets, priority=3)
+all_datasets = create_datasets_by_all_pchembl(df, all_datasets, priority=3)
 # all_datasets = create_datasets_by_all_percentage(df, all_datasets, priority=4)
-all_datasets = create_datasets_by_grouping_percentiles(df, all_datasets, priority=5)
+# all_datasets = create_datasets_by_grouping_percentiles(df, all_datasets, priority=5)
 # all_datasets = create_datasets_by_active_inactive(df, all_datasets, priority=6)
 
 def disambiguate_data(df):

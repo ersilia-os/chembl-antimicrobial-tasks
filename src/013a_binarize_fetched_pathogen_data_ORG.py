@@ -457,12 +457,12 @@ def create_datasets_by_grouping_percentiles(df, all_datasets, priority):
     return all_datasets
 
 all_datasets = {}
-# all_datasets = create_datasets_by_top_assays(df, all_datasets, priority=1)
-# all_datasets = create_datasets_by_major_types(df, all_datasets, priority=2)
+all_datasets = create_datasets_by_top_assays(df, all_datasets, priority=1)
+all_datasets = create_datasets_by_major_types(df, all_datasets, priority=2)
 all_datasets = create_datasets_by_all_pchembl(df, all_datasets, priority=3)
-# all_datasets = create_datasets_by_all_percentage(df, all_datasets, priority=4)
-# all_datasets = create_datasets_by_grouping_percentiles(df, all_datasets, priority=5)
-# all_datasets = create_datasets_by_active_inactive(df, all_datasets, priority=6)
+all_datasets = create_datasets_by_all_percentage(df, all_datasets, priority=4)
+all_datasets = create_datasets_by_grouping_percentiles(df, all_datasets, priority=5)
+all_datasets = create_datasets_by_active_inactive(df, all_datasets, priority=6)
 
 def disambiguate_data(df):
     ik2smi = {}

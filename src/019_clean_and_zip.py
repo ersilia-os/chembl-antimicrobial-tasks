@@ -26,24 +26,27 @@ selected_tasks = pd.read_csv(os.path.join(data_dir, "018_selected_tasks_FINAL.cs
 output_zip = os.path.join(data_dir, f"{pathogen_code}_{label}_tasks.zip")
 tasks_dir_dis = os.path.join(data_dir, "015_raw_tasks_DIS")
 
-print(data_dir)
-print(output_zip)
-print(tasks_dir_dis)
-
 # Create a zip file of the selected tasks
 with ZipFile(output_zip, 'w') as zipf:
     for task, sel in zip(selected_tasks["task"], selected_tasks["SELECTED"]):
+        print(task)
         if sel == 1:
             filename = f"{task}_{sel}.csv"
-            filepath = os.path.join(tasks_dir, filename)
+            filepath = os.path.join(tasks_dir, task + ".csv")
             zipf.write(filepath, arcname=filename)
         else:
             filename = f"{task}_{sel}.csv"
-            filepath = os.path.join(tasks_dir_dis, filename)
+            filepath = os.path.join(tasks_dir_dis, task + ".csv")
             zipf.write(filepath, arcname=filename)
 
-# if args.flush:
-#     shutil.rmtree(os.path.join(data_dir, pathogen_code, "013_raw_tasks"))
-#     os.remove(os.path.join(data_dir, pathogen_code, "016_selected_tasks.csv"))
-#     os.remove(os.path.join(data_dir, pathogen_code, f"012_{pathogen_code}_cleaned.csv"))
-#     os.remove(os.path.join(data_dir, pathogen_code, "014_modelability.csv"))
+# # Clean up the output directory
+# shutil.rmtree(os.path.join(data_dir, "013a_raw_tasks_MOD"))
+# shutil.rmtree(os.path.join(data_dir, "014_models_MOD"))
+# shutil.rmtree(os.path.join(data_dir, "015_models_DIS"))
+# shutil.rmtree(os.path.join(data_dir, "015_raw_tasks_DIS"))
+
+# os.remove(os.path.join(data_dir, "014_fingerprints.npy"))
+# os.remove(os.path.join(data_dir, "014_models_MOD.csv"))
+# os.remove(os.path.join(data_dir, "015_models_DIS.csv"))
+# os.remove(os.path.join(data_dir, "018_aggregation_scores.csv"))
+

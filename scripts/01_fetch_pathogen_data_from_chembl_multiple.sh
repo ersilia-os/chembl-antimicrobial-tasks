@@ -3,7 +3,7 @@ set -e  # Exit immediately if any command fails
 
 # Define the list of pathogens
 # PATHOGENS=("abaumannii" "calbicans" "campylobacter" "ecoli" "efaecium" "enterobacter" "hpylori" "kpneumoniae" "mtuberculosis" "ngonorrhoeae" "paeruginosa" "pfalciparum" "saureus" "smansoni" "spneumoniae")
-PATHOGENS=("abaumannii" "calbicans" "kpneumoniae" "mtuberculosis")
+PATHOGENS=("pfalciparum")
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
@@ -75,22 +75,25 @@ for PATHOGEN_CODE in "${PATHOGENS[@]}"; do
     mkdir -p "$FINAL_OUTPUT_DIR"
 
     echo "Fetching data for pathogen $PATHOGEN_CODE and storing in $FINAL_OUTPUT_DIR"
-    # python $SCRIPT_DIR/../src/011_pathogen_getter.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR 
-    # python $SCRIPT_DIR/../src/012_clean_fetched_pathogen_data.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR
+    python $SCRIPT_DIR/../src/011_pathogen_getter.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR 
+    python $SCRIPT_DIR/../src/012_clean_fetched_pathogen_data.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR
 
-    # # Conditionally run 013a or 013b based on task type
-    # if [ "$TASK_TYPE" == "organism" ]; then
-    #     python $SCRIPT_DIR/../src/013a_binarize_fetched_pathogen_data_ORG.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR
-    # elif [ "$TASK_TYPE" == "protein" ]; then
-    #     python $SCRIPT_DIR/../src/013b_binarize_fetched_pathogen_data_SP.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR
+    # Conditionally run 013a or 013b based on task type
+    if [ "$TASK_TYPE" == "organism" ]; then
+        python $SCRIPT_DIR/../src/013a_binarize_fetched_pathogen_data_ORG.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR
+        BINARIZED_FILE="$FINAL_OUTPUT_DIR/013a_raw_tasks_MOD_summary.csv"
+    elif [ "$TASK_TYPE" == "protein" ]; then
+        python $SCRIPT_DIR/../src/013b_binarize_fetched_pathogen_data_SP.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR
+        BINARIZED_FILE="$FINAL_OUTPUT_DIR/013b_raw_tasks_MOD_summary.csv"
+    fi
 
-    # fi
+    if [ "$(python3 -c "import pandas as pd; import sys; df = pd.read_csv('$BINARIZED_FILE'); print(len(df)==0)")" == "True" ]; then continue; fi
 
-    # python $SCRIPT_DIR/../src/014_datasets_modelability.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR --$TASK_TYPE  # Task type is organism or protein
-    # python $SCRIPT_DIR/../src/015_datasets_distinguishability.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR --$TASK_TYPE  # Task type is organism or protein
-    # python $SCRIPT_DIR/../src/016_select_tasks_MOD_DIS.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR
-    # python $SCRIPT_DIR/../src/017_select_tasks_RED.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR --$TASK_TYPE  # Task type is organism or protein
-    # python $SCRIPT_DIR/../src/018_calculate_correlations.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR --$TASK_TYPE  # Task type is organism or protein
+    python $SCRIPT_DIR/../src/014_datasets_modelability.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR --$TASK_TYPE  # Task type is organism or protein
+    python $SCRIPT_DIR/../src/015_datasets_distinguishability.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR --$TASK_TYPE  # Task type is organism or protein
+    python $SCRIPT_DIR/../src/016_select_tasks_MOD_DIS.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR
+    python $SCRIPT_DIR/../src/017_select_tasks_RED.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR --$TASK_TYPE  # Task type is organism or protein
+    python $SCRIPT_DIR/../src/018_calculate_correlations.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR --$TASK_TYPE  # Task type is organism or protein
     python $SCRIPT_DIR/../src/019_clean_and_zip.py --pathogen_code $PATHOGEN_CODE --output_dir $FINAL_OUTPUT_DIR --$TASK_TYPE
 
 done

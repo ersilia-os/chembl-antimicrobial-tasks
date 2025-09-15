@@ -1,0 +1,13 @@
+pandas==2.2.1
+rdkit==2023.9.5
+tqdm==4.67.1
+scikit-learn==1.6.0
+psycopg2-binary==2.9.10
+matplotlib==3.10.1
+umap-learn==0.5.1
+opentsne==1.0.2
+psycopg==3.2.10
+llama-index==0.13.6
+llama-index-llms-llamafile==0.4.0
+
+

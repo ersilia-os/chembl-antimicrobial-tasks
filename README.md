@@ -1,15 +1,15 @@
 # 🦠 Antimicrobial binary ML tasks from ChEMBL 💊
 
-Get antimicrobial tasks from ChEMBL framed as binary classifications. This repository is the updated version of [chembl-binary-tasks](https://github.com/ersilia-os/chembl-binary-tasks). 
+Get antimicrobial tasks from ChEMBL framed as binary classifications.
 
 This repository is currently **WORK IN PROGRESS**. ⚠️🚧
 
 ## Setup 🛠️
 
-To get started, first clone this repository, avoiding large LFS-stored files:
+To get started, first clone this repository:
 
 ```sh
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/ersilia-os/chembl-antimicrobial-tasks.git
+git clone https://github.com/ersilia-os/chembl-antimicrobial-tasks.git
 cd chembl-antimicrobial-tasks
 ```
 
@@ -20,6 +20,8 @@ conda create -n camt python=3.10
 conda activate camt
 pip install -r requirements.txt
 ```
+
+<!--
 
 ### Installing ChEMBL 🗃️
 
@@ -99,7 +101,7 @@ Note that available pathogen codes are listed in `data/pathogens.csv`, which can
 - `017_wrapup_tasks_and_clean_output_folder.py`: Organizes selected tasks into a new directory and creates 2 summary files.
 -->
 
-### Output 📊
+<!-- ### Output 📊
 
 Many files will be generated when creating the ChEMBL tasks/datasets. Overall, the most important files are:
 
@@ -115,7 +117,7 @@ Many files will be generated when creating the ChEMBL tasks/datasets. Overall, t
 - `014_models_MOD directory`: For each task, joblib file including the binary classification model mentioned in the immediately preceding file. 
 - `015_distinguishability.csv`: Distinguishability for each task. Includes AUROC scores to evaluate how well a binary classification model using randomly sampled ChEMBL compounds as inactives discriminates actives from inactives. Higher AUROCs indicate higher distinguishability. 
 - `015_models_DIS.csv`: For each task, performance of a binary classification model trained and tested on the full task data (negatives are randomly sampled from ChEMBL compounds).
-- `015_models_DIS directory`: For each task, joblib file including the binary classification model mentioned in the immediately preceding file.
+- `015_models_DIS directory`: For each task, joblib file including the binary classification model mentioned in the immediately preceding file. -->
 
 <!--
 - `013_raw_tasks and 016_tasks:` For each task, list of active (1) and inactive (0) compounds. `013_raw_tasks` includes all tasks; `017_tasks` includes only all modelable or dist .......... tasks. 
@@ -123,9 +125,9 @@ Many files will be generated when creating the ChEMBL tasks/datasets. Overall, t
 - **`017_{YOUR_PATHOGEN_CODE}_summary.csv`**: Summary of the final selected tasks specific to the pathogen of interest. 
 -->
 
-## TL;DR 🚩
+<!-- ## TL;DR 🚩
 
-Bla bla
+Bla bla --> 
 
 ## About the Ersilia Open Source Initiative 🌍🤝
 

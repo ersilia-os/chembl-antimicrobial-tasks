@@ -1,8 +1,6 @@
 # 🦠 Antimicrobial binary ML tasks from ChEMBL 💊
 
-Get antimicrobial tasks from ChEMBL framed as binary classifications.
-
-This repository is currently **WORK IN PROGRESS**. ⚠️🚧
+Get antimicrobial tasks from ChEMBL framed as binary classifications. This repository is currently **WORK IN PROGRESS**. ⚠️🚧
 
 ## Setup 🛠️
 
@@ -16,7 +14,7 @@ cd chembl-antimicrobial-tasks
 We recommend creating a Conda environment to run this code. Dependencies are minimal. 🐍
 
 ```sh
-conda create -n camt python=3.10
+conda create -n camt python=3.10 -y
 conda activate camt
 pip install -r requirements.txt
 ```

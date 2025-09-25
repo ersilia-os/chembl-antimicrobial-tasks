@@ -3,7 +3,7 @@ import os
 abspath = os.path.dirname(os.path.abspath(__file__))
 
 # Database defaults
-DATABASE_NAME = "chembl_35"
+DATABASE_NAME = "chembl_36"
 CHEMBL_USR = "chembl_user"
 CHEMBL_PWD = "aaa"
 

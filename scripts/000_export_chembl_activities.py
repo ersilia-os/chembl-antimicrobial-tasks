@@ -82,7 +82,7 @@ def curate_assay_files():
     s.to_csv(os.path.join(output_dir, "assay_descriptions.csv"), index=False)
 
 if __name__ == "__main__":
-    #get_files_from_db()
+    get_files_from_db()
     curate_activity_files()
     curate_assay_files()
 

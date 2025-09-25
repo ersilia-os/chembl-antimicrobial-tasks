@@ -1,12 +1,22 @@
 # README for scripts
 
-This folder contains scripts that are supposed to run sequentially. They are organised in three steps:
+The `scripts` folder contains scripts that are supposed to run sequentially.
 
 # Step 000
-Follow the instructions in `docs/install_ChEMBL.md` to create a local copy of the ChEMBL DB. Currently this is set to ChEMBL_36 (latest version), but if a new release appears simply download the new one and change the DB name in `default.py`.
-A folder inside `config` (named `chembl_activities`) will be created containing unmodified data extracted directly from ChEMBL tables.
 
-# Step 001
+Before running `000_export_chembl_activities.py`, create a local copy of the ChEMBL DB following the instructions in `docs/install_ChEMBL.md`. Currently, this is set to ChEMBL_36 (latest version), but if a new release appears simply download the new one and change the DB name in `default.py`.
+
+By running `000_export_chembl_activities.py`, a folder named `chembl_activities` will be created inside `config`, containing unmodified activity data extracted directly from ChEMBL tables. For further information about the content of these tables (`ACTIVITIES`, `ACTIVITY_PROPERTIES`, `ACTIVITY_STDS_LOOKUP`, `ACTIVITY_SUPP`, `ACTIVITY_SUPP_MAP`, `ACTIVITY_SMID`, `ACTION_TYPE`, `ASSAYS`), please check the official [ChEMBL schema documentation](https://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/schema_documentation.txt).
+
+In addition to raw exports, the script produces three curated files derived from the `ACTIVITIES` table and a simplified version of `ASSAYS`:
+
+- `activity_comments.csv`: Frequency table of the comments (text) stored in the `activity_comment` column (e.g., 'active'). 
+- `activity_std_units.csv`: Frequency table of the column pairs `standard_type` & `standard_units` (e.g., 'Potency & nM')   <-- lower?
+- `standard_text.csv`: Frequency table of the text stored in the `standard_text_value` column (e.g., 'Compound metabolized')  <-- lower?
+- `assay_descriptions.csv`: Table mapping assay IDs to their corresponding text descriptions and ChEMBL IDs.
+
+# Step 001   --> to discuss
+
 Include information in the ChEMBL tables automatically using an LLM for processing activity comments and others. A series of modified files will be saved in `config`, each having a column that represents the outcome of the assay/activity (1: Active, -1: Not Active, 0: Unresolved or Direction: higher value == higher activity --> 1, lower value == higher activity --> -1, inconclusive --> 0 ).
 For this step, it is necessary to download the Gemma Llamafile from [Hugging Face](https://huggingface.co/Mozilla/gemma-2-9b-it-llamafile).
 

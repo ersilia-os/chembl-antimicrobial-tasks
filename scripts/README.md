@@ -11,14 +11,22 @@ By running `000_export_chembl_activities.py`, a folder named `chembl_activities`
 In addition to raw exports, the script produces three curated files derived from the `ACTIVITIES` table and a simplified version of `ASSAYS`:
 
 - `activity_comments.csv`: Frequency table of the comments (text) stored in the `activity_comment` column (e.g., 'active'). 
-- `activity_std_units.csv`: Frequency table of the column pairs `standard_type` & `standard_units` (e.g., 'Potency & nM')   <-- lower?
-- `standard_text.csv`: Frequency table of the text stored in the `standard_text_value` column (e.g., 'Compound metabolized')  <-- lower?
+- `activity_std_units.csv`: Frequency table of the column pairs `standard_type` & `standard_units` (e.g., 'Potency & nM')   **<-- lower?**
+- `standard_text.csv`: Frequency table of the text stored in the `standard_text_value` column (e.g., 'Compound metabolized')  **<-- lower?**
 - `assay_descriptions.csv`: Table mapping assay IDs to their corresponding text descriptions and ChEMBL IDs.
 
 # Step 001   --> to discuss
 
-Include information in the ChEMBL tables automatically using an LLM for processing activity comments and others. A series of modified files will be saved in `config`, each having a column that represents the outcome of the assay/activity (1: Active, -1: Not Active, 0: Unresolved or Direction: higher value == higher activity --> 1, lower value == higher activity --> -1, inconclusive --> 0 ).
+Improve documentation here...
+
+Include information in the ChEMBL tables automatically using an LLM for processing activity comments and others. A series of modified files will be saved in `config/llm_processed`, each having a column that represents the outcome of the assay/activity (1: Active, -1: Not Active, 0: Unresolved or Direction: higher value == higher activity --> 1, lower value == higher activity --> -1, inconclusive --> 0 ).
 For this step, it is necessary to download the Gemma Llamafile from [Hugging Face](https://huggingface.co/Mozilla/gemma-2-9b-it-llamafile).
+
+- `activity_comments.csv`: Activity comments are classified as active (1), inactive (-1) or inconclusive (0). New column: `activity_classified`.
+- `activity_stds_lookup.csv`: Activity standards (e.g., IC50) are classified with the right direction: the lower the better (-1), the higher the better (1) or inconclusive (0). New column: `activity_direction`.
+- `activity_std_units_with_3_assay_descriptions.csv`: Pairs of standard type and unit (e.g., IC50-nM) are provided with 3 randomly sampled descriptions from associated assays, which will be used in the following step.
+- `activity_std_units.csv`: Pairs of activity type and unit (e.g., IC50-nM + 3 assay descriptions) are classified with the right direction: the lower the more active (-1), the higher the more active (1) or inconclusive (0). New column: `activity direction`.
+- `standard_text.csv`: 
 
 # Step 002
 Uses the LLM processed data to assign an outcome to each activity in ChEMBL (which are summarised in the Activities table).

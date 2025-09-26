@@ -1,4 +1,3 @@
-
 import os
 import sys
 import pandas as pd
@@ -26,10 +25,9 @@ def run_llamafile():
     subprocess.Popen(f'bash {llm_bin_path} --server', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     print("LLM running...")
 
-
 def classify_activity_comments(input_file, file_path, rewrite=False):
     """
-    Classify activity comments as active (1), inactive (0) or inconclusive (None).
+    Classify activity comments as active (1), inactive (-1) or inconclusive (0).
     """
     df = pd.read_csv(input_file, dtype=str)
     columns = list(df.columns)
@@ -109,7 +107,7 @@ def classify_activity_comments(input_file, file_path, rewrite=False):
                 messages=[ChatMessage(role=MessageRole.USER, content=prompt_text)]
             )
         except:
-            print("LLM error. Starting LLM...")
+            # print("LLM error. Starting LLM...")
             run_llamafile()
             print("LLM started. Waiting for 10 seconds...")
             time.sleep(10)
@@ -134,7 +132,6 @@ def classify_activity_comments(input_file, file_path, rewrite=False):
         df.to_csv(file_path, index=False)
     df["activity_classified"] = current_classifications
     df.to_csv(file_path, index=False)
-
 
 def classify_activity_standards_with_direction(input_file, file_path, rewrite=False):
     """
@@ -191,7 +188,6 @@ def classify_activity_standards_with_direction(input_file, file_path, rewrite=Fa
     df["activity_direction"] = current_directions
     df.to_csv(file_path, index=False)
 
-
 def get_sample_assay_descriptions_for_standard_units():
     print("Getting sample assay descriptions for standard units...")
     print("Getting assay descriptions...")
@@ -220,7 +216,6 @@ def get_sample_assay_descriptions_for_standard_units():
         R += [[k[0], k[1], v[0], v[1], v[2]]]
     df = pd.DataFrame(R, columns = ["standard_type", "standard_unit", "assay_description_1", "assay_description_2", "assay_description_3"])
     df.to_csv(os.path.join(CONFIGPATH,"llm_processed", "activity_std_units_with_3_assay_descriptions.csv"), index=False)
-
 
 def classify_all_activity_standards_with_direction(input_file, file_path, rewrite=False):
     """
@@ -330,23 +325,28 @@ def process_standard_text(input_file, file_path): #TODO Revise Manual
     df_.to_csv(file_path, index=False)
 
 if __name__ == "__main__":
+
     print("Starting with activity comments classification...")
     input_file = os.path.join(CONFIGPATH, "chembl_activities", "activity_comments.csv")
+    os.makedirs(os.path.join(CONFIGPATH,"llm_processed"), exist_ok=True)
     file_path= os.path.join(CONFIGPATH,"llm_processed", "activity_comments.csv")
-    #classify_activity_comments(input_file, file_path, rewrite=False)
+    # classify_activity_comments(input_file, file_path, rewrite=False)
     print("Activity comments classification done.")
+
     print("Starting with activity standards classification (direction)...")
     input_file = os.path.join(CONFIGPATH, "chembl_activities", "activity_stds_lookup.csv")
     file_path = os.path.join(CONFIGPATH,"llm_processed", "activity_stds_lookup.csv")
     #classify_activity_standards_with_direction(input_file,file_path, rewrite=False)
     print("Activity standards classification done.")
+
     print("Getting sample assay descriptions for standard units...")
     #get_sample_assay_descriptions_for_standard_units()
     print("Sample assay descriptions for standard units done.")
+
     print("Starting with all activity standards classification (direction)...")
     input_file = os.path.join(CONFIGPATH, "chembl_activities","activity_std_units.csv")
     file_path = os.path.join(CONFIGPATH,"llm_processed", "activity_std_units.csv")
-    classify_all_activity_standards_with_direction(input_file, file_path, rewrite=False)
+    # classify_all_activity_standards_with_direction(input_file, file_path, rewrite=False)
     input_file = os.path.join(CONFIGPATH, "chembl_activities","standard_text.csv")
     file_path = os.path.join(CONFIGPATH,"llm_processed", "standard_text.csv")
-    process_standard_text()
+    # process_standard_text()

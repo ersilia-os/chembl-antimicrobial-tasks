@@ -1,4 +1,5 @@
 config/chembl_activities/*
+bin/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -51,12 +51,12 @@ class OllamaChat:
             "stream": False,
             "options": {"temperature": self.temperature}
         }
-        try:
-            r = self._session.post(self.url, json=payload, timeout=self.timeout)
-            r.raise_for_status()
-            text = (r.json().get("response") or "").strip()
-        except Exception:
-            text = ""
+        # try:
+        r = self._session.post(self.url, json=payload, timeout=self.timeout)
+        r.raise_for_status()
+        text = (r.json().get("response") or "").strip()
+        # except Exception:
+        #     text = ""
         return _RespObj(text)
 
 
@@ -149,7 +149,7 @@ def classify_activity_comments(input_file, file_path, rewrite=False):
         try:
             response = llm_model.chat(
                 messages=[ChatMessage(role=MessageRole.USER, content=prompt_text)]
-            )
+                )
         except:
             # print("LLM error. Starting LLM...")
             run_llamafile()

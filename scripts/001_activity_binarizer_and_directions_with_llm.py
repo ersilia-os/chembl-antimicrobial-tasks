@@ -203,6 +203,7 @@ def get_sample_assay_descriptions_for_standard_units():
     for v in tqdm(df_act[["assay_id", "standard_type", "standard_units"]].values):
         std_unit_assays[(v[1], v[2])] += [v[0]]
     R = []
+    print(std_unit_assays[('Potency', "nM")])
     for k,v in tqdm(std_unit_assays.items()):
         random.shuffle(v)
         v = [assay_descs[x] for x in v[:10]]
@@ -222,7 +223,7 @@ def classify_all_activity_standards_with_direction(input_file, file_path, rewrit
     """
     Classify all activity standard units with the right direction (-1: the lower the more active, 1: the higher the more active, 0: inconclusive).
     """
-    df = pd.read_csv(input_file, dtype=str)[:100]
+    df = pd.read_csv(input_file, dtype=str)[:1]
     da = pd.read_csv(os.path.join(CONFIGPATH,"llm_processed", "activity_std_units_with_3_assay_descriptions.csv"), dtype=str)
     std_unit_descriptions = {}
     for v in da.values:
@@ -323,7 +324,7 @@ def process_standard_text(input_file, file_path):
     df_ = pd.DataFrame(final_dict.items(), columns=["standard_text_value", "standard_text_classification"])
     df_.to_csv(file_path, index=False)
 
-def assess_overlap_comments(input_file, file_path):
+def assess_overlap_comments(input_file, file_path):  #rewrite this function
 
     df1 = pd.read_csv(input_file)
     df2 = pd.read_csv(file_path)
@@ -331,6 +332,16 @@ def assess_overlap_comments(input_file, file_path):
     assert df1["activity_comment"].equals(df2["activity_comment"])
     matches = [i == j for i,j in zip(df1['activity_classified'], df2['manual_curation'])]
     print(f"{sum(matches) / len(matches) * 100} % of matches with manually curated annotations")
+
+def assess_overlap_act_type_units(input_file, file_path):  # as well as this one
+
+    df1 = pd.read_csv(input_file)
+    df2 = pd.read_csv(file_path)
+    df1 = df1[:len(df2)]
+    assert df1["activity_comment"].equals(df2["activity_comment"])
+    matches = [i == j for i,j in zip(df1['activity_classified'], df2['manual_curation'])]
+    print(f"{sum(matches) / len(matches) * 100} % of matches with manually curated annotations")
+
 
 if __name__ == "__main__":
 
@@ -357,6 +368,8 @@ if __name__ == "__main__":
     input_file = os.path.join(CONFIGPATH, "chembl_activities","activity_std_units.csv")
     file_path = os.path.join(CONFIGPATH,"llm_processed", "activity_std_units.csv")
     classify_all_activity_standards_with_direction(input_file, file_path, rewrite=False)
-    input_file = os.path.join(CONFIGPATH, "chembl_activities","standard_text.csv")
-    file_path = os.path.join(CONFIGPATH,"llm_processed", "standard_text.csv")
-    # process_standard_text()
+    manual_curation_file = os.path.join(CONFIGPATH, "manual_curation", "activity_std_units_manual_curation.csv")
+    assess_overlap_comments(file_path, manual_curation_file)
+    # input_file = os.path.join(CONFIGPATH, "chembl_activities","standard_text.csv")
+    # file_path = os.path.join(CONFIGPATH,"llm_processed", "standard_text.csv")
+    # # process_standard_text()

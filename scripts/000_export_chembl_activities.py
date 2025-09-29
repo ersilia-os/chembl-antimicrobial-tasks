@@ -48,7 +48,7 @@ def get_files_from_db():
 def curate_activity_files():
     df = pd.read_csv(os.path.join(output_dir, "activities.csv"), low_memory=False)
 
-    s = df['activity_comment'].astype("string").str.strip().str.lower().fillna("") #To Discuss, make lower?
+    s = df['activity_comment'].astype("string").str.strip().str.lower().fillna("")
     out = (
         s.value_counts(dropna=False)
          .rename_axis('activity_comment')
@@ -56,6 +56,8 @@ def curate_activity_files():
     )
     out['rank'] = out['count'].rank(method='dense', ascending=False).astype(int)
     out = out.sort_values('count', ascending=False, ignore_index=True)
+    total_count = out['count'].sum()
+    out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
     out.to_csv(os.path.join(output_dir, "activity_comments.csv"), index=False)
 
     s = df[["standard_type", "standard_units"]].astype("string").fillna("")
@@ -64,6 +66,8 @@ def curate_activity_files():
       .reset_index(name="count")
       .sort_values("count", ascending=False, ignore_index=True)
     )
+    total_count = out['count'].sum()
+    out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
     out.to_csv(os.path.join(output_dir, "activity_std_units.csv"), index=False)
 
     s = df['standard_text_value'].astype("string").str.strip().fillna("")
@@ -72,6 +76,8 @@ def curate_activity_files():
          .rename_axis('activity_comment')
          .reset_index(name='count')
     )
+    total_count = out['count'].sum()
+    out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
     out = out.sort_values('count', ascending=False, ignore_index=True)
     out.to_csv(os.path.join(output_dir, "standard_text.csv"), index=False)
 

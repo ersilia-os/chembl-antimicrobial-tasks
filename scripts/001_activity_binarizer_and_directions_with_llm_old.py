@@ -4,7 +4,6 @@ import pandas as pd
 import collections
 import random
 import subprocess
-import requests
 import time
 from tqdm import tqdm
 from llama_index.core.llms import ChatMessage, MessageRole
@@ -12,55 +11,13 @@ from llama_index.llms.llamafile import Llamafile
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import CONFIGPATH
+from default import CONFIGPATH, LLM_BIN_FILENAME
 
-# from default import CONFIGPATH, LLM_BIN_FILENAME
-# llm_bin_path = os.path.abspath(os.path.join(root, "..", "bin", LLM_BIN_FILENAME))
-# print(f"LLM bin path: {llm_bin_path}")
-# llm_model = Llamafile()
+llm_bin_path = os.path.abspath(os.path.join(root, "..", "bin", LLM_BIN_FILENAME))
 
-# --- REPLACE the llamafile import + instantiation with this block ----------------
-# from llama_index.llms.llamafile import Llamafile   # ← remove this
+print(f"LLM bin path: {llm_bin_path}")
 
-OLLAMA_URL   = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma3:4b")
-
-class _MsgObj:
-    def __init__(self, content: str):
-        self.content = content
-
-class _RespObj:
-    def __init__(self, content: str):
-        self.message = _MsgObj(content)
-
-class OllamaChat:
-    """Minimal adapter exposing .chat(messages=[ChatMessage(...)])."""
-    def __init__(self, url=OLLAMA_URL, model=OLLAMA_MODEL, temperature=0, timeout=120):
-        self.url = url
-        self.model = model
-        self.temperature = temperature
-        self.timeout = timeout
-        self._session = requests.Session()
-
-    def chat(self, messages):
-        # your code always sends one USER message; use its content directly
-        prompt = messages[-1].content if messages else ""
-        payload = {
-            "model": self.model,
-            "prompt": prompt,
-            "stream": False,
-            "options": {"temperature": self.temperature}
-        }
-        try:
-            r = self._session.post(self.url, json=payload, timeout=self.timeout)
-            r.raise_for_status()
-            text = (r.json().get("response") or "").strip()
-        except Exception:
-            text = ""
-        return _RespObj(text)
-
-
-llm_model = OllamaChat()
+llm_model = Llamafile()
 
 
 def run_llamafile():
@@ -72,7 +29,7 @@ def classify_activity_comments(input_file, file_path, rewrite=False):
     """
     Classify activity comments as active (1), inactive (-1) or inconclusive (0).
     """
-    df = pd.read_csv(input_file, dtype=str)[:100]
+    df = pd.read_csv(input_file, dtype=str)
     columns = list(df.columns)
     if "activity_classified" not in columns:
         df["activity_classified"] = ""
@@ -142,7 +99,6 @@ def classify_activity_comments(input_file, file_path, rewrite=False):
             f"This is the comment you have to curate:"
             f"- {comment}\n"
         )
-        print(prompt_text)
         if classification != "":
             i += 1
             continue
@@ -374,23 +330,23 @@ if __name__ == "__main__":
     input_file = os.path.join(CONFIGPATH, "chembl_activities", "activity_comments.csv")
     os.makedirs(os.path.join(CONFIGPATH,"llm_processed"), exist_ok=True)
     file_path= os.path.join(CONFIGPATH,"llm_processed", "activity_comments.csv")
-    classify_activity_comments(input_file, file_path, rewrite=False)
+    # classify_activity_comments(input_file, file_path, rewrite=False)
     print("Activity comments classification done.")
 
-    # print("Starting with activity standards classification (direction)...")
-    # input_file = os.path.join(CONFIGPATH, "chembl_activities", "activity_stds_lookup.csv")
-    # file_path = os.path.join(CONFIGPATH,"llm_processed", "activity_stds_lookup.csv")
-    # #classify_activity_standards_with_direction(input_file,file_path, rewrite=False)
-    # print("Activity standards classification done.")
+    print("Starting with activity standards classification (direction)...")
+    input_file = os.path.join(CONFIGPATH, "chembl_activities", "activity_stds_lookup.csv")
+    file_path = os.path.join(CONFIGPATH,"llm_processed", "activity_stds_lookup.csv")
+    #classify_activity_standards_with_direction(input_file,file_path, rewrite=False)
+    print("Activity standards classification done.")
 
-    # print("Getting sample assay descriptions for standard units...")
-    # #get_sample_assay_descriptions_for_standard_units()
-    # print("Sample assay descriptions for standard units done.")
+    print("Getting sample assay descriptions for standard units...")
+    #get_sample_assay_descriptions_for_standard_units()
+    print("Sample assay descriptions for standard units done.")
 
-    # print("Starting with all activity standards classification (direction)...")
-    # input_file = os.path.join(CONFIGPATH, "chembl_activities","activity_std_units.csv")
-    # file_path = os.path.join(CONFIGPATH,"llm_processed", "activity_std_units.csv")
-    # # classify_all_activity_standards_with_direction(input_file, file_path, rewrite=False)
-    # input_file = os.path.join(CONFIGPATH, "chembl_activities","standard_text.csv")
-    # file_path = os.path.join(CONFIGPATH,"llm_processed", "standard_text.csv")
-    # # process_standard_text()
+    print("Starting with all activity standards classification (direction)...")
+    input_file = os.path.join(CONFIGPATH, "chembl_activities","activity_std_units.csv")
+    file_path = os.path.join(CONFIGPATH,"llm_processed", "activity_std_units.csv")
+    # classify_all_activity_standards_with_direction(input_file, file_path, rewrite=False)
+    input_file = os.path.join(CONFIGPATH, "chembl_activities","standard_text.csv")
+    file_path = os.path.join(CONFIGPATH,"llm_processed", "standard_text.csv")
+    # process_standard_text()

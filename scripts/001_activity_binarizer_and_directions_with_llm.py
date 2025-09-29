@@ -7,8 +7,8 @@ import subprocess
 import requests
 import time
 from tqdm import tqdm
-from llama_index.core.llms import ChatMessage, MessageRole
-from llama_index.llms.llamafile import Llamafile
+# from llama_index.core.llms import ChatMessage, MessageRole
+# from llama_index.llms.llamafile import Llamafile
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
@@ -23,7 +23,7 @@ from default import CONFIGPATH
 # from llama_index.llms.llamafile import Llamafile   # ← remove this
 
 OLLAMA_URL   = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma3:4b")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma3:4b")  # OLLAMA_DEBUG=1 ollama serve
 
 class _MsgObj:
     def __init__(self, content: str):
@@ -63,10 +63,10 @@ class OllamaChat:
 llm_model = OllamaChat()
 
 
-def run_llamafile():
-    print("Running LLM...")
-    subprocess.Popen(f'bash {llm_bin_path} --server', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    print("LLM running...")
+# def run_llamafile():
+#     print("Running LLM...")
+#     subprocess.Popen(f'bash {llm_bin_path} --server', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#     print("LLM running...")
 
 def classify_activity_comments(input_file, file_path, rewrite=False):
     """
@@ -146,22 +146,16 @@ def classify_activity_comments(input_file, file_path, rewrite=False):
         if classification != "":
             i += 1
             continue
-        try:
-            response = llm_model.chat(
-                messages=[ChatMessage(role=MessageRole.USER, content=prompt_text)]
-                )
-        except:
-            # print("LLM error. Starting LLM...")
-            run_llamafile()
-            print("LLM started. Waiting for 10 seconds...")
-            time.sleep(10)
-            response = llm_model.chat(
-                messages=[ChatMessage(role=MessageRole.USER, content=prompt_text)]
+        # try:
+        response = llm_model.chat(
+            messages=[ChatMessage(role=MessageRole.USER, content=prompt_text)]
             )
+
         prediction = response.message.content.strip()
         prediction = prediction.replace("<|eot_id|>", "")
         prediction = prediction.replace("<end_of_turn>", "")
         prediction = prediction.strip()
+
         print(f"Prediction: {prediction} / Comment: {comment}")
         if prediction == "1":
             current_classifications[i] = "1"
@@ -343,25 +337,25 @@ def classify_all_activity_standards_with_direction(input_file, file_path, rewrit
     df["activity_direction"] = current_directions
     df.to_csv(file_path, index=False)
 
-def process_standard_text(input_file, file_path): #TODO Revise Manual
+def process_standard_text(input_file, file_path):
     df = pd.read_csv(input_file, dtype=str)
-    manual_dict = {"Active": 1,  # lower this?
-                "Compound NOT metabolized":-1,
-                "Compound metabolized":1,
-                "Could not be calculated":0,
-                "IC50 could not be calculated":0,
-                "Inactive":-1,
-                "Linear Fit":0,
-                "NOT MEASURED":0,
-                "Nil":-1,
-                "No binding":-1,
-                "Not Active":-1,
-                "Not Determined":0
+    manual_dict = {"Active".lower():1,  
+                "Compound NOT metabolized".lower():-1,
+                "Compound metabolized".lower():1,
+                "Could not be calculated".lower():0,
+                "IC50 could not be calculated".lower():0,
+                "Inactive".lower():-1,
+                "Linear Fit".lower():0,
+                "NOT MEASURED".lower():0,
+                "Nil".lower():-1,
+                "No binding".lower():-1,
+                "Not Active".lower():-1,
+                "Not Determined".lower():0
                 }
     st_text = df["activity_comment"].tolist()
     final_dict = {}
     for text in st_text:
-        if str(text) in manual_dict:  # lower this?
+        if str(text).lower() in manual_dict:  
             final_dict[text] = manual_dict[str(text)]
         else:
             print("This comment is not processed: ", text)

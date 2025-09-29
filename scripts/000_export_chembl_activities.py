@@ -76,8 +76,8 @@ def curate_activity_files():
          .rename_axis('activity_comment')
          .reset_index(name='count')
     )
-    total_count = out['count'].sum()
-    out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
+    # total_count = out['count'].sum()
+    # out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
     out = out.sort_values('count', ascending=False, ignore_index=True)
     out.to_csv(os.path.join(output_dir, "standard_text.csv"), index=False)
 

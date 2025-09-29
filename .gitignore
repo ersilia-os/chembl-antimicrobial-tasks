@@ -1,4 +1,5 @@
 config/chembl_activities/*
+config/llm_processed_old/*
 bin/*
 
 # Byte-compiled / optimized / DLL files

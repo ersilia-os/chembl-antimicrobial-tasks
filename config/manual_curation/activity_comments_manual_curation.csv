@@ -1,0 +1,51 @@
+activity_comment,count,rank,cumulative_prop,manual_curation
+,11380987,1,0.469,0
+inactive,3344278,2,0.607,-1
+inconclusive,2898395,3,0.726,0
+active,1376669,4,0.783,1
+not active,684176,5,0.811,-1
+see activity_supp for individual animal data,474810,6,0.831,0
+multiplex,336480,7,0.845,0
+not determined,225842,8,0.854,0
+inhibition < 50% @ 10 um and thus dose-reponse curve not measured,222066,9,0.863,-1
+"summarised ac50 (mean value for measurements with a relation sign ""=""; largest value for measurements with relation sign "">"")",121097,10,0.868,0
+non-toxic,95709,11,0.872,-1
+dose-dependent effect,57323,12,0.874,0
+average; n=1,53488,13,0.877,0
+toxic,21601,14,0.877,1
+standard_value was converted from ug.ml-1 to nm using the parent compound mw,16068,15,0.878,0
+average; n=2,13255,16,0.879,0
+antagonist %inhib (mean),12829,17,0.879,1
+average; n=4,12309,18,0.88,0
+standard_value was converted from um.hr to ng.hr.ml-1 using the parent compound mw,11190,19,0.88,0
+average; n=2; conc=25 um ;,11074,20,0.881,0
+% of control,9693,21,0.881,0
+thermal shift assay,9334,22,0.881,0
+no. measurements = 1,8878,23,0.882,0
+falls outside the dose series,8385,24,0.882,0
+agonist %max (mean),7141,25,0.882,1
+tde,6333,26,0.883,0
+not evaluated,5103,27,0.883,0
+nd,4743,28,0.883,0
+unspecified,4624,29,0.883,0
+% of inhibition,3935,30,0.883,0
+references out of a total of 1,3900,31,0.884,0
+antagonist,3034,32,0.884,1
+dde,2781,33,0.884,0
+no data,2533,34,0.884,0
+object area,2220,35,0.884,0
+luminescence,2220,35,0.884,0
+not tested,2101,36,0.884,0
+references out of a total of 2,1944,37,0.884,0
+interpretation: specific binding,1872,38,0.884,1
+activity score: 1.0,1555,39,0.884,0
+data not available,1542,40,0.884,0
+drug-induced liver injury reported,1501,41,0.885,1
+nd(insoluble),1484,42,0.885,0
+no drug-induced liver injury reported,1352,43,0.885,-1
+no effect,1233,44,0.885,-1
+"data is reported as i50 but values are consistent with % inhibition, changed for chembl32 at suggestion of bz",1230,45,0.885,0
+bld,1217,46,0.885,0
+agonist,1206,47,0.885,1
+>50,1182,48,0.885,0
+not significant,1112,49,0.885,0

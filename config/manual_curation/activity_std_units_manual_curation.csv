@@ -1,0 +1,50 @@
+standard_type,standard_units,count,cumulative_prop,manual_curation
+Potency,nM,4471741,0.184,-1
+IC50,nM,3276327,0.319,-1
+GI50,nM,2617582,0.427,-1
+Inhibition,%,1589749,0.493,1
+Percent Effect,%,1328366,0.547,1
+k_off,s-1,826806,0.581,-1
+kon,,826159,0.616,1
+Ki,nM,755581,0.647,-1
+Activity,,668357,0.674,0
+MIC,ug.mL-1,633753,0.7,-1
+Activity,%,591198,0.725,0
+EC50,nM,564874,0.748,-1
+INHIBITION,%,339133,0.762,1
+AC50,nM,232818,0.772,-1
+Kd,nM,205107,0.78,-1
+IC50,,196043,0.788,-1
+Z score,,147592,0.794,0
+Ratio IC50,,142161,0.8,1
+Tissue Severity Score,,128999,0.805,1
+Ki,,124169,0.81,-1
+MIC,nM,121102,0.815,-1
+Ratio,,118474,0.82,0
+GI,%,103193,0.825,1
+CC50,nM,94510,0.828,-1
+IZ,mm,91788,0.832,1
+T1/2,hr,89387,0.836,0
+IC50,ug.mL-1,78221,0.839,-1
+Residual Activity,%,73944,0.842,1
+FC,,73625,0.845,0
+Stability,%,56190,0.848,1
+ED50,mg.kg-1,51987,0.85,-1
+% Control,%,50544,0.852,1
+LC50,nM,48007,0.854,-1
+Bacterial Biotransformation,,47351,0.856,0
+AC50,,45414,0.858,-1
+CL,mL.min-1.kg-1,44848,0.859,1
+TGI,nM,43632,0.861,-1
+Ratio Ki,,43153,0.863,0
+Growth Rate,,38334,0.865,0
+Emax,%,38313,0.866,1
+AUC,ng.hr.mL-1,38225,0.868,0
+Total Cell Count,,32783,0.869,0
+Control DMSO Fragmented Nuclei %,%,32783,0.87,1
+Control DMSO Mitochondria Different-Phenotype Cells (%),%,32783,0.872,1
+Population Fragmented Nuclei (%),%,32783,0.873,1
+Population Normal (%),%,32783,0.874,1
+Control DMSO Healthy Nuclei (%),%,32783,0.876,1
+Control DMSO Membrane Permeable-Phenotype Cells (%),%,32783,0.877,1
+Population Apoptotic (%),%,32783,0.879,1

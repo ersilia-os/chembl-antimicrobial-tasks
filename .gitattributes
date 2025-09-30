@@ -1,3 +1,1 @@
-config/llm_processed/*.csv filter=lfs diff=lfs merge=lfs -text
-config/statistical_processed/*.csv filter=lfs diff=lfs merge=lfs -text
 config/llm_processed/** !text !filter !merge !diff

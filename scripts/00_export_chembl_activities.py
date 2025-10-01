@@ -12,27 +12,29 @@ output_dir = os.path.join(CONFIGPATH, "chembl_activities")
 
 activity_tables = [
     "activities",
-    "activity_properties",
+    "assays",
+    "compound_structures",
+    "molecule_dictionary",
     "activity_stds_lookup",
-    "activity_supp",
-    "activity_supp_map",
-    "activity_smid",
-    "action_type",
-    "assays"
+    "target_dictionary"
 ]
 
 os.makedirs(output_dir, exist_ok=True)
-
 
 def export_table(conn, table):
     outfile = os.path.join(output_dir, f"{table}.csv")
     print(f"Exporting {table} -> {outfile}")
 
     with conn.cursor() as cur, open(outfile, "w", encoding="utf-8", newline="") as f:
-        # psycopg3 COPY streaming
-        with cur.copy(f"COPY public.{table} TO STDOUT WITH (FORMAT csv, HEADER true)") as copy:
-            for data in copy:
-                f.write(data.tobytes().decode("utf-8"))
+        if table == "compound_structures":
+            with cur.copy(f"COPY (SELECT molregno, standard_inchi, standard_inchi_key, canonical_smiles FROM public.{table}) TO STDOUT WITH (FORMAT csv, HEADER true)") as copy:
+                for data in copy:
+                    f.write(data.tobytes().decode("utf-8"))
+        else:
+            # Export full table
+            with cur.copy(f"COPY public.{table} TO STDOUT WITH (FORMAT csv, HEADER true)") as copy:
+                for data in copy:
+                    f.write(data.tobytes().decode("utf-8"))
 
 def get_files_from_db():
     with psycopg.connect(
@@ -88,7 +90,10 @@ def curate_assay_files():
     s.to_csv(os.path.join(output_dir, "assay_descriptions.csv"), index=False)
 
 if __name__ == "__main__":
+    print("Getting files from ChEMBL DB")
     get_files_from_db()
+    print("Curating activity files")
     curate_activity_files()
+    print("Curating assay description")
     curate_assay_files()
 

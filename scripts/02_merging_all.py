@@ -14,19 +14,19 @@ print("Loading data...")
 # Load ChEMBL activities
 activities = pd.read_csv(os.path.join(root, "..", "config", "chembl_activities", "activities.csv"), low_memory=False)
 
-# # Filter columns
-# columns = ['activity_id', 'assay_id', 'molregno','standard_relation', 'standard_value', 'standard_units', 'standard_type', 'activity_comment',
-#            'data_validity_comment', 'pchembl_value','standard_upper_value','standard_text_value', 'action_type']
-# activities = activities[columns]
+# Filter columns
+columns = ['activity_id', 'assay_id', 'molregno','standard_relation', 'standard_value', 'standard_units', 'standard_type', 'activity_comment',
+           'data_validity_comment', 'pchembl_value','standard_upper_value','standard_text_value', 'action_type']
+activities = activities[columns]
 
 # Load assays
 assays = pd.read_csv(os.path.join(root, "..", "config", "chembl_activities", "assays.csv"), low_memory=False)
 
 # Load targets
-targets = pd.read_csv(os.path.join(root, "..", "config", "chembl_activities", "target_dictionary.csv"), low_memory=False)
+targets = pd.read_csv(os.path.join(root, "..", "config", "chembl_activities", "target_dictionary.csv"), low_memory=True)
 
 # Load compounds
-compounds = pd.read_csv(os.path.join(root, "..", "config", "chembl_processed", "compound_info.csv"), low_memory=False)
+compounds = pd.read_csv(os.path.join(root, "..", "config", "chembl_processed", "compound_info.csv"), low_memory=True)
 
 print("Merging data...")
 

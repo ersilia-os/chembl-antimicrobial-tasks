@@ -38,7 +38,7 @@ luminescence,2220,35,0.884,0
 not tested,2101,36,0.884,0
 references out of a total of 2,1944,37,0.884,0
 interpretation: specific binding,1872,38,0.884,1
-activity score: 1.0,1555,39,0.884,0
+activity score: 1.0,1555,39,0.884,1
 data not available,1542,40,0.884,0
 drug-induced liver injury reported,1501,41,0.885,1
 nd(insoluble),1484,42,0.885,0
@@ -49,3 +49,52 @@ bld,1217,46,0.885,0
 agonist,1206,47,0.885,1
 >50,1182,48,0.885,0
 not significant,1112,49,0.885,0
+references out of a total of 3,1104,50,0.885,0
+slightly active,1052,51,0.885,1
+references out of a total of 4,1032,52,0.885,0
+substrate [+],1007,53,0.885,1
+note: corresponding ic50 reported as active,823,54,0.885,1
+average; n=3,807,55,0.885,0
+no inhibition,743,56,0.885,-1
+permeable,718,57,0.885,0
+partially active,625,58,0.885,1
+no. measurements = 2,624,59,0.885,0
+median n= 2,592,60,0.885,0
+references out of a total of 5,576,61,0.885,0
+stable,569,62,0.885,0
+no activity,569,62,0.885,-1
+references out of a total of 6,564,63,0.885,0
+uncertain,545,64,0.885,0
+inhibitor [+],540,65,0.885,1
+impermeable,534,66,0.885,0
+references out of a total of 7,516,67,0.885,0
+basic pka,506,68,0.886,0
+substrate,485,69,0.886,1
+phenotype: inactive; curve_description: none,480,70,0.886,-1
+significant activity,469,71,0.886,1
+yes,461,72,0.886,1
+% binding,444,73,0.886,0
+nd(toxic),443,74,0.886,0
+score 1,417,75,0.886,1
+is not a substrate [-],412,76,0.886,-1
+references out of a total of 8,408,77,0.886,0
+partial agonist,391,78,0.886,1
+not applicable,381,79,0.886,0
+carcinogenic activity,362,80,0.886,1
+negative: based on the absence of positive reported data from wmdd,353,81,0.886,-1
+is not an inhibitor [-],352,82,0.886,-1
+nt,341,83,0.886,0
+not toxic,325,84,0.886,-1
+references out of a total of 10,324,85,0.886,0
+resistant,320,86,0.886,0
+selectivity index = cc50/ic50,318,87,0.886,0
+references out of a total of 9,300,88,0.886,0
+references out of a total of 11,288,89,0.886,0
+references out of a total of 12,276,90,0.886,0
+hh: evidence of human hepatotoxicity,273,91,0.886,1
+less-dili-concern,265,92,0.886,0
++,264,93,0.886,1
+metabolite_detected,256,94,0.886,1
+no-dili-concern,256,94,0.886,-1
+negative,250,95,0.886,-1
+% of engagement,233,96,0.886,0

@@ -60,9 +60,9 @@ FINAL_COLUMNS = [
     'standard_value', 
     'standard_units', 
     'standard_type', 
-    'activity_comment', # flag
+    'activity_comment',
     'pchembl_value', 
-    'standard_text_value'  # flag
+    'standard_text_value'
     ]
 
 # Select final columns
@@ -71,4 +71,4 @@ NEW_ACTIVITIES = NEW_ACTIVITIES[FINAL_COLUMNS]
 print("Saving results...")
 
 # Create file
-NEW_ACTIVITIES.to_csv(os.path.join(root, "..", "config", "chembl_processed", "activities_all.csv"), index=False)
+NEW_ACTIVITIES.to_csv(os.path.join(root, "..", "config", "chembl_processed", "activities_all_raw.csv"), index=False)

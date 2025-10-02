@@ -1,4 +1,4 @@
-activity_comment,count,manual_curation
+standard_text_value,count,manual_curation
 ,23945325,0
 Not Active,239779,-1
 Compound NOT metabolized,27674,-1
@@ -9,17 +9,17 @@ metabolite_detected,5774,1
 Insoluble,2616,0
 Unstable,2495,0
 Soluble,1911,0
-Metabolite_Notdetected,1875,0
-metabolite_not_detected,1758,0
+Metabolite_Notdetected,1875,-1
+metabolite_not_detected,1758,-1
 soluble,1281,0
 Value could not be calculated,1029,0
-metabolite_notdetected,458,0
+metabolite_notdetected,458,-1
 Inactive,356,-1
 Active,215,1
 IC50 could not be calculated,166,0
 Could not be calculated,114,0
 NOT MEASURED,32,0
-Metabolite not detected,13,0
+Metabolite not detected,13,-1
 Toxic,10,1
 Non-toxic,10,-1
 No binding,7,-1

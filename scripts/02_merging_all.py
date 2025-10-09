@@ -31,7 +31,7 @@ compounds = pd.read_csv(os.path.join(root, "..", "config", "chembl_processed", "
 print("Merging data...")
 
 # Merge with assays
-NEW_ACTIVITIES = activities.merge(assays[['assay_id', 'chembl_id', 'assay_type', 'confidence_score', 'tid']].
+NEW_ACTIVITIES = activities.merge(assays[['assay_id', 'chembl_id', 'assay_type', 'confidence_score', 'tid', 'assay_organism']].
                                   rename(columns={'chembl_id': 'assay_chembl_id', 'confidence_score': 'assay_confidence_score'}), on='assay_id', how='left')
 
 # Merge with targets
@@ -48,6 +48,7 @@ FINAL_COLUMNS = [
     'assay_chembl_id',
     'assay_type',
     'assay_confidence_score',
+    'assay_organism',
     'tid',
     'target_type',
     'target_organism',

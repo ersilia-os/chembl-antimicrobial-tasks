@@ -16,7 +16,8 @@ activity_tables = [
     "compound_structures",
     "molecule_dictionary",
     "activity_stds_lookup",
-    "target_dictionary"
+    "target_dictionary",
+    "docs"
 ]
 
 os.makedirs(output_dir, exist_ok=True)

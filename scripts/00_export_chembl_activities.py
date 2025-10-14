@@ -17,7 +17,9 @@ activity_tables = [
     "molecule_dictionary",
     "activity_stds_lookup",
     "target_dictionary",
-    "docs"
+    "docs",
+    "assay_parameters",
+    "bioassay_ontology"
 ]
 
 os.makedirs(output_dir, exist_ok=True)

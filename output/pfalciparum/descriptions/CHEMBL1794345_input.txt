@@ -1,0 +1,24 @@
+Below you will find enumerated annotations from the assay under study.
+
+Assay ChEMBL ID: CHEMBL1794345
+Assay type: Functional
+Assay organism: Plasmodium falciparum
+Assay description: PUBCHEM_BIOASSAY: Primary qHTS for delayed death inhibitors of the malarial parasite plastid, 96 hour incubation. (Class of assay: confirmatory) [Related pubchem assays (depositor defined):AID488745, AID488752, AID488774, AID504848, AID504850]
+Assay strain: nan
+Assay category: confirmatory
+Assay test type: nan
+Assay cell type: nan
+Document title: PubChem BioAssay data set
+Document abstract: nan
+Document journal: nan
+Document PubMed ID: nan
+Document DOI: nan
+Target type: ORGANISM
+Target organism: Plasmodium falciparum
+Activity type: POTENCY
+Unit: umol.L-1
+Number of activities: 170462
+Number of compounds: 169987
+Stats: {'Percentile 1': 0.003, 'Percentile 25': 3.294, 'Mean': 9.447, 'Median': 10.418, 'Percentile 75': 14.716, 'Percentile 99': 20.786}
+
+Using the information provided, return a standardized description for the assay.

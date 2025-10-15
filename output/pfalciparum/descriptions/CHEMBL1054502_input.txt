@@ -1,0 +1,24 @@
+Below you will find enumerated annotations from the assay under study.
+
+Assay ChEMBL ID: CHEMBL1054502
+Assay type: Functional
+Assay organism: Plasmodium falciparum
+Assay description: GSK_TCMDC: Inhibition of Plasmodium falciparum 3D7 LDH activity, using an LDH reporter assay. Test compounds present at 2uM
+Assay strain: 3D7
+Assay category: nan
+Assay test type: nan
+Assay cell type: nan
+Document title: Thousands of chemical starting points for antimalarial lead identification.
+Document abstract: Malaria is a devastating infection caused by protozoa of the genus Plasmodium. Drug resistance is widespread, no new chemical class of antimalarials has been introduced into clinical practice since 1996 and there is a recent rise of parasite strains with reduced sensitivity to the newest drugs. We screened nearly 2 million compounds in GlaxoSmithKline's chemical library for inhibitors of P. falciparum, of which 13,533 were confirmed to inhibit parasite growth by at least 80% at 2 microM concentration. More than 8,000 also showed potent activity against the multidrug resistant strain Dd2. Most (82%) compounds originate from internal company projects and are new to the malaria community. Analyses using historic assay data suggest several novel mechanisms of antimalarial action, such as inhibition of protein kinases and host-pathogen interaction related targets. Chemical structures and associated data are hereby made public to encourage additional drug lead identification efforts and further research into this disease.
+Document journal: Nature
+Document PubMed ID: 20485427.0
+Document DOI: 10.1038/nature09107
+Target type: ORGANISM
+Target organism: Plasmodium falciparum
+Activity type: INHIBITION
+Unit: %
+Number of activities: 13533
+Number of compounds: 13467
+Stats: {'Percentile 1': 0.0, 'Percentile 25': 0.0, 'Mean': 1.302, 'Median': 0.0, 'Percentile 75': 2.0, 'Percentile 99': 7.0}
+
+Using the information provided, return a standardized description for the assay.

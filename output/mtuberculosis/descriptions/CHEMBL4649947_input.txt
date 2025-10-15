@@ -1,0 +1,24 @@
+Below you will find enumerated annotations from the assay under study.
+
+Assay ChEMBL ID: CHEMBL4649947
+Assay type: Functional
+Assay organism: Mycobacterium tuberculosis
+Assay description: Assay for Asp RNA synthetase-1  from  Mycobacterium tuberculosis
+Assay strain: nan
+Assay category: nan
+Assay test type: nan
+Assay cell type: nan
+Document title: University of Dundee, Small-Polar-MMV Screening Library
+Document abstract: nan
+Document journal: nan
+Document PubMed ID: nan
+Document DOI: 10.6019/CHEMBL3988442
+Target type: SINGLE PROTEIN
+Target organism: Mycobacterium tuberculosis (strain ATCC 25618 / H37Rv)
+Activity type: PERCENTEFFECT
+Unit: %
+Number of activities: 8841
+Number of compounds: 8841
+Stats: {'Percentile 1': -8.344, 'Percentile 25': -2.622, 'Mean': 0.205, 'Median': -0.28, 'Percentile 75': 2.323, 'Percentile 99': 12.91}
+
+Using the information provided, return a standardized description for the assay.

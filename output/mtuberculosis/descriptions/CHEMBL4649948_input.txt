@@ -1,0 +1,24 @@
+Below you will find enumerated annotations from the assay under study.
+
+Assay ChEMBL ID: CHEMBL4649948
+Assay type: Functional
+Assay organism: Mycobacterium tuberculosis
+Assay description: Phenotypic growth assay for Mycobacterium tuberculosis grown for 4 days on DPPC, cholesterol, tyloxapol based media
+Assay strain: nan
+Assay category: nan
+Assay test type: nan
+Assay cell type: nan
+Document title: University of Dundee, Small-Polar-MMV Screening Library
+Document abstract: nan
+Document journal: nan
+Document PubMed ID: nan
+Document DOI: 10.6019/CHEMBL3988442
+Target type: UNCHECKED
+Target organism: nan
+Activity type: PERCENTEFFECT
+Unit: %
+Number of activities: 93556
+Number of compounds: 86590
+Stats: {'Percentile 1': -40.22, 'Percentile 25': -10.67, 'Mean': -1.267, 'Median': -1.728, 'Percentile 75': 7.254, 'Percentile 99': 57.08}
+
+Using the information provided, return a standardized description for the assay.

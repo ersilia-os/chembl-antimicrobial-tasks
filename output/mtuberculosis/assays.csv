@@ -25,11 +25,11 @@ CHEMBL2114860,F,Mycobacterium tuberculosis UT205,SINGLE PROTEIN,CHEMBL2146299,My
 CHEMBL4649971,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,IC50,umol.L-1,269,200
 CHEMBL2098496,F,Mycobacterium tuberculosis H37Rv,ORGANISM,CHEMBL2111188,Mycobacterium tuberculosis H37Rv,MIC90,umol.L-1,177,177
 CHEMBL2354305,F,,SINGLE PROTEIN,CHEMBL1287620,Mycobacterium tuberculosis,IC50,umol.L-1,174,174
-CHEMBL5345967,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC>99,umol.L-1,172,172
 CHEMBL5345966,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC>99,umol.L-1,172,172
+CHEMBL5345967,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC>99,umol.L-1,172,172
 CHEMBL4333704,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,164,164
-CHEMBL4388634,B,Mycobacterium tuberculosis,SINGLE PROTEIN,CHEMBL4295521,Mycobacterium tuberculosis,IC50,umol.L-1,146,146
 CHEMBL4388638,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,INHIBITION,%,146,146
+CHEMBL4388634,B,Mycobacterium tuberculosis,SINGLE PROTEIN,CHEMBL4295521,Mycobacterium tuberculosis,IC50,umol.L-1,146,146
 CHEMBL2032580,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,136,136
 CHEMBL3857706,F,Mycobacterium tuberculosis H37Ra,NON-MOLECULAR,CHEMBL3879801,,MIC,umol.L-1,131,131
 CHEMBL1614471,B,Mycobacterium tuberculosis H37Rv,SINGLE PROTEIN,CHEMBL1293297,Mycobacterium tuberculosis,IC50,umol.L-1,125,125
@@ -37,32 +37,32 @@ CHEMBL3887425,B,,SINGLE PROTEIN,CHEMBL3988585,Mycobacterium tuberculosis (strain
 CHEMBL1634496,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,121,121
 CHEMBL1634497,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,121,121
 CHEMBL747348,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,118,118
-CHEMBL1049618,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
-CHEMBL3832763,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
-CHEMBL3832764,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
 CHEMBL3832777,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
-CHEMBL3832776,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC90,umol.L-1,116,116
-CHEMBL3832775,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC90,umol.L-1,116,116
-CHEMBL3832765,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
 CHEMBL1049617,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
-CHEMBL3832766,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
-CHEMBL3832772,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
-CHEMBL3832767,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
-CHEMBL3832770,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
-CHEMBL3832773,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
-CHEMBL3832774,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC90,umol.L-1,116,116
+CHEMBL1049618,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
+CHEMBL3832764,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
+CHEMBL3832775,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC90,umol.L-1,116,116
 CHEMBL3832771,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
+CHEMBL3832766,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
+CHEMBL3832765,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
+CHEMBL3832774,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC90,umol.L-1,116,116
+CHEMBL3832773,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
+CHEMBL3832763,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
+CHEMBL3832772,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
+CHEMBL3832776,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC90,umol.L-1,116,116
+CHEMBL3832770,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
 CHEMBL3832769,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
 CHEMBL3832768,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
+CHEMBL3832767,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,116,116
 CHEMBL5246903,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,114,114
-CHEMBL1839642,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,113,113
 CHEMBL1839643,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,113,113
+CHEMBL1839642,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,113,113
 CHEMBL4879906,B,Mycobacterium tuberculosis,SINGLE PROTEIN,CHEMBL1908385,Mycobacterium tuberculosis,%CONTROL,%,108,108
 CHEMBL4384699,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,107,105
+CHEMBL1115630,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,103,103
+CHEMBL1115629,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,103,103
 CHEMBL4011046,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,GI,%,103,103
 CHEMBL4011042,F,Mycobacterium tuberculosis variant bovis BCG,ORGANISM,CHEMBL613086,Mycobacterium tuberculosis variant bovis,GI,%,103,103
-CHEMBL1115629,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,103,103
 CHEMBL4011010,F,Mycobacterium tuberculosis variant bovis BCG,ORGANISM,CHEMBL613086,Mycobacterium tuberculosis variant bovis,MIC90,umol.L-1,103,103
 CHEMBL4011010,F,Mycobacterium tuberculosis variant bovis BCG,ORGANISM,CHEMBL613086,Mycobacterium tuberculosis variant bovis,MIC50,umol.L-1,103,103
-CHEMBL1115630,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,103,103
 CHEMBL4384698,B,Mycobacterium tuberculosis,UNCHECKED,CHEMBL612545,,IC50,umol.L-1,104,102

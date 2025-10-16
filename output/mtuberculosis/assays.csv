@@ -63,6 +63,6 @@ CHEMBL1115630,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tube
 CHEMBL1115629,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,MIC,umol.L-1,103,103
 CHEMBL4011046,F,Mycobacterium tuberculosis,ORGANISM,CHEMBL360,Mycobacterium tuberculosis,GI,%,103,103
 CHEMBL4011042,F,Mycobacterium tuberculosis variant bovis BCG,ORGANISM,CHEMBL613086,Mycobacterium tuberculosis variant bovis,GI,%,103,103
-CHEMBL4011010,F,Mycobacterium tuberculosis variant bovis BCG,ORGANISM,CHEMBL613086,Mycobacterium tuberculosis variant bovis,MIC90,umol.L-1,103,103
 CHEMBL4011010,F,Mycobacterium tuberculosis variant bovis BCG,ORGANISM,CHEMBL613086,Mycobacterium tuberculosis variant bovis,MIC50,umol.L-1,103,103
+CHEMBL4011010,F,Mycobacterium tuberculosis variant bovis BCG,ORGANISM,CHEMBL613086,Mycobacterium tuberculosis variant bovis,MIC90,umol.L-1,103,103
 CHEMBL4384698,B,Mycobacterium tuberculosis,UNCHECKED,CHEMBL612545,,IC50,umol.L-1,104,102

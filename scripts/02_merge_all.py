@@ -8,11 +8,13 @@ import os
 
 
 root = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(root, "..", "src"))
+from default import CONFIGPATH
 
 print("Loading data...")
 
 # Load ChEMBL activities
-activities = pd.read_csv(os.path.join(root, "..", "config", "chembl_activities", "activities.csv"), low_memory=False)
+activities = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "activities.csv"), low_memory=False)
 
 # Filter columns
 columns = ['activity_id', 'assay_id', 'molregno','standard_relation', 'standard_value', 'standard_units', 'standard_type', 'activity_comment',
@@ -20,13 +22,13 @@ columns = ['activity_id', 'assay_id', 'molregno','standard_relation', 'standard_
 activities = activities[columns]
 
 # Load assays
-assays = pd.read_csv(os.path.join(root, "..", "config", "chembl_activities", "assays.csv"), low_memory=False)
+assays = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "assays.csv"), low_memory=False)
 
 # Load targets
-targets = pd.read_csv(os.path.join(root, "..", "config", "chembl_activities", "target_dictionary.csv"), low_memory=True)
+targets = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "target_dictionary.csv"), low_memory=True)
 
 # Load compounds
-compounds = pd.read_csv(os.path.join(root, "..", "config", "chembl_processed", "compound_info.csv"), low_memory=True)
+compounds = pd.read_csv(os.path.join(CONFIGPATH, "chembl_processed", "compound_info.csv"), low_memory=True)
 
 print("Merging data...")
 
@@ -72,4 +74,4 @@ NEW_ACTIVITIES = NEW_ACTIVITIES[FINAL_COLUMNS]
 print("Saving results...")
 
 # Create file
-NEW_ACTIVITIES.to_csv(os.path.join(root, "..", "config", "chembl_processed", "activities_all_raw.csv"), index=False)
+NEW_ACTIVITIES.to_csv(os.path.join(CONFIGPATH, "chembl_processed", "activities_all_raw.csv"), index=False)

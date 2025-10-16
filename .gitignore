@@ -1,9 +1,5 @@
-config/chembl_activities/*
-config/llm_processed_old/*
-config/llm_processed/*
-config/chembl_processed/*
-config/to_remove/*
-bin/*
+config/*
+output/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -2,27 +2,30 @@ from collections import Counter
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
+import sys
 import os
 import re
 
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(root, "..", "src"))
+from default import CONFIGPATH
 
 # Load data
-activities_all_raw = pd.read_csv(os.path.join(root, "..", "config", "chembl_processed", "activities_all_raw.csv"), low_memory=False)
+activities_all_raw = pd.read_csv(os.path.join(CONFIGPATH, "chembl_processed", "activities_all_raw.csv"), low_memory=False)
 
 # 1. Flagging activity comments
-activity_comments_bin = pd.read_csv(os.path.join(root, "..", "config", "manual_curation", "activity_comments_manual_curation.csv"), low_memory=False)
+activity_comments_bin = pd.read_csv(os.path.join(CONFIGPATH, "manual_curation", "activity_comments_manual_curation.csv"), low_memory=False)
 activity_comments_act = set(activity_comments_bin[activity_comments_bin['manual_curation'] == 1]['activity_comment'])
 activity_comments_inact = set(activity_comments_bin[activity_comments_bin['manual_curation'] == -1]['activity_comment'])
 
 # 2. Flagging standard text
-standard_text_bin = pd.read_csv(os.path.join(root, "..", "config", "manual_curation", "standard_text_manual_curation.csv"), low_memory=False)
+standard_text_bin = pd.read_csv(os.path.join(CONFIGPATH, "manual_curation", "standard_text_manual_curation.csv"), low_memory=False)
 standard_text_act = set(standard_text_bin[standard_text_bin['manual_curation'] == 1]['standard_text_value'])
 standard_text_inact = set(standard_text_bin[standard_text_bin['manual_curation'] == -1]['standard_text_value'])
 
 # 3. Unit conversion
-unit_conversion = pd.read_csv(os.path.join(root, "..", "config", "chembl_processed", "unit_conversion.csv"))
+unit_conversion = pd.read_csv(os.path.join(CONFIGPATH, "chembl_processed", "unit_conversion.csv"))
 standard_unit_to_final_unit = {i: j for i,j in zip(unit_conversion['standard_units'], unit_conversion['final_unit'])}
 standard_unit_to_conversion_formula = {i: j for i,j in zip(unit_conversion['standard_units'], unit_conversion['conversion_formula'])}
 
@@ -126,7 +129,7 @@ df = [[unit, d[unit]] for unit in sorted(d, key=lambda x: d[x])[::-1]]
 df = pd.DataFrame(df, columns=['unit', 'count'])
 total_count = np.sum(df['count'])
 df['cumulative_prop'] = (df['count'].cumsum() / total_count).round(3)
-df.to_csv(os.path.join(root, "..", "config", "chembl_processed", "converted_units.csv"), index=False)
+df.to_csv(os.path.join(CONFIGPATH, "chembl_processed", "converted_units.csv"), index=False)
 
 # Dict mapping old units with new units
 new_unit_to_old_units = {i: set() for i in set(NEW_UNITS)}
@@ -136,7 +139,7 @@ for i,j in zip(activities_all_raw['converted_units'], activities_all_raw['standa
 df = [[unit, len(new_unit_to_old_units[unit]), " ; ".join([str(k) for k in new_unit_to_old_units[unit]])] 
       for unit in sorted(new_unit_to_old_units, key=lambda x: len(new_unit_to_old_units[x]))[::-1]]
 df = pd.DataFrame(df, columns=['unit', 'count', 'old_units'])
-df.to_csv(os.path.join(root, "..", "config", "chembl_processed", "converted_units_map.csv"), index=False)
+df.to_csv(os.path.join(CONFIGPATH, "chembl_processed", "converted_units_map.csv"), index=False)
 
 
 # 4. Harmonizing activity types
@@ -155,7 +158,7 @@ for ty, harm_ty in zip(activities_all_raw['standard_type'], activities_all_raw['
 df = [[ty, len(harmonized_types_to_types[ty]), " ; ".join([str(k) for k in harmonized_types_to_types[ty]])] 
       for ty in sorted(harmonized_types_to_types, key=lambda x: len(harmonized_types_to_types[x]))[::-1]]
 df = pd.DataFrame(df, columns=['type', 'count', 'old_types'])
-df.to_csv(os.path.join(root, "..", "config", "chembl_processed", "harmonized_types_map.csv"), index=False)
+df.to_csv(os.path.join(CONFIGPATH, "chembl_processed", "harmonized_types_map.csv"), index=False)
 
 # 5. Clean relations
 print("Cleaning relations...")
@@ -194,4 +197,4 @@ activities_all_raw = activities_all_raw.rename(columns={
         "calculated_pChEMBLs": "pchembl_calculated"
         })
 
-activities_all_raw.to_csv(os.path.join(root, "..", "config", 'chembl_processed', 'activities_preprocessed.csv'), index=False)
+activities_all_raw.to_csv(os.path.join(CONFIGPATH, 'chembl_processed', 'activities_preprocessed.csv'), index=False)

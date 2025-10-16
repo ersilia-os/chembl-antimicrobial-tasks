@@ -1,19 +1,22 @@
 import pandas as pd
 import numpy as np
+import sys
 import os
 
 root = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(root, "..", "src"))
+from default import CONFIGPATH
 
 # Load data
-all_units = pd.read_csv(os.path.join(root, "..", "config", "chembl_processed", "UnitStringValidations.csv"), skiprows=1)  # file standard_units.csv to https://ucum.nlm.nih.gov/
+all_units = pd.read_csv(os.path.join(CONFIGPATH, "chembl_processed", "UnitStringValidations.csv"), skiprows=1)  # file standard_units.csv to https://ucum.nlm.nih.gov/
 del all_units['cumulative_prop']
 del all_units['Validation Result']
 del all_units['Notes']
 all_units = all_units[all_units['standard_units'].isna() == False].reset_index(drop=True)
 
 # Load curated data
-standard_units_conversions_MDF = pd.read_csv(os.path.join(root, "..", "config", "manual_curation", "standard_units_conversions_MDF.csv"))
-ucum_GT = pd.read_csv(os.path.join(root, "..", "config", "manual_curation", "ucum_GT.csv"))
+standard_units_conversions_MDF = pd.read_csv(os.path.join(CONFIGPATH, "manual_curation", "standard_units_conversions_MDF.csv"))
+ucum_GT = pd.read_csv(os.path.join(CONFIGPATH, "manual_curation", "ucum_GT.csv"))
 
 # Valid units
 unit_to_valid_unit = {}
@@ -100,4 +103,4 @@ all_units['final_unit'] = final_units
 all_units['conversion_formula'] = conversion_formula
 
 # Save results
-all_units.to_csv(os.path.join(root, "..", "config", "chembl_processed", "unit_conversion.csv"), index=False)
+all_units.to_csv(os.path.join(CONFIGPATH, "chembl_processed", "unit_conversion.csv"), index=False)

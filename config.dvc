@@ -1,0 +1,6 @@
+outs:
+- md5: b50b1ae14b102127561dd72c2671b7ec.dir
+  size: 16601483552
+  nfiles: 35
+  hash: md5
+  path: config

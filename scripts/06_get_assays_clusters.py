@@ -34,7 +34,7 @@ for pathogen in pathogens:
     ChEMBL_ = ChEMBL[ChEMBL['target_organism'].str.contains(pathogen, case=False, na=False) | 
                     ChEMBL['assay_organism'].str.contains(pathogen, case=False, na=False)].reset_index(drop=True)
     
-    print((f"Number of activities for {pathogen}: {len(ChEMBL)}"))
+    print((f"Number of activities for {pathogen}: {len(ChEMBL_)}"))
     print(f"Calculating clusters for pathogen: {pathogen_code}...")
     ASSAYS_INFO = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, 'assays.csv'))
     ASSAYS_INFO = ASSAYS_INFO[['assay_id', 'activity_type', 'unit', 'activities', 'cpds']].copy()
@@ -55,20 +55,19 @@ for pathogen in pathogens:
         # Get list of unique compounds
         compounds_assay = list(set(compounds_assay))
 
-        # if len(compounds_assay) < 100:
-        #     CLUSTERS.append([np.nan for _ in thrs])
-        # else:
-
         # Calculate ECFP4s
         fps = bblean.fps_from_smiles(compounds_assay, kind="ecfp4", pack=True, n_features=2048)
 
         # Clustering using BitBirch
         thr_to_clusters = {}
         for c, thr in enumerate(thrs):
-            bb_tree = bblean.BitBirch(branching_factor=128, threshold=thr, merge_criterion="diameter")
-            bb_tree.fit(fps)
-            clusters = len(bb_tree.get_cluster_mol_ids())
-            thr_to_clusters[thr] = clusters
+            try:
+                bb_tree = bblean.BitBirch(branching_factor=128, threshold=thr, merge_criterion="diameter")
+                bb_tree.fit(fps)
+                clusters = len(bb_tree.get_cluster_mol_ids())
+                thr_to_clusters[thr] = clusters
+            except:
+                thr_to_clusters[thr] = np.nan
         CLUSTERS.append([thr_to_clusters[i] for i in thr_to_clusters])
 
     for c, thr in enumerate(thrs):

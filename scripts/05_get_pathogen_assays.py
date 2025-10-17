@@ -46,6 +46,7 @@ for pathogen in pathogens:
     assays = sorted(set(ChEMBL['assay_chembl_id']))
 
     ASSAYS_INFO = []
+    print("Collecting individual assay information...")
 
     # For each assay
     for assay in tqdm(assays):

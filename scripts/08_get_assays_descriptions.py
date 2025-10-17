@@ -34,9 +34,9 @@ You are a ChEMBL biodata curator. Your task is to write a complete, accurate and
 Formatting instructions:
 - The description must be structured into three paragraphs (enumerated below), each of 80-120 words.
 - Each paragraph must begin with a bold markdown title in the exact format:
-  **1. Assay description**\n
-  **2. Outcome interpretation**\n
-  **3. Results and insights**\n
+  **1. Assay description** \newline
+  **2. Outcome interpretation** \newline
+  **3. Results and insights** \newline
 - The assay description paragraph must explain the objective of the assay, the experimental system, and methodology. Specify the biological target, assay format (e.g., cell-based, binding), detection method, and any relevant experimental conditions (e.g., temperature, compound concentration).
 - The outcome interpretation paragraph must describe how assay outputs are measured and interpreted. Specify how results relate to biological activity or target modulation, the direction of the biological activity (-1 if lower values lead to higher activity e.g., IC50; +1 if higher values result in higher activity e.g., percent. inhibition or effect; 0 if it’s inconclusive, e.g., clearance or solubility), controls, reference compounds, signal thresholds and normalization steps.
 - The results and insights paragraph must summarize typical activity ranges, notable behaviors (e.g., agonists, inhibitors), data quality and curation notes that support integration and reproducibility. Highlight meaningful observations from the distribution of activity data. It must be coherent with the outcome interpretation paragraph.
@@ -64,7 +64,7 @@ for pathogen in pathogens:
     PATH_TO_OUTPUT = os.path.join(root, "..", "output", pathogen_code)
     os.makedirs(os.path.join(PATH_TO_OUTPUT, "descriptions"), exist_ok=True)
 
-    for i in ASSAYS_INFO[['assay_type', 'assay_organism', 'target_type', 'target_organism', 'activity_type', 'unit', 'activities', 'cpds', 'assay_id']].values[:10]:
+    for i in ASSAYS_INFO[['assay_type', 'assay_organism', 'target_type', 'target_organism', 'activity_type', 'unit', 'activities', 'cpds', 'assay_id']].values:
 
         assay_id = i[8]
         doc_id = assays[assays['chembl_id'] == assay_id]['doc_id'].tolist()[0]
@@ -107,14 +107,14 @@ for pathogen in pathogens:
         USER = f"""Below you will find enumerated annotations from the assay under study.\n\n{result}\n\nUsing the information provided, return a standardized description for the assay."""
 
         # Print data
-        with open(os.path.join(PATH_TO_OUTPUT, "descriptions", f"{assay_id}_input.txt"), "w") as f:
+        with open(os.path.join(PATH_TO_OUTPUT, "descriptions", f"{assay_id}_{i[4]}_{i[5]}_input.txt"), "w") as f:
             f.write(USER)
         
         # Non streaming call
         response = ollama.generate(model='gpt-oss:20b', prompt=SYSTEM + USER, stream=False, think=True)
 
         # Print response
-        with open(os.path.join(PATH_TO_OUTPUT, "descriptions", f"{assay_id}_output.txt"), "w") as f:
+        with open(os.path.join(PATH_TO_OUTPUT, "descriptions", f"{assay_id}_{i[4]}_{i[5]}_output.txt"), "w") as f:
             f.write(response.response)
 
         print(f"✓ Completed {assay_id}")

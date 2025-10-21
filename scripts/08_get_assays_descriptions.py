@@ -64,7 +64,7 @@ for pathogen in pathogens:
     PATH_TO_OUTPUT = os.path.join(root, "..", "output", pathogen_code)
     os.makedirs(os.path.join(PATH_TO_OUTPUT, "descriptions"), exist_ok=True)
 
-    for i in ASSAYS_INFO[['assay_type', 'assay_organism', 'target_type', 'target_organism', 'activity_type', 'unit', 'activities', 'cpds', 'assay_id']].values:
+    for i in ASSAYS_INFO[['assay_type', 'assay_organism', 'target_type', 'target_organism', 'activity_type', 'unit', 'activities', 'cpds', 'assay_id']].values[2065:]:
 
         assay_id = i[8]
         doc_id = assays[assays['chembl_id'] == assay_id]['doc_id'].tolist()[0]
@@ -105,6 +105,9 @@ for pathogen in pathogens:
 
         result = "\n".join([i + ": " + str(result[i]) for i in result])
         USER = f"""Below you will find enumerated annotations from the assay under study.\n\n{result}\n\nUsing the information provided, return a standardized description for the assay."""
+
+        if type(i[5]) == str:
+            i[5] = i[5].replace('/', 'FwdS')
 
         # Print data
         with open(os.path.join(PATH_TO_OUTPUT, "descriptions", f"{assay_id}_{i[4]}_{i[5]}_input.txt"), "w") as f:

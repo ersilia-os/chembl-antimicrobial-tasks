@@ -12,6 +12,7 @@ sys.path.append(os.path.join(root, "..", "src"))
 from default import CONFIGPATH
 
 # Load data
+print("Loading data...")
 activities_all_raw = pd.read_csv(os.path.join(CONFIGPATH, "chembl_processed", "activities_all_raw.csv"), low_memory=False)
 
 # 1. Flagging activity comments
@@ -51,7 +52,10 @@ def calculate_pchembl(uM):
         return pchembl_value
     except:
         return np.nan
-
+    
+# 7. Converting doc_id to doc_chembl_id
+docs = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "docs.csv"), low_memory=False)
+doc_id_to_doc_chembl_id = {i: j for i, j in zip(docs['doc_id'], docs["chembl_id"])}
 
 
 # 1. Cleaning activity comments
@@ -176,8 +180,15 @@ for unit, value, pch in tqdm(activities_all_raw[['converted_units', 'converted_v
         calculated_pChEMBLs.append(value)
     else:
         calculated_pChEMBLs.append(np.nan)
-
 activities_all_raw['calculated_pChEMBLs'] = calculated_pChEMBLs
+
+# 7. Converting doc_id to doc_chembl_id
+docs = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "docs.csv"), low_memory=False)
+doc_id_to_doc_chembl_id = {i: j for i, j in zip(docs['doc_id'], docs["chembl_id"])}
+print(f"Converting Doc IDs...")
+print(f"Number of docs: {len(docs)}; Number of mappings: {len(doc_id_to_doc_chembl_id)}")
+activities_all_raw['doc_id'] = [doc_id_to_doc_chembl_id[i] for i in activities_all_raw['doc_id']]
+
 
 del activities_all_raw['standard_relation']
 del activities_all_raw['standard_value']
@@ -194,7 +205,9 @@ activities_all_raw = activities_all_raw.rename(columns={
         "converted_units": "unit",
         "harmonized_type": "activity_type",
         "pchembl_value": "pchembl",
-        "calculated_pChEMBLs": "pchembl_calculated"
+        "calculated_pChEMBLs": "pchembl_calculated",
+        "doc_id": "doc_chembl_id"
         })
 
+print("Saving results...")
 activities_all_raw.to_csv(os.path.join(CONFIGPATH, 'chembl_processed', 'activities_preprocessed.csv'), index=False)

@@ -64,7 +64,7 @@ for pathogen in pathogens:
     PATH_TO_OUTPUT = os.path.join(root, "..", "output", pathogen_code)
     os.makedirs(os.path.join(PATH_TO_OUTPUT, "descriptions"), exist_ok=True)
 
-    for i in ASSAYS_INFO[['assay_type', 'assay_organism', 'target_type', 'target_organism', 'activity_type', 'unit', 'activities', 'cpds', 'assay_id']].values[2065:]:
+    for i in ASSAYS_INFO[['assay_type', 'assay_organism', 'target_type', 'target_organism', 'activity_type', 'unit', 'activities', 'cpds', 'assay_id']].values[2085:]:
 
         assay_id = i[8]
         doc_id = assays[assays['chembl_id'] == assay_id]['doc_id'].tolist()[0]

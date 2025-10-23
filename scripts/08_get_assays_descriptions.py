@@ -1,4 +1,5 @@
-# Use a conda env with bitbirch installed
+# Use a conda env with ollama installed
+# Run this code on a GPU machine
 from collections import Counter
 from tqdm import tqdm
 import pandas as pd

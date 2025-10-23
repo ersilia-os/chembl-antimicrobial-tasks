@@ -57,6 +57,11 @@ def calculate_pchembl(uM):
 docs = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "docs.csv"), low_memory=False)
 doc_id_to_doc_chembl_id = {i: j for i, j in zip(docs['doc_id'], docs["chembl_id"])}
 
+# 0. Removing those activities having no canonical smiles
+nans = len(activities_all_raw[activities_all_raw['canonical_smiles'].isna()])
+print(f"Removing activities having no associated canonical smiles ({nans}) ...")
+activities_all_raw = activities_all_raw[activities_all_raw['canonical_smiles'].isna() == False].reset_index(drop=True)
+
 
 # 1. Cleaning activity comments
 print("Cleaning activity comments...")

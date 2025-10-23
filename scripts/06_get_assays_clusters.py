@@ -12,28 +12,27 @@ root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import CONFIGPATH, MIN_ASSAY_SIZE
 
-# Loading ChEMBL preprocessed data
-print("Loading ChEMBL preprocessed data...")
-ChEMBL = pd.read_csv(os.path.join(root, "..", "config", "chembl_processed", "activities_preprocessed.csv"), low_memory=False)
-print(f"Original size: {len(ChEMBL)}")
-print("Filtering out nan values...")
-ChEMBL = ChEMBL[ChEMBL['value'].isna() == False].reset_index(drop=True)
-print(f"Size after filtering nan values: {len(ChEMBL)}")
-
 # List of pathogens to process
 pathogens = ["Mycobacterium tuberculosis"]
-thrs = [0.4, 0.6, 0.85]
+
+# Thresholds - Tanimoto Coefficient
+thrs = [0.3, 0.6, 0.85]
 
 # For each pathogen
 for pathogen in pathogens:
+
+    # Loading pathogen data
+    print(f"Loading ChEMBL preprocessed data for {pathogen}...")
+    ChEMBL = pd.read_csv(os.path.join(root, "..", "config", "chembl_processed", "activities_preprocessed.csv"), low_memory=False)
+    print(f"Original size: {len(ChEMBL)}")
     
-    # Get assays info
-    pathogen_code = str(pathogen.split()[0][0] + pathogen.split()[1]).lower()
-    print(f"\n\nFiltering for pathogen: {pathogen_code}...")
-    PATH_TO_OUTPUT = os.path.join(root, "..", "output", pathogen_code)
-    os.makedirs(PATH_TO_OUTPUT, exist_ok=True)
-    ChEMBL_ = ChEMBL[ChEMBL['target_organism'].str.contains(pathogen, case=False, na=False) | 
-                    ChEMBL['assay_organism'].str.contains(pathogen, case=False, na=False)].reset_index(drop=True)
+    # # Get assays info
+    # pathogen_code = str(pathogen.split()[0][0] + pathogen.split()[1]).lower()
+    # print(f"\n\nFiltering for pathogen: {pathogen_code}...")
+    # PATH_TO_OUTPUT = os.path.join(root, "..", "output", pathogen_code)
+    # os.makedirs(PATH_TO_OUTPUT, exist_ok=True)
+    # ChEMBL_ = ChEMBL[ChEMBL['target_organism'].str.contains(pathogen, case=False, na=False) | 
+    #                 ChEMBL['assay_organism'].str.contains(pathogen, case=False, na=False)].reset_index(drop=True)
     
     print((f"Number of activities for {pathogen}: {len(ChEMBL_)}"))
     print(f"Calculating clusters for pathogen: {pathogen_code}...")

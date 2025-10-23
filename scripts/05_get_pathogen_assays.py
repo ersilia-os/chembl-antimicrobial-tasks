@@ -10,24 +10,25 @@ root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import CONFIGPATH, MIN_ASSAY_SIZE
 
-# Loading ChEMBL preprocessed data
-print("Loading ChEMBL preprocessed data...")
-ChEMBL = pd.read_csv(os.path.join(root, "..", "config", "chembl_processed", "activities_preprocessed.csv"), low_memory=False)
-print(f"Original size: {len(ChEMBL)}")
-# print("Filtering out nan values...")
-# ChEMBL = ChEMBL[ChEMBL['value'].isna() == False].reset_index(drop=True)
-# print(f"Size after filtering nan values: {len(ChEMBL)}")
-
 # List of pathogens
 pathogens = ["Acinetobacter baumannii", "Candida albicans", "Campylobacter", "Escherichia coli", "Enterococcus faecium", "Enterobacter",
              "Helicobacter pylori", "Klebsiella pneumoniae", "Mycobacterium tuberculosis", "Neisseria gonorrhoeae", "Pseudomonas aeruginosa",
              "Plasmodium falciparum", "Staphylococcus aureus", "Schistosoma mansoni", "Streptococcus pneumoniae"]
+pathogens = ["Mycobacterium tuberculosis"]
+
+def get_pathogen_code(pathogen):
+    return str(pathogen.split()[0][0] + pathogen.split()[1]).lower() if len(pathogen.split()) > 1 else pathogen.lower()
 
 # For each pathogen
 for pathogen in pathogens:
 
+    # Loading ChEMBL preprocessed data
+    print("Loading ChEMBL preprocessed data...")
+    ChEMBL = pd.read_csv(os.path.join(root, "..", "config", "chembl_processed", "activities_preprocessed.csv"), low_memory=False)
+    print(f"Original size: {len(ChEMBL)}")
+
     print(f"Filtering for pathogen: {pathogen}...")
-    pathogen_code = str(pathogen.split()[0][0] + pathogen.split()[1]).lower()
+    pathogen_code = get_pathogen_code(pathogen)
     PATH_TO_OUTPUT = os.path.join(root, "..", "output", pathogen_code)
     os.makedirs(PATH_TO_OUTPUT, exist_ok=True)
     ChEMBL = ChEMBL[ChEMBL['target_organism'].str.contains(pathogen, case=False, na=False) | 

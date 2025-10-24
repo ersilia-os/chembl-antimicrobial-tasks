@@ -49,9 +49,9 @@ Formatting instructions:
     (i.e. the direction of the biological activity). Additionally, elaborate on the chemical diversity of the assay compounds, basing your description on the number of observed \
     clusters at different ECFP4 Tanimoto similarity cut-offs (e.g., if 10 compounds lead to 10 clusters at a 0.3 ECFP4 Tanimoto similarity cut-off, the assay is \
     chemically diverse. On the contrary, if 10 compounds lead to a single cluster at a ECFP4 0.85 Tanimoto similarity cut-off, the set is probably a chemical series). \
-    Finally, you will be provided 20 sampled smiles maximum (top10 and 10 randomly selected) from the assay with their corresponding activity values: try to identify \
+    Finally, you will be provided 30 sampled smiles maximum (top10, bottom10 and 10 randomly selected) from the assay with their corresponding activity values: try to identify \
     common scaffolds or functional groups related with antimicrobial activity (e.g., quinolones or sulfonamides), particularly among active compounds (notice \
-    that actives will have lower values if direction is (-1) or higher if direction is (+1)).  
+    that actives will have lower values if direction is (-1) or higher if direction is (+1)). Interpret the results accordingly.  
 - Separate paragraphs with a single blank line.
 - Use only standard ASCII spacing for all numbers, units, and symbols.
 - Insert commas in numbers when necessary (e.g., 1,000; 100,000).
@@ -113,14 +113,18 @@ for pathogen in pathogens:
         compounds_notnans = sorted(compounds_notnans, key=lambda x: float(x.split()[-2]))[::-1]
         compounds_nans = [f"{i} --> {assay_data[4]} {j} {k} {assay_data[5]}" for i,j,k in zip(compounds, relations, assay_activities) if np.isnan(k) == True]
         COMPOUNDS = []
-        if len(compounds_notnans) >= 20:
-            COMPOUNDS.extend(compounds_notnans[:10] + random.sample(compounds_notnans[10:], 10))
+        if len(compounds_notnans) >= 30:
+            COMPOUNDS.extend(compounds_notnans[:10] + random.sample(compounds_notnans[10:-10], 10) + compounds_notnans[-10:])
+        elif len(compounds_notnans) + len(compounds_nans) > 30:
+            COMPOUNDS.extend(compounds_notnans + random.sample(compounds_nans, 30 - len(compounds_notnans)))
         else:
             COMPOUNDS.extend(compounds_notnans + compounds_nans)  
 
         # Getting activities that are nans
-        assay_activities_nans = [i for i in assay_activities if np.isnan(i)]  # Caution if the number of non-nans activities is 0, the percentile calculation will fail
+        assay_activities_nans = [i for i in assay_activities if np.isnan(i)]
         assay_activities = [i for i in assay_activities if np.isnan(i) == False]
+        if len(assay_activities) == 0:
+            assay_activities = [np.nan]
 
         result = {
             "Assay ChEMBL ID": assay_id,

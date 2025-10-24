@@ -13,7 +13,9 @@ sys.path.append(os.path.join(root, "..", "src"))
 from default import CONFIGPATH, MIN_ASSAY_SIZE
 
 # List of pathogens to process
-pathogens = ["Mycobacterium tuberculosis"]
+pathogens = ["Acinetobacter baumannii", "Candida albicans", "Campylobacter", "Escherichia coli", "Enterococcus faecium", "Enterobacter",
+             "Helicobacter pylori", "Klebsiella pneumoniae", "Mycobacterium tuberculosis", "Neisseria gonorrhoeae", "Pseudomonas aeruginosa",
+             "Plasmodium falciparum", "Staphylococcus aureus", "Schistosoma mansoni", "Streptococcus pneumoniae"]
 
 # Thresholds - Tanimoto Coefficient
 thrs = [0.3, 0.6, 0.85]

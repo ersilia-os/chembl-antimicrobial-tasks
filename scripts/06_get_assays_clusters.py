@@ -41,31 +41,37 @@ for pathogen in pathogens:
     # For each assay
     for assay_id, activity_type, unit in tqdm(ASSAYS_INFO[['assay_id', 'activity_type', 'unit']].values):
 
-        # If unit is nan
-        if pd.isna(unit):
-            compounds_assay = ChEMBL[(ChEMBL['assay_chembl_id'] == assay_id) & (ChEMBL['activity_type'] == activity_type) & 
-                                     (ChEMBL['unit'].isna() == True)]['canonical_smiles'].tolist()
-        else:
-            compounds_assay = ChEMBL[(ChEMBL['assay_chembl_id'] == assay_id) & (ChEMBL['activity_type'] == activity_type) & 
-                                     (ChEMBL['unit'] == unit)]['canonical_smiles'].tolist()
+        try:
 
-        # Get list of unique compounds
-        compounds_assay = list(set(compounds_assay))
+            # If unit is nan
+            if pd.isna(unit):
+                compounds_assay = ChEMBL[(ChEMBL['assay_chembl_id'] == assay_id) & (ChEMBL['activity_type'] == activity_type) & 
+                                        (ChEMBL['unit'].isna() == True)]['canonical_smiles'].tolist()
+            else:
+                compounds_assay = ChEMBL[(ChEMBL['assay_chembl_id'] == assay_id) & (ChEMBL['activity_type'] == activity_type) & 
+                                        (ChEMBL['unit'] == unit)]['canonical_smiles'].tolist()
 
-        # Calculate ECFP4s
-        fps = bblean.fps_from_smiles(compounds_assay, kind="ecfp4", pack=True, n_features=2048)
+            # Get list of unique compounds
+            compounds_assay = list(set(compounds_assay))
 
-        # Clustering using BitBirch
-        thr_to_clusters = {}
-        for c, thr in enumerate(thrs):
-            try:
-                bb_tree = bblean.BitBirch(branching_factor=128, threshold=thr, merge_criterion="diameter")
-                bb_tree.fit(fps)
-                clusters = len(bb_tree.get_cluster_mol_ids())
-                thr_to_clusters[thr] = clusters
-            except:
-                thr_to_clusters[thr] = np.nan
-        CLUSTERS.append([thr_to_clusters[i] for i in thr_to_clusters])
+            # Calculate ECFP4s
+            fps = bblean.fps_from_smiles(compounds_assay, kind="ecfp4", pack=True, n_features=2048)
+
+            # Clustering using BitBirch
+            thr_to_clusters = {}
+            for c, thr in enumerate(thrs):
+                try:
+                    bb_tree = bblean.BitBirch(branching_factor=128, threshold=thr, merge_criterion="diameter")
+                    bb_tree.fit(fps)
+                    clusters = len(bb_tree.get_cluster_mol_ids())
+                    thr_to_clusters[thr] = clusters
+                except:
+                    thr_to_clusters[thr] = np.nan
+            CLUSTERS.append([thr_to_clusters[i] for i in thr_to_clusters])
+
+        except:
+
+            CLUSTERS.append([np.nan] * len(thrs))
 
     for c, thr in enumerate(thrs):
         ASSAYS_INFO[f'clusters_{thr}'] = np.array(CLUSTERS)[:, c]

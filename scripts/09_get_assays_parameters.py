@@ -28,7 +28,7 @@ for pathogen in pathogens:
     pathogen_code = get_pathogen_code(pathogen)
 
     # Get assay data
-    ASSAYS = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, "assays.csv"), low_memory=False)[90:]
+    ASSAYS = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, "assays.csv"), low_memory=False)[10:]
 
     # Create output directory
     PATH_TO_OUTPUT = os.path.join(root, "..", "output", pathogen_code, "parameters")
@@ -51,29 +51,38 @@ for pathogen in pathogens:
 
         PROMPT = f"""
         You are an information extraction assistant specialized in analyzing biochemical data.
-        Read the assay annotations and return a single CSV line with the following 5 columns, in this exact order and separated by commas:
+        Read the assay annotations and return a single CSV line with the following 5 columns, in this exact order and separated by pipes (|):
         - Organism
         - Strain
         - Mutations
         - Known drug resistances
         - Media
 
-        Rules:
+        All available assay annotations are enumerated below:
+        {input_data}
+
+        Rules for the output:
         - If any field is missing or not stated, leave it blank.
         - "Mutations" should include specific genetic variants or engineered changes if mentioned; otherwise leave blank.
         - "Known drug resistances": list drug resistances of the strain used in the assay; if only general mentions exist, leave blank.
         - "Media" refers to the growth or culture medium (e.g., Middlebrook 7H9 broth, Lowenstein–Jensen, etc.).
-        - Output exactly one line, no header, no extra text, no quotes, no trailing commas and, specially, no tabs nor commas within individual columns.
-        - The final output must have exactly 5 columns in the specified order and, therefore, EXACTLY 4 commas.
+        - Output exactly one line, no header, no extra text, no quotes, no trailing pipes (|) and, specially, no tabs nor pipes (|) within individual columns.
+        - The final output must have exactly 5 columns in the specified order and, therefore, EXACTLY 4 pipes (|).
+        - Triple check that the output format is correct before returning it. An output with less or more than 4 pipes (|) is not valid.
 
-        All available assay annotations are enumerated below:
+        Examples of VALID outputs:
+        Mycobacterium tuberculosis|H37Rv|||Middlebrook 7H9 broth
+        Mycobacterium tuberculosis||||
 
-        {input_data}
+        Examples of INVALID outputs:
+        Mycobacterium tuberculosis|H37Rv||||  ← too many pipes (INVALID)
+        Mycobacterium tuberculosis|H37Rv| ← too few pipes (INVALID)
+
         """
 
         # Non streaming call
-        response = ollama.generate(model='gpt-oss:20b', prompt=PROMPT, stream=False, think=True)
-        result = response.response.strip().split(",")
+        response = ollama.generate(model='gpt-oss:20b', prompt=PROMPT, stream=False, think=False)
+        result = response.response.strip().split("|")
 
         # Check number of columns in response
         if len(result) != 5:
@@ -85,4 +94,4 @@ for pathogen in pathogens:
 
         # Save result
         with open(os.path.join(PATH_TO_OUTPUT, "_".join([assay_id, act_type, unit])) + "_parameters.csv", "w") as outfile:
-            outfile.write(",".join([str(i) for i in result]))
+            outfile.write("|".join([str(i) for i in result]))

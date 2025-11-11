@@ -85,7 +85,7 @@ for pathogen in pathogens:
     print(f"Number of activities for {pathogen_code}: {len(ChEMBL)}")
     print(f"Number of compounds for {pathogen_code}: {len(set(ChEMBL['compound_chembl_id']))}")
 
-    for assay_data in ASSAYS_INFO[['assay_type', 'assay_organism', 'target_type', 'target_organism', 'activity_type', 'unit', 'activities', 'cpds', 'assay_id']].values[:]:
+    for assay_data in ASSAYS_INFO[['assay_type', 'assay_organism', 'target_type', 'target_organism', 'activity_type', 'unit', 'activities', 'cpds', 'assay_id']].values[2465:]:
 
         # Getting assay ID and doc information
         assay_id = assay_data[8]
@@ -107,6 +107,11 @@ for pathogen in pathogens:
         clusters = clusters[["clusters_0.3", "clusters_0.6", "clusters_0.85"]]
         assert len(clusters) == 1
         clusters = clusters.values[0]
+
+        # Clean unit string
+        if type(assay_data[5]) == str:
+            assay_data[5] = assay_data[5].replace('/', 'FwdS')
+            assay_data[5] = assay_data[5].replace(" ", "__")
 
         # Get compounds
         compounds_notnans = [f"{i} --> {assay_data[4]} {j} {k} {assay_data[5]}" for i,j,k in zip(compounds, relations, assay_activities) if np.isnan(k) == False]
@@ -163,9 +168,6 @@ for pathogen in pathogens:
 
         result = "\n".join([i + ": " + str(result[i]) for i in result])
         USER = f"""Below you will find enumerated annotations from the assay under study.\n\n{result}\n\nUsing the information provided, return a standardized description for the assay."""
-
-        if type(assay_data[5]) == str:
-            assay_data[5] = assay_data[5].replace('/', 'FwdS')
 
         # Print data
         with open(os.path.join(PATH_TO_OUTPUT, "descriptions", f"{assay_id}_{assay_data[4]}_{assay_data[5]}_input.txt"), "w") as f:

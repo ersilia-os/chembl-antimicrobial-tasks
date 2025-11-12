@@ -85,7 +85,7 @@ for pathogen in pathogens:
     print(f"Number of activities for {pathogen_code}: {len(ChEMBL)}")
     print(f"Number of compounds for {pathogen_code}: {len(set(ChEMBL['compound_chembl_id']))}")
 
-    for assay_data in ASSAYS_INFO[['assay_type', 'assay_organism', 'target_type', 'target_organism', 'activity_type', 'unit', 'activities', 'cpds', 'assay_id']].values[2465:]:
+    for assay_data in ASSAYS_INFO[['assay_type', 'assay_organism', 'target_type', 'target_organism', 'activity_type', 'unit', 'activities', 'cpds', 'assay_id']].values[4090:]:
 
         # Getting assay ID and doc information
         assay_id = assay_data[8]

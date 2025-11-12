@@ -2,12 +2,14 @@
 # Run this code on a GPU machine
 from collections import Counter
 from zipfile import ZipFile, ZIP_DEFLATED
+from pydantic import BaseModel
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
 import zipfile
 import random
 import ollama
+import json
 import sys
 import os
 
@@ -28,7 +30,7 @@ for pathogen in pathogens:
     pathogen_code = get_pathogen_code(pathogen)
 
     # Get assay data
-    ASSAYS = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, "assays.csv"), low_memory=False)[10:]
+    ASSAYS = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, "assays.csv"), low_memory=False)[:]
 
     # Create output directory
     PATH_TO_OUTPUT = os.path.join(root, "..", "output", pathogen_code, "parameters")
@@ -51,47 +53,56 @@ for pathogen in pathogens:
 
         PROMPT = f"""
         You are an information extraction assistant specialized in analyzing biochemical data.
-        Read the assay annotations and return a single CSV line with the following 5 columns, in this exact order and separated by pipes (|):
-        - Organism
-        - Strain
-        - Mutations
-        - Known drug resistances
-        - Media
+
+        Return ONLY a JSON object with these keys:
+        - organism (string)
+        - strain (string)
+        - mutations (array of strings)
+        - known_drug_resistances (array of strings)
+        - media (string)
+
+         Rules:
+
+        - If a field is missing or not stated: use "" for strings and [] for arrays.
+        - Do not include any other keys or any extra text before or after the JSON.
+        - Do not use markdown fences.
+        - "Mutations" should include specific genetic variants or engineered changes if mentioned; otherwise [].
+        - "Known drug resistances" should list drug resistances of the strain used in the assay; if only general mentions exist, use [].
+        - "Media" refers to the growth or culture medium (e.g., Middlebrook 7H9 broth, Lowenstein–Jensen, etc.).
 
         All available assay annotations are enumerated below:
         {input_data}
 
-        Rules for the output:
-        - If any field is missing or not stated, leave it blank.
-        - "Mutations" should include specific genetic variants or engineered changes if mentioned; otherwise leave blank.
-        - "Known drug resistances": list drug resistances of the strain used in the assay; if only general mentions exist, leave blank.
-        - "Media" refers to the growth or culture medium (e.g., Middlebrook 7H9 broth, Lowenstein–Jensen, etc.).
-        - Output exactly one line, no header, no extra text, no quotes, no trailing pipes (|) and, specially, no tabs nor pipes (|) within individual columns.
-        - The final output must have exactly 5 columns in the specified order and, therefore, EXACTLY 4 pipes (|).
-        - Triple check that the output format is correct before returning it. An output with less or more than 4 pipes (|) is not valid.
-
-        Examples of VALID outputs:
-        Mycobacterium tuberculosis|H37Rv|||Middlebrook 7H9 broth
-        Mycobacterium tuberculosis||||
-
-        Examples of INVALID outputs:
-        Mycobacterium tuberculosis|H37Rv||||  ← too many pipes (INVALID)
-        Mycobacterium tuberculosis|H37Rv| ← too few pipes (INVALID)
-
         """
+        
+        class Parameters(BaseModel):
+            organism: str
+            strain: str
+            mutations: list[str]
+            known_drug_resistances: list[str]
+            media: str
+        schema = Parameters.model_json_schema()
 
-        # Non streaming call
-        response = ollama.generate(model='gpt-oss:20b', prompt=PROMPT, stream=False, think=False)
-        result = response.response.strip().split("|")
+        response = ollama.chat(
+         messages=[
+            {'role': 'user','content': PROMPT}],
+        model='gpt-oss:20b',options={'temperature': 0, 'num_ctx': 12288}, keep_alive="1h",
+        format=schema)
 
-        # Check number of columns in response
-        if len(result) != 5:
-            print(f"Error: Expected 5 columns but got {len(result)}. Response was: {response.response}")
-            break
+        # Parse JSON safely
+        js = json.loads(response.message['content'])
 
-        # Add extra info
-        result = [assay_id, assay_type, act_type, unit] + result
+        # Some validation
+        expected = {"organism", "strain", "mutations", "known_drug_resistances", "media"}
+        assert set(js.keys()) == expected, f"Unexpected keys: {set(js.keys())}"
 
-        # Save result
-        with open(os.path.join(PATH_TO_OUTPUT, "_".join([assay_id, act_type, unit])) + "_parameters.csv", "w") as outfile:
-            outfile.write("|".join([str(i) for i in result]))
+        # Add metadata
+        js["assay_id"] = assay_id
+        js["assay_type"] = assay_type
+        js["activity_type"] = act_type
+        js["unit"] = unit
+
+        # Write to a JSON file
+        out_path = os.path.join(PATH_TO_OUTPUT, "_".join([assay_id, act_type, unit]) + "_parameters.json")
+        with open(out_path, "w") as outfile:
+            json.dump(js, outfile, indent=2)

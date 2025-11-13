@@ -10,5 +10,3 @@ psycopg==3.2.10
 llama-index==0.13.6
 llama-index-llms-llamafile==0.4.0
 ollama==0.6.0
-
-

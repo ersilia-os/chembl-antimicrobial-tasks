@@ -16,8 +16,8 @@ output_dir = os.path.join(CONFIGPATH, "chembl_processed")
 os.makedirs(output_dir, exist_ok=True)
 
 # Load tables
-df1 = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "compound_structures.csv", low_memory=False))
-df2 = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "molecule_dictionary.csv", low_memory=False))
+df1 = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "compound_structures.csv"), low_memory=False)
+df2 = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "molecule_dictionary.csv"), low_memory=False)
 
 # Merge tables
 df_merged = df1.merge(df2[['molregno', 'chembl_id', 'molecule_type']], on='molregno', how='left')

@@ -4,7 +4,9 @@ The `scripts` folder contains scripts that are supposed to run sequentially.
 
 # Step 00
 
-Before running `00_export_chembl_activities.py`, create a local copy of the ChEMBL DB following the instructions in `docs/install_ChEMBL.md`. Currently, this is set to ChEMBL_36 (latest version), but if a new release appears simply download the new one and change the DB name in `src/default.py`.
+Before running `00_export_chembl_activities.py`, create a **local copy of the ChEMBL DB** following the instructions in `docs/install_ChEMBL.md`. 
+
+Currently, this is set to *ChEMBL_36* (latest version), but if a new release appears simply download the new one and change the DB name in `src/default.py`.
 
 By running `00_export_chembl_activities.py`, a folder named `chembl_activities` will be created inside `config`, containing unmodified activity data extracted directly from ChEMBL tables. For further information about the content of these tables (`ACTIVITIES`, `ACTIVITY_PROPERTIES`, `ACTIVITY_STDS_LOOKUP`, `ACTIVITY_SUPP`, `ACTIVITY_SUPP_MAP`, `ACTIVITY_SMID`, `ACTION_TYPE`, `ASSAYS`), please check the official [ChEMBL schema documentation](https://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/schema_documentation.txt).
 
@@ -17,7 +19,7 @@ In addition to raw exports, the script produces three curated files derived from
 
 # Step 01   --> to discuss
 
-Run `01_get_compound_info.py`. In this script, ChEMBL tables are automatically curated using an LLM to process activity comments, among others. A series of modified files will be saved in `config/llm_processed`, each having a column that represents the outcome of the assay/activity (1: Active, -1: Not Active, 0: Unresolved; or Direction: higher value == higher activity --> 1, lower value == higher activity --> -1, inconclusive --> 0). For this step, it is necessary to download and install Gemma-3 (4b) using Ollama (v0.12.3, check [Ollama's documentation](https://ollama.com/library/gemma3)). The availability of GPUs significantly speeds up this stage. In brief, 4 additional files are generated in  `config/llm_processed`:
+Run `01_get_compound_info.py`. In this script, ChEMBL tables are automatically curated using an LLM to process activity comments, among others. A series of modified files will be saved in `config/chembl_processed`, each having a column that represents the outcome of the assay/activity (1: Active, -1: Not Active, 0: Unresolved; or Direction: higher value == higher activity --> 1, lower value == higher activity --> -1, inconclusive --> 0). In brief, 4 additional files are generated in  `config/chembl_processed`:
 
 - `activity_comments.csv`: Activity comments are classified as active (1), inactive (-1) or inconclusive (0). New column: `activity_classified`.
 - `activity_stds_lookup.csv`: Activity standards (e.g., IC50) are classified with the right direction: the lower the value the higher the activity (-1), the higher the value the higher the activity (1) or inconclusive (0). New column: `activity_direction`.
@@ -29,3 +31,9 @@ To assess the global performance of the LLM in these tasks, we compare the final
 
 # Step 02
 Uses the LLM processed data to assign an outcome to each activity in ChEMBL (which are summarised in the Activities table).
+
+
+---
+For later on (around step 07):
+
+For this step, it is necessary to download and install Gemma-3 (4b) using Ollama (v0.12.3, check [Ollama's documentation](https://ollama.com/library/gemma3)). The availability of GPUs significantly speeds up this stage. 

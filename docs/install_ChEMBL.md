@@ -31,6 +31,14 @@ From this site: https://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/
 Download the file: `chembl_36_postgresql.tar.gz`
 Decompress it to get the file `chembl_36_postgresql.dmp`
 
+When decompressing:
+````
+tar -xvzf chembl_36_postgresql.tar.gz
+````
+the command will create a new folder in your working directory `chembl_36/`.
+
+This directory contains the database dump and installation notes provided by ChEMBL. You only need this folder temporarily to run `pg_restore` (see next step). After importing the database into PostgreSQL, the `chembl_36/` directory may be deleted safely.
+
 5. Load database contents using the downloaded file. NOTE: The database requires about 23 GB of disk space.
 
 This step will take time: about 15-25 minutes on an SSD disk, considerably longer on a traditional HDD disk. It took roughly 20 min in Ersilia's machine `herbert`.  

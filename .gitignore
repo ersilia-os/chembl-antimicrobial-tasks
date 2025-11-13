@@ -1,6 +1,12 @@
 config/*
 output/*
 
+# Local ChEMBL dump directory created when unpacking the PostgreSQL dump
+chembl_36/
+
+# macOS system files
+.DS_Store
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

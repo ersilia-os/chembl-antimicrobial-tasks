@@ -28,13 +28,26 @@ In addition to raw exports, the script produces three curated files derived from
 - `standard_text.csv`: Frequency table of the text stored in the `standard_text_value` column (e.g., 'Compound metabolized')
 - `activity_comments.csv`: Frequency table of the comments (text) stored in the `activity_comment` column (e.g., 'active'). 
 - `activity_std_units.csv`: Frequency table of the column pairs `standard_type` & `standard_units` (e.g., 'Potency & nM')
-- `standard_units.csv`: Frequency table of the standard_units field from the activities.csv file.
+- `standard_units.csv`: Frequency table of the `standard_units` field from the `activities.csv` file.
 
-After generating the frequency tables (`activity_comments.csv`, `standard_text.csv`, `activity_std_units.csv`, and `standard_units.csv`), a **manual curation process** was performed to assign an activity label to each unique entry. Each item was reviewed and flagged with:
+After generating the frequency tables, a **manual curation process** was performed to assign an activity label to each unique entry. Each item was reviewed and flagged:
 
-- 1 → indicates the item corresponds to an active compound
-- -1 → indicates the item corresponds to an inactive compound
-- 0 → indicates the item is inconclusive or ambiguous
+- `activity_std_units.csv`.
+
+    Labels refer to the direction of biological activity:
+    - **-1** → lower value = more active (e.g. IC50)
+    - **1** → higher value = more active (e.g. %Inhibition)
+    - **0** → unclear
+
+- `activity_comments.csv` and `standard_text.csv`. 
+
+    Labels refer to compound activity:
+    - **1** → active
+    - **-1** → inactive
+    - **0** → inconclusive or unclear
+
+This curation allows downstream scripts to automatically compute a standardized direction of effect for activity values, ensuring consistency across diverse assays and readouts.
+
 
 ## Step 01. Processing compounds
 

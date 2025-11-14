@@ -22,13 +22,13 @@ By running `00_export_chembl_activities.py`, a folder named `chembl_activities` 
 
 For further information about the content of these tables, please check the official [ChEMBL schema documentation](https://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/schema_documentation.txt).
 
-In addition to raw exports, the script produces three curated files derived from the `ACTIVITIES` table and a simplified version of `ASSAYS`:
+In addition to raw exports, the script produces four curated files derived from the `ACTIVITIES` table and a simplified version of `ASSAYS`:
 
-- `assay_descriptions.csv`: Table mapping assay IDs to their corresponding text descriptions and ChEMBL IDs.
-- `standard_text.csv`: Frequency table of the text stored in the `standard_text_value` column (e.g., 'Compound metabolized')
-- `activity_comments.csv`: Frequency table of the comments (text) stored in the `activity_comment` column (e.g., 'active'). 
-- `activity_std_units.csv`: Frequency table of the column pairs `standard_type` & `standard_units` (e.g., 'Potency & nM')
-- `standard_units.csv`: Frequency table of the `standard_units` field from the `activities.csv` file.
+1. `activity_comments.csv`: Frequency table of the comments (text) stored in the `activity_comment` column (e.g., 'active').
+2. `activity_std_units.csv`: Frequency table of the column pairs `standard_type` & `standard_units` (e.g., 'Potency & nM')
+3. `standard_units.csv`: Frequency table of the `standard_units` field from the `activities.csv` file.
+4. `standard_text.csv`: Frequency table of the text stored in the `standard_text_value` column (e.g., 'Compound metabolized')
+5. `assay_descriptions.csv`: Table mapping assay IDs to their corresponding text descriptions and ChEMBL IDs.
 
 After generating the frequency tables, a **manual curation process** was performed to assign an activity label to each unique entry. Each item was reviewed and flagged:
 
@@ -48,21 +48,39 @@ After generating the frequency tables, a **manual curation process** was perform
 
 This curation allows downstream scripts to automatically compute a standardized direction of effect for activity values, ensuring consistency across diverse assays and readouts.
 
-
 ## Step 01. Processing compounds
 
 This script calculates the molecular weight (MW) of each compound based on its SMILES (Simplified Molecular Input Line Entry System) representation using RDKit. Running `01_get_compound_info.py` creates the `config/chembl_processed` folder, containing a newly generated file:
 
-- `01_get_compound_info.py`: Table with molregno, chembl_id, molecule_type, canonical_smiles, and calculated MW.
+- `01_get_compound_info.py`: Table with `molregno`, `chembl_id`, `molecule_type`, `canonical_smiles`, and `calculated MW`.
 
 ⏳ ETA: ~90 minutes.
 
 
 ## Step 02. Merging activities, assays, compounds & targets
 
-Run `02_merge_activity_tables.py` to merge activity, assay, target, and compound information into a single table, producing the file `activities_all_raw.csv` in `config/chembl_processed`.
+Run `02_merge_activity_tables.py` to merge `activity`, `assay`, `target`, and `compound information` into a single table.
+
+This script  will produce the file `activities_all_raw.csv` in `config/chembl_processed`.
 
 ⏳ ETA: ~20 minutes.
+
+
+## Step 03. Unit harmonization and conversion
+The script `03_prepare_conversions.py` generates `unit_conversion.csv` inside `config/chembl_processed/`. This file standardizes measurement units found in ChEMBL activities by:
+1. Mapping original unit strings (standard_units) to validated UCUM units
+2. Assigning a final standard unit used in downstream tasks
+3. Defining a conversion formula (when necessary) to adjust numeric values accordingly
+
+Before running this script, make sure the file `UnitStringValidations.csv` is available in `/config/chembl_processed/`. This file is created externally using the [UCUM validator](https://ucum.org/)￼ and maps ChEMBL’s original units to UCUM-compliant formats.
+
+The file should be created manually using information from `standard_units.csv` (produced in Step 00).
+
+**TODO**: 
+- Explain how to generate `UnitStringValidations.csv`
+- What do we have to document about the manual curation files in `/config/manual_curation/`?
+
+
 
 ---
 ---

@@ -131,7 +131,7 @@ Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
 - `target_organism_counts.csv`: Frequency of target organisms found in the data.
 - `assays.csv`: Cleaned list of assays with metadata (e.g., unit, activity type, compound count).
 
-⏳ ETA: ~240 minutes.
+⏳ ETA: ~4 hours.
 
 ---
 ---

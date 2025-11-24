@@ -7,25 +7,19 @@ import pandas as pd
 import numpy as np
 import random
 import ollama
+import pickle
 import sys
 import os
 
+alpha = int(sys.argv[1])
+
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.join(root, "..", "src"))
+sys.path.append(os.path.join(root, "..", "..", "src"))
 from default import CONFIGPATH
-random.seed(42)
 
-# List of pathogens to process
-pathogens = ["Mycobacterium tuberculosis"]
-
-# Load assays and docs information
-assays = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "assays.csv"), low_memory=False)
-docs = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "docs.csv"), low_memory=False)
-assay_type_map = {"F": "Functional", "B": "Binding", "T": "Toxicity", "A": "ADME", "P": "Physicochemical", "U": "Uncategorized"}
-
-def get_pathogen_code(pathogen):
-    return str(pathogen.split()[0][0] + pathogen.split()[1]).lower() if len(pathogen.split()) > 1 else pathogen.lower()
+# Load pickle
+ASSAYS_SUBSET = pickle.load(open(os.path.join(root, "..", "..", "tmp", "assays.pkl"), "rb"))[alpha]
 
 SYSTEM = f"""
 You are a ChEMBL biodata curator. Your task is to write a complete, accurate and standardized description of a given biological assay.
@@ -65,76 +59,87 @@ Formatting instructions:
 
 """
 
-# For each pathogen
-for pathogen in pathogens:
-    
-    # Get assays info
-    pathogen_code = get_pathogen_code(pathogen)
-    ASSAYS_INFO = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, 'assays.csv'))
+# Load assays and docs information
+assays = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "assays.csv"), low_memory=False)
+docs = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "docs.csv"), low_memory=False)
+assay_type_map = {"F": "Functional", "B": "Binding", "T": "Toxicity", "A": "ADME", "P": "Physicochemical", "U": "Uncategorized"}
 
-    # Get clusters info
-    CLUSTERS_INFO = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, 'assays_clusters.csv'))
+def get_pathogen_code(pathogen):
+    return str(pathogen.split()[0][0] + pathogen.split()[1]).lower() if len(pathogen.split()) > 1 else pathogen.lower()
 
-    # Create output directory
-    PATH_TO_OUTPUT = os.path.join(root, "..", "output", pathogen_code)
-    os.makedirs(os.path.join(PATH_TO_OUTPUT, "descriptions"), exist_ok=True)
+# For each assay
+for ASSAY in ASSAYS_SUBSET:
+
+    # Get data
+    assay_id, assay_type, assay_organism, doc_chembl_id, target_type, target_chembl_id, target_organism, activity_type, unit, activities, nan_values, cpds = ASSAY
+    doc_id = assays[assays['chembl_id'] == assay_id]['doc_id'].tolist()[0]
+    pathogen_code = get_pathogen_code(assay_organism)
+
+    # Get clusters info and path to output
+    CLUSTERS_INFO = pd.read_csv(os.path.join(root, "..", "..", "output", pathogen_code, 'assays_clusters.csv'))
+    PATH_TO_OUTPUT = os.path.join(root, "..", "..", "output", pathogen_code)
 
     # Loading ChEMBL data for that pathogen
-    print(f"Loading ChEMBL preprocessed data for {pathogen_code}...")
-    ChEMBL = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, f"{pathogen_code}_ChEMBL_data.csv"), low_memory=False)
-    print(f"Number of activities for {pathogen_code}: {len(ChEMBL)}")
-    print(f"Number of compounds for {pathogen_code}: {len(set(ChEMBL['compound_chembl_id']))}")
+    sys.stderr.write(f"Loading ChEMBL preprocessed data for {pathogen_code}...")
+    sys.stderr.write("\n")
+    ChEMBL = pd.read_csv(os.path.join(root, "..", "..", "output", pathogen_code, f"{pathogen_code}_ChEMBL_data.csv"), low_memory=False)
+    sys.stderr.write(f"Number of activities for {pathogen_code}: {len(ChEMBL)}")
+    sys.stderr.write("\n")
+    sys.stderr.write(f"Number of compounds for {pathogen_code}: {len(set(ChEMBL['compound_chembl_id']))}")
+    sys.stderr.write("\n")
+    sys.stderr.flush()
 
-    for assay_data in ASSAYS_INFO[['assay_type', 'assay_organism', 'target_type', 'target_organism', 'activity_type', 'unit', 'activities', 'cpds', 'assay_id']].values[4090:]:
+    # Getting ChEMBL bioactivities, compounds and clusters
+    if type(unit) == str:
+        assay_activities = ChEMBL[(ChEMBL['assay_chembl_id'] == assay_id) & (ChEMBL['activity_type'] == activity_type) & (ChEMBL['unit'] == unit)]["value"].astype(float).tolist()
+        compounds = ChEMBL[(ChEMBL['assay_chembl_id'] == assay_id) & (ChEMBL['activity_type'] == activity_type) & (ChEMBL['unit'] == unit)]['canonical_smiles'].tolist()
+        relations = ChEMBL[(ChEMBL['assay_chembl_id'] == assay_id) & (ChEMBL['activity_type'] == activity_type) & (ChEMBL['unit'] == unit)]['relation'].tolist()
+        clusters = CLUSTERS_INFO[(CLUSTERS_INFO['assay_id'] == assay_id) & (CLUSTERS_INFO['activity_type'] == activity_type) & (CLUSTERS_INFO['unit'] == unit)]
+    else:
+        assay_activities = ChEMBL[(ChEMBL['assay_chembl_id'] == assay_id) & (ChEMBL['activity_type'] == activity_type) & (ChEMBL['unit'].isna())]["value"].astype(float).tolist()
+        compounds = ChEMBL[(ChEMBL['assay_chembl_id'] == assay_id) & (ChEMBL['activity_type'] == activity_type) & (ChEMBL['unit'].isna())]['canonical_smiles'].tolist()
+        relations = ChEMBL[(ChEMBL['assay_chembl_id'] == assay_id) & (ChEMBL['activity_type'] == activity_type) & (ChEMBL['unit'].isna())]['relation'].tolist()
+        clusters = CLUSTERS_INFO[(CLUSTERS_INFO['assay_id'] == assay_id) & (CLUSTERS_INFO['activity_type'] == activity_type) & (CLUSTERS_INFO['unit'].isna())]
 
-        # Getting assay ID and doc information
-        assay_id = assay_data[8]
-        doc_id = assays[assays['chembl_id'] == assay_id]['doc_id'].tolist()[0]
+    # Get cluster data
+    clusters = clusters[["clusters_0.3", "clusters_0.6", "clusters_0.85"]]
+    assert len(clusters) == 1
+    clusters = clusters.values[0]
 
-        # Getting ChEMBL bioactivities, compounds and clusters
-        if type(assay_data[5]) == str:
-            assay_activities = ChEMBL[(ChEMBL['assay_chembl_id'] == assay_id) & (ChEMBL['activity_type'] == assay_data[4]) & (ChEMBL['unit'] == assay_data[5])]["value"].astype(float).tolist()
-            compounds = ChEMBL[(ChEMBL['assay_chembl_id'] == assay_id) & (ChEMBL['activity_type'] == assay_data[4]) & (ChEMBL['unit'] == assay_data[5])]['canonical_smiles'].tolist()
-            relations = ChEMBL[(ChEMBL['assay_chembl_id'] == assay_id) & (ChEMBL['activity_type'] == assay_data[4]) & (ChEMBL['unit'] == assay_data[5])]['relation'].tolist()
-            clusters = CLUSTERS_INFO[(CLUSTERS_INFO['assay_id'] == assay_id) & (CLUSTERS_INFO['activity_type'] == assay_data[4]) & (CLUSTERS_INFO['unit'] == assay_data[5])]
-        else:
-            assay_activities = ChEMBL[(ChEMBL['assay_chembl_id'] == assay_id) & (ChEMBL['activity_type'] == assay_data[4]) & (ChEMBL['unit'].isna())]["value"].astype(float).tolist()
-            compounds = ChEMBL[(ChEMBL['assay_chembl_id'] == assay_id) & (ChEMBL['activity_type'] == assay_data[4]) & (ChEMBL['unit'].isna())]['canonical_smiles'].tolist()
-            relations = ChEMBL[(ChEMBL['assay_chembl_id'] == assay_id) & (ChEMBL['activity_type'] == assay_data[4]) & (ChEMBL['unit'].isna())]['relation'].tolist()
-            clusters = CLUSTERS_INFO[(CLUSTERS_INFO['assay_id'] == assay_id) & (CLUSTERS_INFO['activity_type'] == assay_data[4]) & (CLUSTERS_INFO['unit'].isna())]
+    # Clean unit string
+    if type(unit) == str:
+        unit = unit.replace('/', 'FwdS')
+        unit = unit.replace(" ", "__")
 
-        # Get cluster data
-        clusters = clusters[["clusters_0.3", "clusters_0.6", "clusters_0.85"]]
-        assert len(clusters) == 1
-        clusters = clusters.values[0]
+    # Get compounds
+    compounds_notnans = [f"{i} --> {activity_type} {j} {k} {unit}" for i,j,k in zip(compounds, relations, assay_activities) if np.isnan(k) == False]
+    compounds_notnans = sorted(compounds_notnans, key=lambda x: float(x.split()[-2]))[::-1]
+    compounds_nans = [f"{i} --> {activity_type} {j} {k} {unit}" for i,j,k in zip(compounds, relations, assay_activities) if np.isnan(k) == True]
+    COMPOUNDS = []
+    if len(compounds_notnans) >= 30:
+        COMPOUNDS.extend(compounds_notnans[:10] + random.sample(compounds_notnans[10:-10], 10) + compounds_notnans[-10:])
+    elif len(compounds_notnans) + len(compounds_nans) > 30:
+        COMPOUNDS.extend(compounds_notnans + random.sample(compounds_nans, 30 - len(compounds_notnans)))
+    else:
+        COMPOUNDS.extend(compounds_notnans + compounds_nans)  
 
-        # Clean unit string
-        if type(assay_data[5]) == str:
-            assay_data[5] = assay_data[5].replace('/', 'FwdS')
-            assay_data[5] = assay_data[5].replace(" ", "__")
-
-        # Get compounds
-        compounds_notnans = [f"{i} --> {assay_data[4]} {j} {k} {assay_data[5]}" for i,j,k in zip(compounds, relations, assay_activities) if np.isnan(k) == False]
-        compounds_notnans = sorted(compounds_notnans, key=lambda x: float(x.split()[-2]))[::-1]
-        compounds_nans = [f"{i} --> {assay_data[4]} {j} {k} {assay_data[5]}" for i,j,k in zip(compounds, relations, assay_activities) if np.isnan(k) == True]
-        COMPOUNDS = []
-        if len(compounds_notnans) >= 30:
-            COMPOUNDS.extend(compounds_notnans[:10] + random.sample(compounds_notnans[10:-10], 10) + compounds_notnans[-10:])
-        elif len(compounds_notnans) + len(compounds_nans) > 30:
-            COMPOUNDS.extend(compounds_notnans + random.sample(compounds_nans, 30 - len(compounds_notnans)))
-        else:
-            COMPOUNDS.extend(compounds_notnans + compounds_nans)  
-
-        # Getting activities that are nans
-        assay_activities_nans = [i for i in assay_activities if np.isnan(i)]
-        assay_activities = [i for i in assay_activities if np.isnan(i) == False]
-        if len(assay_activities) == 0:
-            assay_activities = [np.nan]
+    # Getting activities that are nans
+    assay_activities_nans = [i for i in assay_activities if np.isnan(i)]
+    assay_activities = [i for i in assay_activities if np.isnan(i) == False]
+    if len(assay_activities) == 0:
+        p1, p25, mean, median, p75, p99 = [np.nan] * 6
+    else:
+        p1 = round(np.percentile(assay_activities, 1), 3)
+        p25 = round(np.percentile(assay_activities, 25), 3)
+        mean = round(np.mean(assay_activities), 3)
+        median = round(np.percentile(assay_activities, 50), 3)
+        p75 = round(np.percentile(assay_activities, 75), 3)
+        p99 = round(np.percentile(assay_activities, 99), 3)
 
         result = {
             "Assay ChEMBL ID": assay_id,
-            "Assay type": assay_type_map[assay_data[0]],
-            "Assay organism": assay_data[1],
+            "Assay type": assay_type_map[assay_type],
+            "Assay organism": assay_organism,
             "Assay description": assays[assays['chembl_id'] == assay_id]['description'].tolist()[0],
             "Assay strain": assays[assays['chembl_id'] == assay_id]['assay_strain'].tolist()[0],
             "Assay category": assays[assays['chembl_id'] == assay_id]['assay_category'].tolist()[0],
@@ -145,20 +150,20 @@ for pathogen in pathogens:
             "Document journal": docs[docs['doc_id'] == doc_id]['journal'].tolist()[0],
             "Document PubMed ID": docs[docs['doc_id'] == doc_id]['pubmed_id'].tolist()[0],
             "Document DOI": docs[docs['doc_id'] == doc_id]['doi'].tolist()[0],
-            "Target type": assay_data[2],
-            "Target organism": assay_data[3],
-            "Activity type": assay_data[4],
-            "Unit": assay_data[5],
+            "Target type": target_type,
+            "Target organism": target_organism,
+            "Activity type": activity_type,
+            "Unit": unit,
             "Number of activities": len(assay_activities),
             "Number of activities with nan value": len(assay_activities_nans),
-            "Number of compounds": assay_data[7],
+            "Number of compounds": cpds,
             "Activity stats": {
-                "Percentile 1": round(np.percentile(assay_activities, 1), 3),
-                "Percentile 25": round(np.percentile(assay_activities, 25), 3),
-                "Mean": round(np.mean(assay_activities), 3),
-                "Median": round(np.percentile(assay_activities, 50), 3),
-                "Percentile 75": round(np.percentile(assay_activities, 75), 3),
-                "Percentile 99": round(np.percentile(assay_activities, 99), 3)},
+                "Percentile 1": p1,
+                "Percentile 25": p25,
+                "Mean": mean,
+                "Median": median,
+                "Percentile 75": p75,
+                "Percentile 99": p99},
             "Relation stats": dict(Counter(relations)),
             "Number of compound clusters at a ECFP4 Tanimoto similarity cut-off of 0.3": clusters[0],
             "Number of compound clusters at a ECFP4 Tanimoto similarity cut-off of 0.6": clusters[1],
@@ -170,18 +175,18 @@ for pathogen in pathogens:
         USER = f"""Below you will find enumerated annotations from the assay under study.\n\n{result}\n\nUsing the information provided, return a standardized description for the assay."""
 
         # Print data
-        with open(os.path.join(PATH_TO_OUTPUT, "descriptions", f"{assay_id}_{assay_data[4]}_{assay_data[5]}_input.txt"), "w") as f:
+        with open(os.path.join(PATH_TO_OUTPUT, "descriptions", f"{assay_id}_{activity_type}_{unit}_input.txt"), "w") as f:
             f.write(USER)
         
         # Non streaming call
         response = ollama.generate(model='gpt-oss:20b', prompt=SYSTEM + USER, stream=False, think=True)
 
         # Print response
-        with open(os.path.join(PATH_TO_OUTPUT, "descriptions", f"{assay_id}_{assay_data[4]}_{assay_data[5]}_output.txt"), "w") as f:
+        with open(os.path.join(PATH_TO_OUTPUT, "descriptions", f"{assay_id}_{activity_type}_{unit}_output.txt"), "w") as f:
             f.write(response.response)
 
         # Create a zip that bundles both generated files for this assay
-        base = f"{assay_id}_{assay_data[4]}_{assay_data[5]}"
+        base = f"{assay_id}_{activity_type}_{unit}"
         in_path = os.path.join(PATH_TO_OUTPUT, "descriptions", f"{base}_input.txt")
         out_path = os.path.join(PATH_TO_OUTPUT, "descriptions", f"{base}_output.txt")
         zip_path = os.path.join(PATH_TO_OUTPUT, "descriptions", f"{base}.zip")
@@ -194,4 +199,6 @@ for pathogen in pathogens:
         os.remove(in_path)
         os.remove(out_path)
 
-        print(f"✓ Completed {assay_id}")
+        sys.stderr.write(f"✓ Completed {assay_id} - {activity_type} - {unit}")
+        sys.stderr.write("\n")
+        sys.stderr.flush()

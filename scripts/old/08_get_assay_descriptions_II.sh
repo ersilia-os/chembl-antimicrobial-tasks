@@ -13,7 +13,6 @@ export OLLAMA_HOME=/aloy/home/acomajuncosa/programs/ollama/ollama_lib
 export OLLAMA_MODELS=/aloy/home/acomajuncosa/programs/ollama/ollama_models
 PORT=$((11435 + alpha))
 export OLLAMA_HOST="http://127.0.0.1:${PORT}"
-export CUDA_VISIBLE_DEVICES=0
 
 # 🔍 GPU check *inside the container*
 echo "=== Inside container GPU check ==="

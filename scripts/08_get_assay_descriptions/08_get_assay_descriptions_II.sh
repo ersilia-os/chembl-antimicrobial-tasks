@@ -14,17 +14,29 @@ export OLLAMA_MODELS=/aloy/home/acomajuncosa/programs/ollama/ollama_models
 PORT=$((11435 + alpha))
 export OLLAMA_HOST="http://127.0.0.1:${PORT}"
 
+# 🔍 GPU check *inside the container*
+echo "=== Inside container GPU check ==="
+echo "PATH=$PATH"
+command -v nvidia-smi || echo "nvidia-smi NOT found in PATH"
+nvidia-smi || echo "nvidia-smi FAILED inside container"
+
 which ollama
 echo "alpha=$alpha"
 echo "OLLAMA_HOST=$OLLAMA_HOST"
 echo "OLLAMA_MODELS=$OLLAMA_MODELS"
+echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 
-# Start Ollama server
-ollama serve >/tmp/ollama_serve.log 2>&1 &
-sleep 10
+# Start Ollama server and log directly to scratch (no cp at the end)
+OLLAMA_LOG="/aloy/scratch/acomajuncosa/Ersilia/chembl_antimicrobial_tasks/ollama_logs/ollama_serve_${alpha}.log"
+mkdir -p "$(dirname "$OLLAMA_LOG")"
+
+echo "Starting ollama serve, logging to $OLLAMA_LOG"
+ollama serve 2>&1 | tee "$OLLAMA_LOG" &
+sleep 15
 
 # Check whether it is responding
-curl "http://127.0.0.1:${PORT}/api/tags"
+echo "Curling tags on $OLLAMA_HOST ..."
+curl "http://127.0.0.1:${PORT}/api/tags" || echo "curl to ollama failed"
 
 # Determine the directory where thisfile is located
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -32,6 +44,4 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Call main.py using an absolute path
 python "$SCRIPT_DIR/08_get_assay_descriptions_III.py" "$alpha"
 
-# Save the serve log permanently
-cp /tmp/ollama_serve.log "/aloy/scratch/acomajuncosa/Ersilia/chembl_antimicrobial_tasks/ollama_logs/ollama_serve_${alpha}.log"
 

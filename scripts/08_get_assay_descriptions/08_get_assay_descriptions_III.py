@@ -11,6 +11,14 @@ import pickle
 import sys
 import os
 
+import subprocess
+sys.stderr.write("=== Python GPU Check ===\n\n")
+try:
+    result = subprocess.run(['nvidia-smi'], capture_output=True, text=True)
+    sys.stderr.write(result.stdout)
+except Exception as e:
+    sys.stderr.write(f"nvidia-smi failed: {e}\n\n")
+
 alpha = int(sys.argv[1])
 
 # Define root directory
@@ -80,7 +88,7 @@ for ASSAY in ASSAYS_SUBSET:
     PATH_TO_OUTPUT = os.path.join(root, "..", "..", "output", pathogen_code)
 
     # Loading ChEMBL data for that pathogen
-    sys.stderr.write(f"Loading ChEMBL preprocessed data for {pathogen_code}...")
+    sys.stderr.write(f"\n\nLoading ChEMBL preprocessed data for {pathogen_code}...")
     sys.stderr.write("\n")
     ChEMBL = pd.read_csv(os.path.join(root, "..", "..", "output", pathogen_code, f"{pathogen_code}_ChEMBL_data.csv"), low_memory=False)
     sys.stderr.write(f"Number of activities for {pathogen_code}: {len(ChEMBL)}")
@@ -179,7 +187,8 @@ for ASSAY in ASSAYS_SUBSET:
             f.write(USER)
         
         # Non streaming call
-        response = ollama.generate(model='gpt-oss:20b', prompt=SYSTEM + USER, stream=False, think=True)
+        response = ollama.generate(model='gpt-oss:20b', prompt="Just say hello!", stream=False, think=True)
+        # response = ollama.generate(model='gpt-oss:20b', prompt=SYSTEM + USER, stream=False, think=True)
 
         # Print response
         with open(os.path.join(PATH_TO_OUTPUT, "descriptions", f"{assay_id}_{activity_type}_{unit}_output.txt"), "w") as f:
@@ -202,3 +211,5 @@ for ASSAY in ASSAYS_SUBSET:
         sys.stderr.write(f"✓ Completed {assay_id} - {activity_type} - {unit}")
         sys.stderr.write("\n")
         sys.stderr.flush()
+
+        break

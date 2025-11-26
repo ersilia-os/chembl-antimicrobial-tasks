@@ -1,23 +1,134 @@
 # README for scripts
 
-The `scripts` folder contains scripts that are supposed to run sequentially.
+The `scripts` folder contains scripts that are meant to be run sequentially. Essentially, steps can be grouped in data curation and preprocessing (00-09), data binarization (10-XX) ...
 
-# Step 000
+## Step 00. Fetching ChEMBL data
 
-Before running `000_export_chembl_activities.py`, create a local copy of the ChEMBL DB following the instructions in `docs/install_ChEMBL.md`. Currently, this is set to ChEMBL_36 (latest version), but if a new release appears simply download the new one and change the DB name in `default.py`.
+Before running `00_export_chembl_activities.py`, create a **local copy of the ChEMBL Database** following the instructions in `docs/install_ChEMBL.md`. 
 
-By running `000_export_chembl_activities.py`, a folder named `chembl_activities` will be created inside `config`, containing unmodified activity data extracted directly from ChEMBL tables. For further information about the content of these tables (`ACTIVITIES`, `ACTIVITY_PROPERTIES`, `ACTIVITY_STDS_LOOKUP`, `ACTIVITY_SUPP`, `ACTIVITY_SUPP_MAP`, `ACTIVITY_SMID`, `ACTION_TYPE`, `ASSAYS`), please check the official [ChEMBL schema documentation](https://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/schema_documentation.txt).
+Currently, this is set to *ChEMBL_36* (latest version), but if a new release appears simply download the new one and change the Database name in `src/default.py` (DATABASE_NAME).
 
-In addition to raw exports, the script produces three curated files derived from the `ACTIVITIES` table and a simplified version of `ASSAYS`:
+By running `00_export_chembl_activities.py`, a folder named `chembl_activities` will be created inside `config`, containing unmodified activity data extracted directly from ChEMBL tables:
 
-- `activity_comments.csv`: Frequency table of the comments (text) stored in the `activity_comment` column (e.g., 'active'). 
-- `activity_std_units.csv`: Frequency table of the column pairs `standard_type` & `standard_units` (e.g., 'Potency & nM')
-- `standard_text.csv`: Frequency table of the text stored in the `standard_text_value` column (e.g., 'Compound metabolized')
-- `assay_descriptions.csv`: Table mapping assay IDs to their corresponding text descriptions and ChEMBL IDs.
+- `activities.csv`
+- `assays.csv`
+- `assay_parameters.csv`
+- `activity_stds_lookup.csv`
+- `bioassay_ontology.csv`
+- `compound_structures.csv`
+- `docs.csv`
+- `molecule_dictionary.csv`
+- `target_dictionary.csv`
 
-# Step 001   --> to discuss
+For further information about the content of these tables, please check the official [ChEMBL schema documentation](https://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/schema_documentation.txt).
 
-In this script, ChEMBL tables are automatically curated using an LLM to process activity comments, among others. A series of modified files will be saved in `config/llm_processed`, each having a column that represents the outcome of the assay/activity (1: Active, -1: Not Active, 0: Unresolved; or Direction: higher value == higher activity --> 1, lower value == higher activity --> -1, inconclusive --> 0). For this step, it is necessary to download and install Gemma-3 (4b) using Ollama (v0.12.3, check [Ollama's documentation](https://ollama.com/library/gemma3)). The availability of GPUs significantly speeds up this stage. In brief, 4 additional files are generated in  `config/llm_processed`:
+In addition to raw exports, the script produces four curated files derived from the `ACTIVITIES` table and a simplified version of `ASSAYS`:
+
+1. `activity_comments.csv`: Frequency table of the comments (text) stored in the `activity_comment` column (e.g., 'active').
+2. `activity_std_units.csv`: Frequency table of the column pairs `standard_type` & `standard_units` (e.g., 'Potency & nM')
+3. `standard_units.csv`: Frequency table of the `standard_units` column.
+4. `standard_text.csv`: Frequency table of the text stored in the `standard_text_value` column (e.g., 'Compound metabolized')
+5. `assay_descriptions.csv`: Table mapping assay IDs to their corresponding text descriptions and ChEMBL IDs.
+
+After generating the frequency tables, a **manual curation process** was performed to assign an activity label to the most frequent entries. Items were reviewed and flagged accordingly:
+
+- `activity_std_units.csv`.
+
+    Labels refer to the direction of biological activity:
+  - **-1** → lower value = more active (e.g. IC50)
+  - **1** → higher value = more active (e.g. %Inhibition)
+  - **0** → unclear
+
+- `activity_comments.csv` and `standard_text.csv`. 
+
+    Labels refer to compound activity:
+  - **1** → active
+  - **-1** → inactive
+  - **0** → inconclusive or unclear
+
+This manual curation allows downstream scripts to automatically use a standardized direction of biological effect for activity types, units and text, ensuring consistency across diverse assays and readouts. All three manually curated files are located in `config/manual_curated` (named `activity_std_units_manual_curation.csv`, `activity_comments_manual_curation.csv` and `standard_text_manual_curation.csv`). The user is encouraged to extend or complete these files as needed.
+
+⏳ ETA: ~20 minutes.
+
+## Step 01. Processing compounds
+
+This script calculates the molecular weight (MW) of each compound based on its SMILES (Simplified Molecular Input Line Entry System) representation using RDKit. Running `01_get_compound_info.py` creates the `config/chembl_processed` folder, containing a newly generated file named `compound_info.csv` (table with `molregno`, `chembl_id`, `molecule_type`, `canonical_smiles`, and `calculated MW`).
+
+⏳ ETA: ~90 minutes.
+
+
+## Step 02. Merging activities, assays, compounds & targets
+
+Running `02_merge_all.py` to merge `config/chembl_activities/activities.csv`, `config/chembl_activities/assays.csv`, `config/chembl_activities/target_dictionary.csv`, and `config/chembl_processed/compound_info.csv` into a single table. This script will produce the file `activities_all_raw.csv` in `config/chembl_processed` with a predefined set of columns.
+
+⏳ ETA: ~20 minutes.
+
+
+## Step 03. Unit harmonization and conversion
+
+The script `03_prepare_conversions.py` generates `unit_conversion.csv` inside `config/chembl_processed/`. This file standardizes measurement units found in ChEMBL activities by:
+
+1. Mapping original ChEMBL unit strings (standard_units) to validated UCUM units (e.g., uM to umol.L-1).
+2. Assigning a final standard unit PER ACTIVITY TYPE used in downstream tasks (e.g., concentration → umol.L-1)
+3. Defining a conversion formula (when necessary) to adjust numeric values accordingly (e.g., nmol.L-1 → value/1000 umol.L-1)
+
+Before running this script, make sure the file `UnitStringValidations.csv` mapping ChEMBL's original units to UCUM-compliant formats is available in `config/chembl_processed/`. This file was created externally using the [UCUM-LHC](https://ucum.org/) Online Validator and Converter under the _Validate all unit expressions in a CSV file_ section, uploading the file `standard_units.csv` (produced in Step 00 and found in `config/chembl_activities`) and indicating `standard_units` as the name of the column containing the expressions to be validated. These string validations are merged with a manual curation effort accounting for more than 290 units (found in `config/manual_curation/ucum_GT.csv`), not only mapping ChEMBL units to valid UCUM formats but also converting units from the same kind to a reference one. 
+
+## Step 04. Cleaning activities table
+
+The script `04_preprocess_activity_data.py` produces a curated and standardized version of the activity data, saved as `activities_preprocessed.csv` in `config/chembl_processed/`. The file contains a final cleaned and normalized dataset with all compound–assay–target activity records.
+
+This step performs several cleaning and harmonization tasks:
+
+1. **Filter invalid entries**. Removes activities with missing canonical_smiles.
+
+2. **Activity comments**. Loads manual classifications from `activity_comments_manual_curation`.csv. and f lags each activity as active (1), inactive (-1) or unkown (0).
+
+3. **Standard text comments**. Similar to above, using `standard_text_manual_curation.csv`.
+
+4. **Unit harmonization and conversion**. Uses `unit_conversion.csv` (from Step 03) to normalize unit strings and convert raw values using defined formulas. It produces `converted_units.csv` (frequencies of new units) and `converted_units_map.csv` (mappings from original to final units).
+
+5. **Activity type normalization**. Harmonizes variations in standard_type (e.g., “IC50”, “IC-50”, “IC 50”, etc.) and outputs `harmonized_types_map.csv` for reference.
+
+6. **Relation normalization**. Maps relations like ">=", ">>", "<=" to simplified forms (>, <, =).
+
+7. **pChEMBL recalculation**. Recalculates pChEMBL values when the unit is umol.L-1 and a numeric value is available.
+
+8. **Document ID replacement**. Replaces `doc_id` with its corresponding `doc_chembl_id` using the `docs.csv` table.
+
+9. **Column renaming and cleanup**. Drops original fields (e.g., standard_value, standard_units) and renames columns for clarity (value, unit, relation, activity_type, activity_comment, standard_text, etc.)
+
+⏳ ETA: ~80 minutes.
+
+## Step 05. ChEMBL v.36 – preprocessed
+The script `05_get_pathogen_assays.py` filters the full preprocessed ChEMBL dataset (`activities_preprocessed.csv`) to extract organism-specific subsets and summarizes their associated assays.
+
+
+Currently, the following **list of pathogens** is processed:
+
+```bash
+["Acinetobacter baumannii", "Candida albicans", "Campylobacter", "Escherichia coli", "Enterococcus faecium", "Enterobacter", "Helicobacter pylori", "Klebsiella pneumoniae", "Mycobacterium tuberculosis", "Neisseria gonorrhoeae", "Pseudomonas aeruginosa", "Plasmodium falciparum", "Staphylococcus aureus", "Schistosoma mansoni", "Streptococcus pneumoniae"]
+ ```
+
+Pathogen codes are automatically generated by taking the first letter of the genus and appending the species name, all lowercase.
+For example:
+
+- *Escherichia coli* → ecoli
+- *Staphylococcus aureus* → saureus
+- *Mycobacterium tuberculosis* → mtuberculosis
+
+Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
+- `<pathogen_code>_ChEMBL_data.csv`: All ChEMBL activity records for the selected pathogen..
+- `target_organism_counts.csv`: Frequency of target organisms found in the data.
+- `assays.csv`: Cleaned list of assays with metadata (e.g., unit, activity type, compound count).
+
+⏳ ETA: ~4 hours.
+
+---
+---
+---
+
+In this script, ChEMBL tables are automatically curated using an LLM to process activity comments, among others. A series of modified files will be saved in `config/chembl_processed`, each having a column that represents the outcome of the assay/activity (1: Active, -1: Not Active, 0: Unresolved; or Direction: higher value == higher activity --> 1, lower value == higher activity --> -1, inconclusive --> 0). In brief, 4 additional files are generated in  `config/chembl_processed`:
 
 - `activity_comments.csv`: Activity comments are classified as active (1), inactive (-1) or inconclusive (0). New column: `activity_classified`.
 - `activity_stds_lookup.csv`: Activity standards (e.g., IC50) are classified with the right direction: the lower the value the higher the activity (-1), the higher the value the higher the activity (1) or inconclusive (0). New column: `activity_direction`.
@@ -27,5 +138,11 @@ In this script, ChEMBL tables are automatically curated using an LLM to process 
 
 To assess the global performance of the LLM in these tasks, we compare the final outcome against a set of manually curated endpoints from ...
 
-# Step 002
+# Step 
 Uses the LLM processed data to assign an outcome to each activity in ChEMBL (which are summarised in the Activities table).
+
+
+---
+For later on (around step 07):
+
+For this step, it is necessary to download and install Gemma-3 (4b) using Ollama (v0.12.3, check [Ollama's documentation](https://ollama.com/library/gemma3)). The availability of GPUs significantly speeds up this stage. 

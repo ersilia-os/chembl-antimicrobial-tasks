@@ -69,34 +69,32 @@ Running `02_merge_all.py` to merge `config/chembl_activities/activities.csv`, `c
 The script `03_prepare_conversions.py` generates `unit_conversion.csv` inside `config/chembl_processed/`. This file standardizes measurement units found in ChEMBL activities by:
 
 1. Mapping original ChEMBL unit strings (standard_units) to validated UCUM units (e.g., uM to umol.L-1).
-2. Assigning a final standard unit PER ACTIVITY TYPE used in downstream tasks (e.g., concentration → umol.L-1)
+2. Assigning a final standard unit per activity type used in downstream tasks (e.g., IC50 → umol.L-1)
 3. Defining a conversion formula (when necessary) to adjust numeric values accordingly (e.g., nmol.L-1 → value/1000 umol.L-1)
 
-Before running this script, make sure the file `UnitStringValidations.csv` mapping ChEMBL's original units to UCUM-compliant formats is available in `config/chembl_processed/`. This file was created externally using the [UCUM-LHC](https://ucum.org/) Online Validator and Converter under the _Validate all unit expressions in a CSV file_ section, uploading the file `standard_units.csv` (produced in Step 00 and found in `config/chembl_activities`) and indicating `standard_units` as the name of the column containing the expressions to be validated. These string validations are merged with a manual curation effort accounting for more than 290 units (found in `config/manual_curation/ucum_GT.csv`), not only mapping ChEMBL units to valid UCUM formats but also converting units from the same kind to a reference one. 
+Before running this script, make sure the file `UnitStringValidations.csv` mapping ChEMBL's original units to UCUM-compliant formats is available in `config/chembl_processed/`. This file was created externally using the [UCUM-LHC](https://ucum.org/) Online Validator and Converter under the _Validate all unit expressions in a CSV file_ section, uploading the file `standard_units.csv` (produced in Step 00 and found in `config/chembl_activities`) and indicating `standard_units` as the name of the column containing the expressions to be validated. These string validations are merged with a manual curation effort accounting for more than 290 units (found in `config/manual_curation/ucum_GT.csv`), not only mapping ChEMBL units to valid UCUM formats but also converting units from the same kind to a reference one. The file `unit_conversion.csv` is created in `config/chembl_processed` and includes all the information mentioned above. 
 
 ## Step 04. Cleaning activities table
 
-The script `04_preprocess_activity_data.py` produces a curated and standardized version of the activity data, saved as `activities_preprocessed.csv` in `config/chembl_processed/`. The file contains a final cleaned and normalized dataset with all compound–assay–target activity records.
+The script `04_preprocess_activity_data.py` produces a curated and standardized version of the activity data, saved as `activities_preprocessed.csv` in `config/chembl_processed`. The file contains a final cleaned and normalized dataset with all compound-assay-target activity records. This step performs several cleaning and harmonization subtasks:
 
-This step performs several cleaning and harmonization tasks:
+1. **Filtering invalid entries**. Removing activities with missing canonical_smiles.
 
-1. **Filter invalid entries**. Removes activities with missing canonical_smiles.
+2. **Flagging activity comments**. Loading manual annotations from `activity_comments_manual_curation.csv` and flagging each activity comment as active (1), inactive (-1) or unknown (0).
 
-2. **Activity comments**. Loads manual classifications from `activity_comments_manual_curation`.csv. and f lags each activity as active (1), inactive (-1) or unkown (0).
+3. **Flagging standard text comments**. Loading manual annotations from `standard_text_manual_curation.csv` and flagging each standard text comment as active (1), inactive (-1) or unknown (0).
 
-3. **Standard text comments**. Similar to above, using `standard_text_manual_curation.csv`.
+4. **Harmonizing and converting units**. Using `unit_conversion.csv` (from Step 03) to normalize unit strings and convert raw values using predefined conversion formulas. It produces `converted_units.csv` (frequencies of new units) and `converted_units_map.csv` (mappings from original to final units), both located in `config/chembl_processed`.
 
-4. **Unit harmonization and conversion**. Uses `unit_conversion.csv` (from Step 03) to normalize unit strings and convert raw values using defined formulas. It produces `converted_units.csv` (frequencies of new units) and `converted_units_map.csv` (mappings from original to final units).
+5. **Normalizing activity types**. Normalizing variations in the `standard_type` column (e.g., 'A ctivity', 'Activ ity', 'Activit y', 'Activity', 'activity'). Outputs `harmonized_types_map.csv` for reference.
 
-5. **Activity type normalization**. Harmonizes variations in standard_type (e.g., “IC50”, “IC-50”, “IC 50”, etc.) and outputs `harmonized_types_map.csv` for reference.
+6. **Normalizing relations**. Mapping relations like ">=", ">>", "<=" to simplified forms (>, <, =).
 
-6. **Relation normalization**. Maps relations like ">=", ">>", "<=" to simplified forms (>, <, =).
+7. **Recalculating pChEMBL values**. Recalculating pChEMBL values when the unit is umol.L-1 and a numeric value is available.
 
-7. **pChEMBL recalculation**. Recalculates pChEMBL values when the unit is umol.L-1 and a numeric value is available.
+8. **Replacing Document ID**. Replacing `doc_id` with its corresponding `doc_chembl_id` using the `docs.csv` table from `config/chembl_activities`.
 
-8. **Document ID replacement**. Replaces `doc_id` with its corresponding `doc_chembl_id` using the `docs.csv` table.
-
-9. **Column renaming and cleanup**. Drops original fields (e.g., standard_value, standard_units) and renames columns for clarity (value, unit, relation, activity_type, activity_comment, standard_text, etc.)
+9. **Column renaming and cleanup**. Dropping original fields (e.g., `standard_value`, `standard_units`) and renaming columns for clarity (`value`, `unit`, `relation`, `activity_type`, `activity_comment`, `standard_text`, etc.)
 
 ⏳ ETA: ~80 minutes.
 

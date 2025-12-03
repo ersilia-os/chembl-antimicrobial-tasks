@@ -18,6 +18,7 @@ def get_pathogen_code(pathogen):
 
 # Create output directory
 OUTPUT = os.path.join(root, "..", "output")
+
 # For each pathogen
 for pathogen in pathogens:
 
@@ -34,11 +35,14 @@ for pathogen in pathogens:
     os.makedirs(os.path.join(OUTPUT, pathogen_code, "datasets"), exist_ok=True)
 
     break
+
 # Get only assays with 100 or more compounds
 ASSAYS = ASSAYS[ASSAYS['cpds'] >= 100].reset_index(drop=True)
+
 # Get directions
 DIRECTIONS = pd.read_csv(os.path.join(root, "..", "config", 'manual_curation', 'activity_std_units_curated_manual_curation.csv'))
 DIRECTIONS = {(i,j): k for i,j,k in zip(DIRECTIONS['activity_type'], DIRECTIONS['unit'], DIRECTIONS['manual_curation']) if np.isnan(k) == False}
+
 def adjust_relation(ASSAY_DATA: pd.DataFrame, DIRECTION: int, CUT: float) -> pd.DataFrame:
     """
     Adjust relations in an assay DataFrame according to the biological direction.
@@ -89,7 +93,6 @@ def adjust_relation(ASSAY_DATA: pd.DataFrame, DIRECTION: int, CUT: float) -> pd.
 
     return df
 
-
 def disambiguate_compounds(ASSAY_DATA: pd.DataFrame, DIRECTION: int) -> pd.DataFrame:
 
     """
@@ -130,6 +133,7 @@ def disambiguate_compounds(ASSAY_DATA: pd.DataFrame, DIRECTION: int) -> pd.DataF
     df_best = df_sorted.drop_duplicates(subset="compound_chembl_id", keep="first")
 
     return df_best.reset_index(drop=True)
+
 # Define some parameters
 cols = ['compound_chembl_id', 'canonical_smiles', 'activity_type', 'value', 'relation', 'unit']
 BINARIZATION_RESULTS = []

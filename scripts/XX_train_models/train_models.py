@@ -19,17 +19,24 @@ root = os.path.dirname(os.path.abspath(__file__))
 pathogen_code, file, column = pickle.load(open(os.path.join(root, "..", "..", "tmp", "models_to_train.pkl"), "rb"))[alpha]
 
 # Load data
-data = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, "datasets", file))
-X = data['canonical_smiles'].astype(str).tolist()[:500]
-Y = data['bin'].astype(np.int8).to_numpy()[:500]
+sys.stderr.write(str(pathogen_code) + "\n" + str(file) + " -- " + str(column))
+sys.stderr.write("\n\n")
+sys.stderr.flush()
+data = pd.read_csv(os.path.join(root, "..", "..", "output", pathogen_code, "datasets", file))
+X = data['canonical_smiles'].astype(str).tolist()
+Y = data['bin'].astype(np.int8).to_numpy()
 
 # Define stratified 5 fold CV
 skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
 # Load descriptors
-with h5py.File(os.path.join(root, "..", "output", pathogen_code, "descriptors.h5"), "r") as f:
+sys.stderr.write("Loading descriptors...")
+sys.stderr.write("\n\n")
+sys.stderr.flush()
+with h5py.File(os.path.join(root, "..", "..", "output", pathogen_code, "descriptors.h5"), "r") as f:
     SMILES = f['SMILES'][:]
     X_Morgan = f['X_Morgan'][:]
+    ### add here rdkit descriptors
 
 # Define dict mapping smiles to morgan fingerprints
 SMILES_TO_MORGAN = {
@@ -38,8 +45,11 @@ SMILES_TO_MORGAN = {
 
 # For each split
 AUROCS = []
-for train, test in skf.split(X, Y):
-    print(len(train), len(test))
+for c, (train, test) in enumerate(skf.split(X, Y)):
+    
+    sys.stderr.write(f"Training split {c}...")
+    sys.stderr.write("\n")
+    sys.stderr.flush()
 
     # Get train/test indices
     X_train, Y_train = [X[i] for i in train], Y[train]
@@ -48,21 +58,24 @@ for train, test in skf.split(X, Y):
     # Get Morgan Fingerprints and train model
     X_train = np.array([SMILES_TO_MORGAN[smi] for smi in X_train])
     X_test  = np.array([SMILES_TO_MORGAN[smi] for smi in X_test])
-    model = LazyBinaryClassifier(mode="fast")
+    model = LazyBinaryClassifier(mode="default")
     model.fit(X=X_train, y=Y_train)
 
     # Store results
-    AUROCS.append(roc_auc_score(Y_test, model.predict_proba(X_test)[:, 1]))
-    break
+    auroc = round(roc_auc_score(Y_test, model.predict_proba(X_test)[:, 1]), 3)
+    AUROCS.append(auroc)
+    sys.stderr.write(f"AUROC: {auroc}")
+    sys.stderr.write("\n\n")
+    sys.stderr.flush()
 
 # Train full model
 X = np.array([SMILES_TO_MORGAN[smi] for smi in X])
-model = LazyBinaryClassifier(mode="fast")
+model = LazyBinaryClassifier(mode="default")
 model.fit(X=X, y=Y)
 
 # Save model
-model.save(os.path.join(root, "..", "output", pathogen_code, "models", file.replace(".csv.gz", ".zip")))
+model.save(os.path.join(root, "..", "..", "output", pathogen_code, "models", file.replace(".csv.gz", ".zip")))
 
 # Save CV results
-with open(os.path.join(root, "..", "output", pathogen_code, "models", file.replace('.gz', '')), "w") as outfile:
-    outfile.write(",".join([str(round(i, 3)) for i in AUROCS]))
+with open(os.path.join(root, "..", "..", "output", pathogen_code, "models", file.replace('.gz', '')), "w") as outfile:
+    outfile.write(",".join([str(i) for i in AUROCS]))

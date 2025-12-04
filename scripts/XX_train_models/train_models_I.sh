@@ -5,7 +5,7 @@
 #SBATCH --chdir=/aloy/home/acomajuncosa/Ersilia/chembl-antimicrobial-tasks
 #SBATCH --time=12:00:00
 #SBATCH --ntasks=1
-#SBATCH --array=0-10%10
+#SBATCH --array=0-268%10
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
 #SBATCH --output=/aloy/scratch/acomajuncosa/Ersilia/chembl_antimicrobial_tasks/lq_training/%x_%a.out
@@ -18,6 +18,6 @@ export SINGULARITY_BINDPATH="/home/sbnb:/aloy/home,/data/sbnb/data:/aloy/data,/d
 # Load cuda libraries
 export LD_LIBRARY_PATH=/apps/manual/software/CUDA/11.6.1/lib64:/apps/manual/software/CUDA/11.6.1/targets/x86_64-linux/lib:/apps/manual/software/CUDA/11.6.1/extras/CUPTI/lib64/:/apps/manual/software/CUDA/11.6.1/nvvm/lib64/:$LD_LIBRARY_PATH
 
-alpha=($(seq 0 10))
+alpha=($(seq 0 268))
 
 singularity exec --cleanenv /apps/singularity/ood_images/docker_irb_intel-optimized-tensorflow-avx512-2.13-pip-conda-jupyter-v6.sif ./scripts/XX_train_models/train_models_II.sh ${alpha[$SLURM_ARRAY_TASK_ID]}

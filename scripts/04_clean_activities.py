@@ -214,5 +214,7 @@ activities_all_raw = activities_all_raw.rename(columns={
         "doc_id": "doc_chembl_id"
         })
 
+
+
 print("Saving results...")
 activities_all_raw.to_csv(os.path.join(CONFIGPATH, 'chembl_processed', 'activities_preprocessed.csv'), index=False)

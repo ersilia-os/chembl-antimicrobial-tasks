@@ -15,7 +15,7 @@ from default import CONFIGPATH, MIN_ASSAY_SIZE
 # List of pathogens to process
 pathogens = ["Acinetobacter baumannii", "Candida albicans", "Campylobacter", "Escherichia coli", "Enterococcus faecium", "Enterobacter",
              "Helicobacter pylori", "Klebsiella pneumoniae", "Mycobacterium tuberculosis", "Neisseria gonorrhoeae", "Pseudomonas aeruginosa",
-             "Plasmodium falciparum", "Staphylococcus aureus", "Schistosoma mansoni", "Streptococcus pneumoniae"]
+             "Plasmodium falciparum", "Staphylococcus aureus", "Schistosoma mansoni", "Streptococcus pneumoniae"][8:9]
 
 # Thresholds - Tanimoto Coefficient
 thrs = [0.3, 0.6, 0.85]
@@ -29,11 +29,11 @@ for pathogen in pathogens:
     # Loading pathogen data
     pathogen_code = get_pathogen_code(pathogen)
     print(f"Loading ChEMBL preprocessed data for {pathogen_code}...")
-    ChEMBL = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, f"{pathogen_code}_ChEMBL_data.csv"), low_memory=False)
+    ChEMBL = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, f"{pathogen_code}_ChEMBL_cleaned_data.csv.gz"), low_memory=False)
     print(f"Number of activities for {pathogen_code}: {len(ChEMBL)}")
     print(f"Number of compounds for {pathogen_code}: {len(set(ChEMBL['compound_chembl_id']))}")
     print(f"Calculating clusters for pathogen: {pathogen_code}...")
-    ASSAYS_INFO = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, 'assays.csv'))
+    ASSAYS_INFO = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, 'assays_cleaned.csv'))
     ASSAYS_INFO = ASSAYS_INFO[['assay_id', 'activity_type', 'unit', 'activities', 'cpds']].copy()
     print(f"Original number of assays: {len(ASSAYS_INFO)}")
     CLUSTERS = []

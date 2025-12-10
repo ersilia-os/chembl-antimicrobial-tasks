@@ -78,7 +78,7 @@ Before running this script, make sure the file `UnitStringValidations.csv` mappi
 
 The script `04_preprocess_activity_data.py` produces a curated and standardized version of the activity data, saved as `activities_preprocessed.csv` in `config/chembl_processed`. The file contains a final cleaned and normalized dataset with all compound-assay-target activity records. This step performs several cleaning and harmonization subtasks:
 
-1. **Filtering invalid entries**. Removing activities with missing canonical_smiles (226k). No other entries are removed during the cleaning process. 
+1. **Filtering invalid entries**. Removing activities with missing canonical_smiles (226k). No other entries are removed during this cleaning process. 
 
 2. **Flagging activity comments**. Loading manual annotations from `activity_comments_manual_curation.csv` and flagging each activity comment as active (1), inactive (-1) or unknown (0).
 
@@ -98,9 +98,9 @@ The script `04_preprocess_activity_data.py` produces a curated and standardized 
 
 ⏳ ETA: ~80 minutes.
 
-## Step 05. ChEMBL v.36 – preprocessed
-The script `05_get_pathogen_assays.py` filters the full preprocessed ChEMBL dataset (`activities_preprocessed.csv`) to extract organism-specific subsets and summarizes their associated assays.
+## Step 05. Splitting data by pathogen
 
+The script `05_get_pathogen_assays.py` filters the full preprocessed ChEMBL dataset (`activities_preprocessed.csv`) to extract organism-specific subsets and summarizes their associated assays.
 
 Currently, the following **list of pathogens** is processed:
 
@@ -118,7 +118,25 @@ For example:
 Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
 - `<pathogen_code>_ChEMBL_raw_data.csv`: All ChEMBL activity records for the selected pathogen (based on fields `target_organism` and `assay_organism`).
 - `target_organism_counts.csv`: Frequency of target organisms found in the data.
-- `assays_raw.csv`: Cleaned list of assays with metadata (e.g., unit, activity type, compound count).
+- `assays_raw.csv`: List of raw assays with metadata (e.g., unit, activity type, compound count).
 
 ⏳ ETA: ~4 hours.
 
+## Step 06. Cleaning individual pathogen data
+
+The script `06_clean_pathogen_activities.py` cleans organism-specific activity records for the selected pathogens and summarizes their associated assays. The cleaning steps are enumerated below:
+
+1. **Converting activity types to their corresponding synonyms**. Mapping activity types to their synonyms as defined in `config/manual_curation/synonyms.csv`. 
+
+2. **Removing null activities**. Discarding activities with no numerical value nor active or inactive flag in the `activity_comment` nor `standard_text` fields. 
+
+3. **Identifying canonical units**. For each activity type, identifying canonical units i.e. the most occurrying unit. 
+
+Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
+- `<pathogen_code>_ChEMBL_cleaned_data.csv`: Cleaned ChEMBL activity records for the selected pathogen (based on fields `target_organism` and `assay_organism`).
+- `activity_type_unit_pairs.csv`: List of unique activity type - unit pairs per pathogen, including counts and a canonical unit flag. 
+- `assays_cleaned.csv`: List of cleaned assays with metadata (e.g., unit, activity type, compound count).
+
+## Step 07. Clustering assay compounds
+
+The script `07_get_assay_clusters.py` needs to be executed with a conda environment having [bblean](https://github.com/mqcomplab/bblean) installed. 

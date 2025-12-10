@@ -78,7 +78,7 @@ Before running this script, make sure the file `UnitStringValidations.csv` mappi
 
 The script `04_preprocess_activity_data.py` produces a curated and standardized version of the activity data, saved as `activities_preprocessed.csv` in `config/chembl_processed`. The file contains a final cleaned and normalized dataset with all compound-assay-target activity records. This step performs several cleaning and harmonization subtasks:
 
-1. **Filtering invalid entries**. Removing activities with missing canonical_smiles.
+1. **Filtering invalid entries**. Removing activities with missing canonical_smiles (226k). No other entries are removed during the cleaning process. 
 
 2. **Flagging activity comments**. Loading manual annotations from `activity_comments_manual_curation.csv` and flagging each activity comment as active (1), inactive (-1) or unknown (0).
 
@@ -116,31 +116,9 @@ For example:
 - *Mycobacterium tuberculosis* → mtuberculosis
 
 Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
-- `<pathogen_code>_ChEMBL_data.csv`: All ChEMBL activity records for the selected pathogen..
+- `<pathogen_code>_ChEMBL_raw_data.csv`: All ChEMBL activity records for the selected pathogen (based on fields `target_organism` and `assay_organism`).
 - `target_organism_counts.csv`: Frequency of target organisms found in the data.
-- `assays.csv`: Cleaned list of assays with metadata (e.g., unit, activity type, compound count).
+- `assays_raw.csv`: Cleaned list of assays with metadata (e.g., unit, activity type, compound count).
 
 ⏳ ETA: ~4 hours.
 
----
----
----
-
-In this script, ChEMBL tables are automatically curated using an LLM to process activity comments, among others. A series of modified files will be saved in `config/chembl_processed`, each having a column that represents the outcome of the assay/activity (1: Active, -1: Not Active, 0: Unresolved; or Direction: higher value == higher activity --> 1, lower value == higher activity --> -1, inconclusive --> 0). In brief, 4 additional files are generated in  `config/chembl_processed`:
-
-- `activity_comments.csv`: Activity comments are classified as active (1), inactive (-1) or inconclusive (0). New column: `activity_classified`.
-- `activity_stds_lookup.csv`: Activity standards (e.g., IC50) are classified with the right direction: the lower the value the higher the activity (-1), the higher the value the higher the activity (1) or inconclusive (0). New column: `activity_direction`.
-- `activity_std_units_with_3_assay_descriptions.csv`: Pairs of standard type and unit (e.g., IC50-nM) are provided with 3 randomly sampled descriptions from associated assays, which will be used in the following step.
-- `activity_std_units.csv`: Pairs of activity type and unit (e.g., IC50-nM + 3 assay descriptions) are classified with the right direction: the lower the more active (-1), the higher the more active (1) or inconclusive (0). New column: `activity direction`.
-- `standard_text.csv`: Text comments are manually processed and classified as active/inactive based on the identification of specific words (). New column: `standard_text_classification`.
-
-To assess the global performance of the LLM in these tasks, we compare the final outcome against a set of manually curated endpoints from ...
-
-# Step 
-Uses the LLM processed data to assign an outcome to each activity in ChEMBL (which are summarised in the Activities table).
-
-
----
-For later on (around step 07):
-
-For this step, it is necessary to download and install Gemma-3 (4b) using Ollama (v0.12.3, check [Ollama's documentation](https://ollama.com/library/gemma3)). The availability of GPUs significantly speeds up this stage. 

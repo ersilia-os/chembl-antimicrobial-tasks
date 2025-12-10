@@ -38,7 +38,7 @@ for pathogen in pathogens:
     df = dict(Counter(ChEMBL_pathogen['target_organism']))
     df = pd.DataFrame([[i, df[i]] for i in sorted(df, key = lambda x: df[x], reverse=True)], columns=['organism', 'count'])
     df.to_csv(os.path.join(PATH_TO_OUTPUT, "target_organism_counts.csv"), index=False)
-    ChEMBL_pathogen.to_csv(os.path.join(PATH_TO_OUTPUT, f"{pathogen_code}_ChEMBL_data.csv.gz"), index=False)
+    ChEMBL_pathogen.to_csv(os.path.join(PATH_TO_OUTPUT, f"{pathogen_code}_ChEMBL_raw_data.csv.gz"), index=False)
 
     # Helper function - is there only a single value?
     def only_one(values, name):
@@ -103,4 +103,4 @@ for pathogen in pathogens:
     ASSAYS_INFO = ASSAYS_INFO[ASSAYS_INFO['cpds'] > MIN_ASSAY_SIZE].reset_index(drop=True)
 
     # Save assays info
-    ASSAYS_INFO.to_csv(os.path.join(PATH_TO_OUTPUT, 'assays.csv'), index=False)
+    ASSAYS_INFO.to_csv(os.path.join(PATH_TO_OUTPUT, 'assays_raw.csv'), index=False)

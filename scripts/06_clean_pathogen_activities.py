@@ -7,8 +7,7 @@ import sys
 import os
 
 # Define root directory
-# root = os.path.dirname(os.path.abspath(__file__))
-root = "."
+root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import CONFIGPATH, MIN_ASSAY_SIZE
 

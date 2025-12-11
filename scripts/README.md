@@ -140,3 +140,13 @@ Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
 ## Step 07. Clustering assay compounds
 
 The script `07_get_assay_clusters.py` needs to be executed with a conda environment having [bblean](https://github.com/mqcomplab/bblean) installed. 
+
+## Step 08. Assessing compound overlap among assays
+
+## Step 09. Preparing assay data
+
+## Step 10. Getting compound descriptors
+
+The script `10_get_compound_descriptors.py` needs to be executed with a conda environment having [lazyqsar](hhttps://github.com/ersilia-os/lazy-qsar) installed. 
+
+

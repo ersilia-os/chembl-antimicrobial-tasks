@@ -139,7 +139,7 @@ for pathogen in pathogens:
     DATA_RANGES = []
 
     for assay_chembl_id, activity_type, unit, target_type, activities, cpds, direction in tqdm(ASSAYS_CLEANED[['assay_id', 'activity_type', 'unit',
-                                                                                                            'target_type', 'activities', 'cpds', 'direction']].values[2:]):
+                                                                                                            'target_type', 'activities', 'cpds', 'direction']].values):
             
         if direction not in [+1, -1]:
             if direction == 0:

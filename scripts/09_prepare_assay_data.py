@@ -127,10 +127,19 @@ for pathogen in pathogens:
     ASSAYS_CLEANED = pd.read_csv(os.path.join(OUTPUT, pathogen_code, 'assays_cleaned.csv'))
     print(f"Cleaned number of assays: {len(ASSAYS_CLEANED)}")
 
+    # Load expert cut-offs
+    EXPERT_CUTOFFS = pd.read_csv(os.path.join(root, "..", "config", "manual_curation", "expert_cutoffs.csv"))
+    EXPERT_CUTOFFS = {
+        (a, b, c, d): e
+        for a, b, c, d, e in EXPERT_CUTOFFS[
+            ["activity_type", "unit", "target_type", "pathogen_code", "expert_cutoff"]
+        ].values}
+
     # Define data ranges
     DATA_RANGES = []
 
-    for assay_chembl_id, activity_type, unit, activities, cpds, direction in tqdm(ASSAYS_CLEANED[['assay_id', 'activity_type', 'unit', 'activities', 'cpds', 'direction']].values):
+    for assay_chembl_id, activity_type, unit, target_type, activities, cpds, direction in tqdm(ASSAYS_CLEANED[['assay_id', 'activity_type', 'unit',
+                                                                                                            'target_type', 'activities', 'cpds', 'direction']].values[2:]):
             
         if direction not in [+1, -1]:
             if direction == 0:
@@ -151,7 +160,7 @@ for pathogen in pathogens:
         
         # Counter relations
         counter_relations = Counter(ASSAY_DATA['relation'].tolist())
-    
+
         # Get value to adjust relations
         if direction == 1:
             CUT = min(ASSAY_DATA['value'])
@@ -159,6 +168,10 @@ for pathogen in pathogens:
             CUT = max(ASSAY_DATA['value'])
         else:
             CUT = None
+
+        # Get expert cut-off if exists
+        key = (activity_type, unit, target_type, pathogen_code)
+        expert_cutoff = EXPERT_CUTOFFS[key] if key in EXPERT_CUTOFFS else np.nan
 
         if direction in [+1, -1]:
 
@@ -173,12 +186,30 @@ for pathogen in pathogens:
             if len(assay_activities) == 0:
                 assay_activities = [np.nan]
 
+            # Binarization with expert cut-off
+            if np.isnan(expert_cutoff) == False:
+                if direction == +1:
+                    ASSAY_DATA["bin"] = (ASSAY_DATA["value"] >= expert_cutoff).astype(int)
+                else:
+                    ASSAY_DATA["bin"] = (ASSAY_DATA["value"] <= expert_cutoff).astype(int)
+                positives = Counter(ASSAY_DATA['bin'].tolist())[1]
+                ratio = round(positives / len(ASSAY_DATA), 5)
+            else:
+                ASSAY_DATA['bin'] = [np.nan] * len(ASSAY_DATA)
+                positives = np.nan
+                ratio = np.nan
+
         else:
 
             # Take only equal relations
             assay_activities = [i for i,j in ASSAY_DATA[['value', 'relation']].values if np.isnan(i) == False and j == "="]
             if len(assay_activities) == 0:
                 assay_activities = [np.nan]
+
+            # Binarization with expert cut-off
+            ASSAY_DATA['bin'] = [np.nan] * len(ASSAY_DATA)
+            positives = np.nan
+            ratio = np.nan
         
         # Calculate data
         min_ = round(np.min(assay_activities), 3)
@@ -195,11 +226,12 @@ for pathogen in pathogens:
         higher = counter_relations[">"]
 
         # Store data range
-        DATA_RANGES.append([assay_chembl_id, activity_type, unit, activities, cpds, direction, equal, higher, lower, min_, p1, p25, p50, p75, p99, max_])
+        DATA_RANGES.append([assay_chembl_id, activity_type, unit, target_type, activities, cpds, direction, equal, higher, 
+                            lower, min_, p1, p25, p50, p75, p99, max_, expert_cutoff, positives, ratio])
 
         # Save data
         ASSAY_DATA.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{assay_chembl_id}_{activity_type}_{str(unit).replace('/', 'FwdS')}.csv.gz"), index=False)
 
-DATA_RANGES = pd.DataFrame(DATA_RANGES, columns=["assay_chembl_id", "activity_type", "unit", "activities", "cpds", "direction", "equal", "higher", 
-                                                "lower", "min_", "p1", "p25", "p50", "p75", "p99", "max_"])
+DATA_RANGES = pd.DataFrame(DATA_RANGES, columns=["assay_chembl_id", "activity_type", "unit", "target_type", "activities", "cpds", "direction", "equal", "higher", 
+                                            "lower", "min_", "p1", "p25", "p50", "p75", "p99", "max_", 'expert_cutoff', 'positives', 'ratio'])
 DATA_RANGES.to_csv(os.path.join(OUTPUT, pathogen_code, 'assay_data_ranges.csv'), index=False)

@@ -145,6 +145,10 @@ The script `07_get_assay_clusters.py` needs to be executed with a conda environm
 
 ## Step 09. Preparing assay data
 
+...
+
+`expert_cutoffs.csv` was manually created with the notebook `expert_cutoffs.ipynb` and can be changed at will. 
+
 ## Step 10. Getting compound descriptors
 
 The script `10_get_compound_descriptors.py` needs to be executed with a conda environment having [lazyqsar](hhttps://github.com/ersilia-os/lazy-qsar) installed. 

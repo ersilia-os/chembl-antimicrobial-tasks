@@ -20,7 +20,7 @@ df1 = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "compound_struct
 df2 = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "molecule_dictionary.csv"), low_memory=False)
 
 # Merge tables
-df_merged = df1.merge(df2[['molregno', 'chembl_id', 'molecule_type']], on='molregno', how='left')
+df_merged = df1.merge(df2[['molregno', 'chembl_id']], on='molregno', how='left')
 
 # Calculate Molecular Weight
 MW = []
@@ -36,6 +36,7 @@ for smiles in tqdm(df_merged['canonical_smiles'].tolist()):
 df_merged['MW'] = MW
 
 # Save file
+df_merged = df_merged.sort_values('molregno').reset_index(drop=True)
 df_merged.to_csv(os.path.join(output_dir, "compound_info.csv"), index=False)
 
 

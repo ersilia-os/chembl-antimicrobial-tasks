@@ -4,3 +4,4 @@
     remote = gdrive
 ['remote "gdrive"']
     url = gdrive://1_09zDnenvmZgfzh2WE_QOd9YZcgjkp0u
+    gdrive_user_credentials_file = /home/acomajuncosa/.config/dvc/chembl-antimicrobial-tasks-gdrive-new.json

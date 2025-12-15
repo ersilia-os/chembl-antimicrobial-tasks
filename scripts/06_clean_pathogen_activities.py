@@ -14,7 +14,7 @@ from default import CONFIGPATH, MIN_ASSAY_SIZE
 # List of pathogens to process
 pathogens = ["Acinetobacter baumannii", "Candida albicans", "Campylobacter", "Escherichia coli", "Enterococcus faecium", "Enterobacter",
              "Helicobacter pylori", "Klebsiella pneumoniae", "Mycobacterium tuberculosis", "Neisseria gonorrhoeae", "Pseudomonas aeruginosa",
-             "Plasmodium falciparum", "Staphylococcus aureus", "Schistosoma mansoni", "Streptococcus pneumoniae"][8:9]
+             "Plasmodium falciparum", "Staphylococcus aureus", "Schistosoma mansoni", "Streptococcus pneumoniae"]
 
 def get_pathogen_code(pathogen):
     return str(pathogen.split()[0][0] + pathogen.split()[1]).lower() if len(pathogen.split()) > 1 else pathogen.lower()
@@ -153,6 +153,4 @@ for pathogen in pathogens:
     ASSAYS_INFO = ASSAYS_INFO[ASSAYS_INFO['cpds'] > MIN_ASSAY_SIZE].reset_index(drop=True)
 
     # Save assays info
-    ASSAYS_INFO.to_csv(os.path.join(root, "..", "output", pathogen_code, 'assays_cleaned.csv'), index=False)
-
-    break
+    # ASSAYS_INFO.to_csv(os.path.join(root, "..", "output", pathogen_code, 'assays_cleaned.csv'), index=False)

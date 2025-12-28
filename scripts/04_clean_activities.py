@@ -15,22 +15,22 @@ from default import CONFIGPATH
 print("Loading data...")
 activities_all_raw = pd.read_csv(os.path.join(CONFIGPATH, "chembl_processed", "activities_all_raw.csv"), low_memory=False)
 
-# 1. Flagging activity comments
+# 2. Flagging activity comments
 activity_comments_bin = pd.read_csv(os.path.join(CONFIGPATH, "manual_curation", "activity_comments_manual_curation.csv"), low_memory=False)
 activity_comments_act = set(activity_comments_bin[activity_comments_bin['manual_curation'] == 1]['activity_comment'])
 activity_comments_inact = set(activity_comments_bin[activity_comments_bin['manual_curation'] == -1]['activity_comment'])
 
-# 2. Flagging standard text
+# 3. Flagging standard text
 standard_text_bin = pd.read_csv(os.path.join(CONFIGPATH, "manual_curation", "standard_text_manual_curation.csv"), low_memory=False)
 standard_text_act = set(standard_text_bin[standard_text_bin['manual_curation'] == 1]['standard_text_value'])
 standard_text_inact = set(standard_text_bin[standard_text_bin['manual_curation'] == -1]['standard_text_value'])
 
-# 3. Unit conversion
+# 4. Unit conversion
 unit_conversion = pd.read_csv(os.path.join(CONFIGPATH, "chembl_processed", "unit_conversion.csv"))
 standard_unit_to_final_unit = {i: j for i,j in zip(unit_conversion['standard_units'], unit_conversion['final_unit'])}
 standard_unit_to_conversion_formula = {i: j for i,j in zip(unit_conversion['standard_units'], unit_conversion['conversion_formula'])}
 
-# 5. Relations py dict
+# 6. Relations py dict
 RELATIONS = {"=": "=",
              ">": ">",
              "<": "<",
@@ -44,7 +44,7 @@ RELATIONS = {"=": "=",
 def convert_relation(i, RELATIONS):
     return RELATIONS[i]
 
-# 6. pChEMBL calculation
+# 7. pChEMBL calculation
 def calculate_pchembl(uM):
     try:
         value = uM * 1e-6
@@ -53,17 +53,16 @@ def calculate_pchembl(uM):
     except:
         return np.nan
     
-# 7. Converting doc_id to doc_chembl_id
+# 8. Converting doc_id to doc_chembl_id
 docs = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "docs.csv"), low_memory=False)
 doc_id_to_doc_chembl_id = {i: j for i, j in zip(docs['doc_id'], docs["chembl_id"])}
 
-# 0. Removing those activities having no canonical smiles
+# 1. Removing those activities having no canonical smiles
 nans = len(activities_all_raw[activities_all_raw['canonical_smiles'].isna()])
 print(f"Removing activities having no associated canonical smiles ({nans}) ...")
 activities_all_raw = activities_all_raw[activities_all_raw['canonical_smiles'].isna() == False].reset_index(drop=True)
 
-
-# 1. Cleaning activity comments
+# 2. Cleaning activity comments
 print("Cleaning activity comments...")
 NEW_ACTIVITY_COMMENT = []
 for act_comment in tqdm(activities_all_raw['activity_comment']):
@@ -80,7 +79,7 @@ activities_all_raw['new_activity_comment'] = NEW_ACTIVITY_COMMENT
 print(f"New activity comments: {dict(Counter(activities_all_raw['new_activity_comment']))}")
 
 
-# 2. Cleaning standard text
+# 3. Cleaning standard text
 print("Cleaning standard text...")
 NEW_STANDARD_TEXT = []
 for std_text_value in tqdm(activities_all_raw['standard_text_value']):
@@ -97,7 +96,7 @@ activities_all_raw['new_standard_text_value'] = NEW_STANDARD_TEXT
 print(f"New standard text: {dict(Counter(activities_all_raw['new_standard_text_value']))}")
 
 
-# 3. Harmonizing units and values
+# 4. Harmonizing units and values
 NEW_VALUES, NEW_UNITS = [], []
 print("Harmonizing units and converting values")
 for mw, std_value, std_unit in tqdm(activities_all_raw[['MW', 'standard_value', 'standard_units']].values):
@@ -151,7 +150,7 @@ df = pd.DataFrame(df, columns=['unit', 'count', 'old_units'])
 df.to_csv(os.path.join(CONFIGPATH, "chembl_processed", "converted_units_map.csv"), index=False)
 
 
-# 4. Harmonizing activity types
+# 5. Harmonizing activity types
 print("Harmonizing activity types")
 def harmonize_act_type(act_type):
     # _, spaces, / and \
@@ -169,14 +168,14 @@ df = [[ty, len(harmonized_types_to_types[ty]), " ; ".join([str(k) for k in harmo
 df = pd.DataFrame(df, columns=['type', 'count', 'old_types'])
 df.to_csv(os.path.join(CONFIGPATH, "chembl_processed", "harmonized_types_map.csv"), index=False)
 
-# 5. Clean relations
+# 6. Clean relations
 print("Cleaning relations...")
 activities_all_raw["new_relation"] = [convert_relation(i, RELATIONS) for i in tqdm(activities_all_raw["standard_relation"])]
 print(f"Old relations: {dict(Counter(activities_all_raw['standard_relation']))}")
 print(f"New relations: {dict(Counter(activities_all_raw['new_relation']))}")
 
 
-# 6. Calculating pChEMBL
+# 7. Calculating pChEMBL
 print("Calculating pChEMBL values...")
 calculated_pChEMBLs = []
 for unit, value, pch in tqdm(activities_all_raw[['converted_units', 'converted_values', 'pchembl_value']].values):
@@ -187,7 +186,7 @@ for unit, value, pch in tqdm(activities_all_raw[['converted_units', 'converted_v
         calculated_pChEMBLs.append(np.nan)
 activities_all_raw['calculated_pChEMBLs'] = calculated_pChEMBLs
 
-# 7. Converting doc_id to doc_chembl_id
+# 8. Converting doc_id to doc_chembl_id
 docs = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "docs.csv"), low_memory=False)
 doc_id_to_doc_chembl_id = {i: j for i, j in zip(docs['doc_id'], docs["chembl_id"])}
 print(f"Converting Doc IDs...")
@@ -195,6 +194,7 @@ print(f"Number of docs: {len(docs)}; Number of mappings: {len(doc_id_to_doc_chem
 activities_all_raw['doc_id'] = [doc_id_to_doc_chembl_id[i] for i in activities_all_raw['doc_id']]
 
 
+# 9. Column renaming and cleanup
 del activities_all_raw['standard_relation']
 del activities_all_raw['standard_value']
 del activities_all_raw['standard_units']
@@ -214,7 +214,24 @@ activities_all_raw = activities_all_raw.rename(columns={
         "doc_id": "doc_chembl_id"
         })
 
+# 10. Converting activity types to their corresponding synonyms
+synonyms = pd.read_csv(os.path.join(root, "..", "config", "manual_curation", "synonyms.csv"))
+for activity, syns in zip(synonyms['activity_type'], synonyms['synonyms']):
+    for syn in syns.split(";"):
+        activities_all_raw.loc[activities_all_raw['activity_type'] == syn, 'activity_type'] = activity
 
+
+# 11. Creating a curated activity type - standard units file for manual curation
+s = activities_all_raw[["activity_type", "unit"]].astype("string").fillna("")
+out = (
+s.value_counts(subset=["activity_type", "unit"], dropna=False)
+    .reset_index(name="count")
+    .sort_values("count", ascending=False, ignore_index=True)
+)
+total_count = out['count'].sum()
+out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
+out.to_csv(os.path.join(CONFIGPATH, "chembl_processed", "activity_std_units_curated.csv"), index=False)
+print(f"Total number of unique activity type - standard unit pairs: {len(out)}")
 
 print("Saving results...")
 activities_all_raw.to_csv(os.path.join(CONFIGPATH, 'chembl_processed', 'activities_preprocessed.csv'), index=False)

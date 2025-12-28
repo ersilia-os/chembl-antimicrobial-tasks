@@ -30,38 +30,35 @@ In addition to raw exports, the script produces four curated files derived from 
 4. `standard_text.csv`: Frequency table of the text stored in the `standard_text_value` column (e.g., 'Compound metabolized')
 5. `assay_descriptions.csv`: Table mapping assay IDs to their corresponding text descriptions and ChEMBL IDs.
 
-After generating the frequency tables, a **manual curation process** was performed to assign an activity label to the most frequent entries. Items were reviewed and flagged accordingly:
+After generating the frequency tables, a **manual curation process** was performed to assign an activity label to the most frequent entries. Items were reviewed and flagged accordingly in `activity_comments.csv` and `standard_text.csv` (labels refer to compound activity):
 
-- `activity_std_units.csv`.
+<!-- - `activity_std_units.csv`.
 
     Labels refer to the direction of biological activity:
   - **-1** → lower value = more active (e.g. IC50)
   - **1** → higher value = more active (e.g. %Inhibition)
-  - **0** → unclear
+  - **0** → unclear -->
 
-- `activity_comments.csv` and `standard_text.csv`. 
-
-    Labels refer to compound activity:
   - **1** → active
   - **-1** → inactive
   - **0** → inconclusive or unclear
 
-This manual curation allows downstream scripts to automatically use a standardized direction of biological effect for activity types, units and text, ensuring consistency across diverse assays and readouts. All three manually curated files are located in `config/manual_curated` (named `activity_std_units_manual_curation.csv`, `activity_comments_manual_curation.csv` and `standard_text_manual_curation.csv`). The user is encouraged to extend or complete these files as needed.
+This manual curation allows downstream scripts to automatically use a standardized direction of biological activity for text entries, ensuring consistency across diverse assays and readouts. Both manually curated files are located in `config/manual_curated` (named `activity_comments_manual_curation.csv` and `standard_text_manual_curation.csv`, new column name: `manual_curation`). The user is encouraged to extend or complete these files as needed.
 
-⏳ ETA: ~20 minutes.
+⏳ ETA: ~10 minutes.
 
 ## Step 01. Processing compounds
 
 This script calculates the molecular weight (MW) of each compound based on its SMILES (Simplified Molecular Input Line Entry System) representation using RDKit. Running `01_get_compound_info.py` creates the `config/chembl_processed` folder, containing a newly generated file named `compound_info.csv` (table with `molregno`, `chembl_id`, `molecule_type`, `canonical_smiles`, and `calculated MW`).
 
-⏳ ETA: ~90 minutes.
+⏳ ETA: ~10 minutes.
 
 
 ## Step 02. Merging activities, assays, compounds & targets
 
 Running `02_merge_all.py` to merge `config/chembl_activities/activities.csv`, `config/chembl_activities/assays.csv`, `config/chembl_activities/target_dictionary.csv`, and `config/chembl_processed/compound_info.csv` into a single table. This script will produce the file `activities_all_raw.csv` in `config/chembl_processed` with a predefined set of columns.
 
-⏳ ETA: ~20 minutes.
+⏳ ETA: ~10 minutes.
 
 
 ## Step 03. Unit harmonization and conversion
@@ -73,6 +70,9 @@ The script `03_prepare_conversions.py` generates `unit_conversion.csv` inside `c
 3. Defining a conversion formula (when necessary) to adjust numeric values accordingly (e.g., nmol.L-1 → value/1000 umol.L-1)
 
 Before running this script, make sure the file `UnitStringValidations.csv` mapping ChEMBL's original units to UCUM-compliant formats is available in `config/chembl_processed/`. This file was created externally using the [UCUM-LHC](https://ucum.org/) Online Validator and Converter under the _Validate all unit expressions in a CSV file_ section, uploading the file `standard_units.csv` (produced in Step 00 and found in `config/chembl_activities`) and indicating `standard_units` as the name of the column containing the expressions to be validated. These string validations are merged with a manual curation effort accounting for more than 290 units (found in `config/manual_curation/ucum_GT.csv`), not only mapping ChEMBL units to valid UCUM formats but also converting units from the same kind to a reference one. The file `unit_conversion.csv` is created in `config/chembl_processed` and includes all the information mentioned above. 
+
+
+⏳ ETA: ~0 minutes.
 
 ## Step 04. Cleaning activities table
 
@@ -96,7 +96,11 @@ The script `04_preprocess_activity_data.py` produces a curated and standardized 
 
 9. **Column renaming and cleanup**. Dropping original fields (e.g., `standard_value`, `standard_units`) and renaming columns for clarity (`value`, `unit`, `relation`, `activity_type`, `activity_comment`, `standard_text`, etc.)
 
-⏳ ETA: ~80 minutes.
+10. **Converting activity types to their corresponding synonyms**. Mapping activity types to their synonyms as defined in `config/manual_curation/synonyms.csv`. 
+
+11. **Creating and manually annotating curated [activity type - unit] pairs**: Creating a frequency table of the previously curated column pairs `activity_type` & `unit` (e.g., 'POTENCY & umol·L-1') named `activity_std_units_curated.csv` and located in `config/chembl_processed`. Whenever this last step is done, the user is expected to manually annotate the biological direction of multiple `activity_type` & `unit` pairs, and place the results in a file named `activity_std_units_curated_manual_curation.csv` under the `config/manual_curation` directory (column name: `manual_curation`). This annotation process is conceptually analogous to the ones performed in step 00 to create `activity_comments_manual_curation.csv` and `standard_text_manual_curation.csv`.
+
+⏳ ETA: ~15 minutes.
 
 ## Step 05. Splitting data by pathogen
 
@@ -126,7 +130,7 @@ Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
 
 The script `06_clean_pathogen_activities.py` cleans organism-specific activity records for the selected pathogens and summarizes their associated assays. The cleaning steps are enumerated below:
 
-1. **Converting activity types to their corresponding synonyms**. Mapping activity types to their synonyms as defined in `config/manual_curation/synonyms.csv`. 
+
 
 2. **Removing null activities**. Discarding activities with no numerical value nor active or inactive flag in the `activity_comment` nor `standard_text` fields. 
 
@@ -152,5 +156,8 @@ The script `07_get_assay_clusters.py` needs to be executed with a conda environm
 ## Step 10. Getting compound descriptors
 
 The script `10_get_compound_descriptors.py` needs to be executed with a conda environment having [lazyqsar](hhttps://github.com/ersilia-os/lazy-qsar) installed. 
+
+
+ETA values were dervied using an ASUS ... 16 CPUs and 32 GB RAM. 
 
 

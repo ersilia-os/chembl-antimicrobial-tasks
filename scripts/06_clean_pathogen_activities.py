@@ -42,11 +42,11 @@ for pathogen in pathogens:
     ASSAYS_RAW = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, 'assays_raw.csv'))
     print(f"Original number of assays: {len(ASSAYS_RAW)}")
 
-    # Converting activity types to their corresponding synonyms
-    synonyms = pd.read_csv(os.path.join(root, "..", "config", "manual_curation", "synonyms.csv"))
-    for activity, syns in zip(synonyms['activity'], synonyms['synonyms']):
-        for syn in syns.split(";"):
-            ChEMBL_pathogen.loc[ChEMBL_pathogen['activity_type'] == syn, 'activity_type'] = activity
+    # # Converting activity types to their corresponding synonyms
+    # synonyms = pd.read_csv(os.path.join(root, "..", "config", "manual_curation", "synonyms.csv"))
+    # for activity, syns in zip(synonyms['activity'], synonyms['synonyms']):
+    #     for syn in syns.split(";"):
+    #         ChEMBL_pathogen.loc[ChEMBL_pathogen['activity_type'] == syn, 'activity_type'] = activity
 
     # Discard activities with no value nor act/inact flag in activity_comment not standard_text
     ChEMBL_pathogen = ChEMBL_pathogen[(ChEMBL_pathogen['value'].isna() == False) | 

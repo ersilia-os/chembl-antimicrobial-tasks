@@ -15,7 +15,6 @@ del all_units['Notes']
 all_units = all_units[all_units['standard_units'].isna() == False].reset_index(drop=True)
 
 # Load curated data
-standard_units_conversions_MDF = pd.read_csv(os.path.join(CONFIGPATH, "manual_curation", "standard_units_conversions_MDF.csv"))
 ucum_GT = pd.read_csv(os.path.join(CONFIGPATH, "manual_curation", "ucum_GT.csv"))
 
 # Valid units
@@ -33,21 +32,6 @@ unit_to_conv_formula = {}
 for unit, conv_formula in ucum_GT[['units', "transformer"]].values:
     unit_to_conv_formula[unit] = conv_formula
 
-# # Conversion formula MDF
-# unit_to_conv_formula_MDF = {}
-# for unit, conv_formula in standard_units_conversions_MDF[['standard_units', "conversion_formula"]].values:
-#     if pd.isna(conv_formula) == False:
-#         unit_to_conv_formula_MDF[unit] = conv_formula
-#         if unit in unit_to_conv_formula:
-#             if not conv_formula.replace("x", "standard_value").replace("w", "molecular_weight") == unit_to_conv_formula[unit]:
-#                 print(unit, "\t", conv_formula, "\t", unit_to_conv_formula[unit])
-
-
-# ADD HERE MANUAL MAPPINGS
-
-#     unit_to_valid_unit
-#     unit_to_final_unit
-#     unit_to_conv_formula
 
 # mg/dl	
 unit_to_final_unit['mg/dl'] = "umol.L-1"

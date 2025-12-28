@@ -18,7 +18,7 @@ activities = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "activiti
 
 # Filter columns
 columns = ['activity_id', 'assay_id', 'molregno','standard_relation', 'standard_value', 'standard_units', 'standard_type', 'activity_comment',
-           'data_validity_comment', 'pchembl_value','standard_upper_value','standard_text_value', 'action_type']
+           'data_validity_comment', 'pchembl_value','standard_upper_value','standard_text_value', 'action_type', 'bao_endpoint']
 activities = activities[columns]
 
 # Load assays
@@ -66,7 +66,8 @@ FINAL_COLUMNS = [
     'standard_type', 
     'activity_comment',
     'pchembl_value', 
-    'standard_text_value'
+    'standard_text_value',
+    'bao_endpoint'
     ]
 
 # Select final columns

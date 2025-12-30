@@ -53,17 +53,27 @@ This script calculates the molecular weight (MW) of each compound based on its S
 
 ⏳ ETA: ~10 minutes.
 
+## Step 02. Saniziting and standardizing compounds
 
-## Step 02. Merging activities, assays, compounds & targets
+(...)
 
-Running `02_merge_all.py` to merge `config/chembl_activities/activities.csv`, `config/chembl_activities/assays.csv`, `config/chembl_activities/target_dictionary.csv`, and `config/chembl_processed/compound_info.csv` into a single table. This script will produce the file `activities_all_raw.csv` in `config/chembl_processed` with a predefined set of columns.
+
+### Step 03. Calculating compound descriptors
+
+The script `03_get_compound_descriptors.py` calculates ECFPs (radius 3, 2048 bits) for sanitized and standardized compounds (previous step) using RDKit, ommiting failed SMILES and storing results in H5 file format (`output/descriptors.h5`).
+
+⏳ ETA: ~10 minutes.
+
+## Step 04. Merging activities, assays, compounds & targets
+
+Running `04_merge_all.py` to merge `config/chembl_activities/activities.csv`, `config/chembl_activities/assays.csv`, `config/chembl_activities/target_dictionary.csv`, and `config/chembl_processed/compound_info.csv` into a single table. This script will produce the file `activities_all_raw.csv` in `config/chembl_processed` with a predefined set of columns.
 
 ⏳ ETA: ~10 minutes.
 
 
-## Step 03. Unit harmonization and conversion
+## Step 05. Unit harmonization and conversion
 
-The script `03_prepare_conversions.py` generates `unit_conversion.csv` inside `config/chembl_processed/`. This file standardizes measurement units found in ChEMBL activities by:
+The script `05_prepare_conversions.py` generates `unit_conversion.csv` inside `config/chembl_processed/`. This file standardizes measurement units found in ChEMBL activities by:
 
 1. Mapping original ChEMBL unit strings (standard_units) to validated UCUM units (e.g., uM to umol.L-1).
 2. Assigning a final standard unit per activity type used in downstream tasks (e.g., IC50 → umol.L-1)
@@ -74,9 +84,9 @@ Before running this script, make sure the file `UnitStringValidations.csv` mappi
 
 ⏳ ETA: ~0 minutes.
 
-## Step 04. Cleaning activities table
+## Step 06. Cleaning activities table
 
-The script `04_preprocess_activity_data.py` produces a curated and standardized version of the activity data, saved as `activities_preprocessed.csv` in `config/chembl_processed`. The file contains a final cleaned and normalized dataset with all compound-assay-target activity records. This step performs several cleaning and harmonization subtasks:
+The script `06_preprocess_activity_data.py` produces a curated and standardized version of the activity data, saved as `activities_preprocessed.csv` in `config/chembl_processed`. The file contains a final cleaned and normalized dataset with all compound-assay-target activity records. This step performs several cleaning and harmonization subtasks:
 
 1. **Filtering invalid entries**. Removing activities with missing canonical_smiles (226k). No other entries are removed during this cleaning process. 
 
@@ -84,7 +94,7 @@ The script `04_preprocess_activity_data.py` produces a curated and standardized 
 
 3. **Flagging standard text comments**. Loading manual annotations from `standard_text_manual_curation.csv` and flagging each standard text comment as active (1), inactive (-1) or unknown (0).
 
-4. **Harmonizing and converting units**. Using `unit_conversion.csv` (from Step 03) to normalize unit strings and convert raw values using predefined conversion formulas. It produces `converted_units.csv` (frequencies of new units) and `converted_units_map.csv` (mappings from original to final units), both located in `config/chembl_processed`.
+4. **Harmonizing and converting units**. Using `unit_conversion.csv` (from Step 05) to normalize unit strings and convert raw values using predefined conversion formulas. It produces `converted_units.csv` (frequencies of new units) and `converted_units_map.csv` (mappings from original to final units), both located in `config/chembl_processed`.
 
 5. **Normalizing activity types**. Normalizing variations in the `standard_type` column (e.g., 'A ctivity', 'Activ ity', 'Activit y', 'Activity', 'activity'). Outputs `harmonized_types_map.csv` for reference.
 

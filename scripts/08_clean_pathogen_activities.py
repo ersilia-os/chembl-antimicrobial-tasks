@@ -7,7 +7,8 @@ import sys
 import os
 
 # Define root directory
-root = os.path.dirname(os.path.abspath(__file__))
+# root = os.path.dirname(os.path.abspath(__file__))
+root = "."
 sys.path.append(os.path.join(root, "..", "src"))
 from default import CONFIGPATH, MIN_ASSAY_SIZE
 
@@ -15,6 +16,7 @@ from default import CONFIGPATH, MIN_ASSAY_SIZE
 pathogens = ["Acinetobacter baumannii", "Candida albicans", "Campylobacter", "Escherichia coli", "Enterococcus faecium", "Enterobacter",
              "Helicobacter pylori", "Klebsiella pneumoniae", "Mycobacterium tuberculosis", "Neisseria gonorrhoeae", "Pseudomonas aeruginosa",
              "Plasmodium falciparum", "Staphylococcus aureus", "Schistosoma mansoni", "Streptococcus pneumoniae"]
+pathogens = ["Acinetobacter baumannii", "Mycobacterium tuberculosis", "Klebsiella pneumoniae"]
 
 def get_pathogen_code(pathogen):
     return str(pathogen.split()[0][0] + pathogen.split()[1]).lower() if len(pathogen.split()) > 1 else pathogen.lower()
@@ -40,13 +42,7 @@ for pathogen in pathogens:
     print(f"Number of activities for {pathogen_code}: {len(ChEMBL_pathogen)}")
     print(f"Number of compounds for {pathogen_code}: {len(set(ChEMBL_pathogen['compound_chembl_id']))}")
     ASSAYS_RAW = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, 'assays_raw.csv'))
-    print(f"Original number of assays: {len(ASSAYS_RAW)}")
-
-    # # Converting activity types to their corresponding synonyms
-    # synonyms = pd.read_csv(os.path.join(root, "..", "config", "manual_curation", "synonyms.csv"))
-    # for activity, syns in zip(synonyms['activity'], synonyms['synonyms']):
-    #     for syn in syns.split(";"):
-    #         ChEMBL_pathogen.loc[ChEMBL_pathogen['activity_type'] == syn, 'activity_type'] = activity
+    print(f"Original number of assays-all: {len(ASSAYS_RAW)}")
 
     # Discard activities with no value nor act/inact flag in activity_comment not standard_text
     ChEMBL_pathogen = ChEMBL_pathogen[(ChEMBL_pathogen['value'].isna() == False) | 
@@ -57,6 +53,23 @@ for pathogen in pathogens:
     print(f"Number of activities for {pathogen_code}: {len(ChEMBL_pathogen)}")
     print(f"Number of compounds for {pathogen_code}: {len(set(ChEMBL_pathogen['compound_chembl_id']))}")
 
+    # Get directions
+    DIRECTIONS = pd.read_csv(os.path.join(root, "..", "config", 'manual_curation', 'activity_std_units_curated_manual_curation.csv'))
+    DIRECTIONS = {(i,j): k for i,j,k in zip(DIRECTIONS['activity_type'], DIRECTIONS['unit'], DIRECTIONS['manual_curation']) if np.isnan(k) == False}
+    ChEMBL_pathogen['direction'] = [DIRECTIONS[(i,j)] if (i,j) in DIRECTIONS else np.nan 
+                                    for i,j in zip(ChEMBL_pathogen['activity_type'], ChEMBL_pathogen['unit'])]
+    count_directions = Counter(ChEMBL_pathogen['direction'].fillna('NaN'))
+    print(f"Directions assigned. Summary: {count_directions}")
+    print(f"Assigned directions [-1, 0, +1]: {round((count_directions[1] + count_directions[-1] + count_directions[0]) / len(ChEMBL_pathogen) * 100, 1)}%")
+    print(f"Assigned directions [-1, +1]: {round((count_directions[1] + count_directions[-1]) / len(ChEMBL_pathogen) * 100, 1)}%")
+
+    print(f"Keeping only activities with a direction [-1,+1] OR active/inactive flag")
+    ChEMBL_pathogen = ChEMBL_pathogen[(ChEMBL_pathogen['direction'].isin([1, -1]) == True) | 
+                                      (ChEMBL_pathogen['activity_comment'].isin([1, -1])) | 
+                                      (ChEMBL_pathogen['standard_text'].isin([1, -1]))].reset_index(drop=True)
+    print(f"Number of activities for {pathogen_code}: {len(ChEMBL_pathogen)}")
+    print(f"Number of compounds for {pathogen_code}: {len(set(ChEMBL_pathogen['compound_chembl_id']))}")
+    
     # Identify canonical unit per activity type
     print("Identifying canonical unit per activity type...")
     # Get pair counts
@@ -74,20 +87,17 @@ for pathogen in pathogens:
 
     # Get canonical unit per activity type
     canonical = (
-        out[out["canonical_unit"] == 1]
+        out[out["canonical_unit"] == True]
         .set_index("activity_type")[["unit"]])
     canonical_map = canonical["unit"].to_dict()
     ChEMBL_pathogen["canonical_unit"] = ChEMBL_pathogen["activity_type"].map(canonical_map)
 
+    # Assign direction to activity_type_unit_pairs
+    out['direction'] = [DIRECTIONS[(i,j)] if (i,j) in DIRECTIONS else np.nan 
+                                    for i,j in zip(out['activity_type'], out['unit'])]
+
     # Save pair summary
     out.to_csv(os.path.join(root, "..", "output", pathogen_code, "activity_type_unit_pairs.csv"), index=False)
-
-    # Get directions
-    DIRECTIONS = pd.read_csv(os.path.join(root, "..", "config", 'manual_curation', 'activity_std_units_curated_manual_curation.csv'))
-    DIRECTIONS = {(i,j): k for i,j,k in zip(DIRECTIONS['activity_type'], DIRECTIONS['unit'], DIRECTIONS['manual_curation']) if np.isnan(k) == False}
-    ChEMBL_pathogen['direction'] = [DIRECTIONS[(i,j)] if (i,j) in DIRECTIONS else np.nan 
-                                    for i,j in zip(ChEMBL_pathogen['activity_type'], ChEMBL_pathogen['unit'])]
-    print(f"Directions assigned. Summary: {Counter(ChEMBL_pathogen['direction'].fillna('NaN'))}")
 
     # Save cleaned data
     ChEMBL_pathogen.to_csv(os.path.join(root, "..", "output", pathogen_code, f"{pathogen_code}_ChEMBL_cleaned_data.csv.gz"), index=False)
@@ -153,4 +163,4 @@ for pathogen in pathogens:
     ASSAYS_INFO = ASSAYS_INFO[ASSAYS_INFO['cpds'] > MIN_ASSAY_SIZE].reset_index(drop=True)
 
     # Save assays info
-    # ASSAYS_INFO.to_csv(os.path.join(root, "..", "output", pathogen_code, 'assays_cleaned.csv'), index=False)
+    ASSAYS_INFO.to_csv(os.path.join(root, "..", "output", pathogen_code, 'assays_cleaned.csv'), index=False)

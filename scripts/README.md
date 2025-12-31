@@ -112,9 +112,9 @@ The script `06_preprocess_activity_data.py` produces a curated and standardized 
 
 ⏳ ETA: ~15 minutes.
 
-## Step 05. Splitting data by pathogen
+## Step 07. Splitting data by pathogen
 
-The script `05_get_pathogen_assays.py` filters the full preprocessed ChEMBL dataset (`activities_preprocessed.csv`) to extract organism-specific subsets and summarizes their associated assays.
+The script `07_get_pathogen_assays.py` filters the full preprocessed ChEMBL dataset (`activities_preprocessed.csv`) to extract organism-specific subsets and summarizes their associated assays.
 
 Currently, the following **list of pathogens** is processed:
 
@@ -136,7 +136,7 @@ Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
 
 ⏳ ETA: ~4 hours.
 
-## Step 06. Cleaning individual pathogen data
+## Step 08. Cleaning individual pathogen data
 
 The script `06_clean_pathogen_activities.py` cleans organism-specific activity records for the selected pathogens and summarizes their associated assays. The cleaning steps are enumerated below:
 

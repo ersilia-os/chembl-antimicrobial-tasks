@@ -66,7 +66,8 @@ activities_all_raw = activities_all_raw[activities_all_raw['canonical_smiles'].i
 print("Cleaning activity comments...")
 NEW_ACTIVITY_COMMENT = []
 for act_comment in tqdm(activities_all_raw['activity_comment']):
-    if str(act_comment) == 'nan':
+    act_comment = str(act_comment).strip().lower()
+    if act_comment == 'nan':
         NEW_ACTIVITY_COMMENT.append(0)
     elif act_comment in activity_comments_act:
         NEW_ACTIVITY_COMMENT.append(1)
@@ -83,7 +84,8 @@ print(f"New activity comments: {dict(Counter(activities_all_raw['new_activity_co
 print("Cleaning standard text...")
 NEW_STANDARD_TEXT = []
 for std_text_value in tqdm(activities_all_raw['standard_text_value']):
-    if str(std_text_value) == 'nan':
+    std_text_value = str(std_text_value)
+    if std_text_value == 'nan':
         NEW_STANDARD_TEXT.append(0)
     elif std_text_value in standard_text_act:
         NEW_STANDARD_TEXT.append(1)

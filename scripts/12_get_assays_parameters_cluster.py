@@ -56,6 +56,7 @@ for pathogen in pathogens:
 
         Return ONLY a JSON object with these keys:
         - organism (string)
+        - target_type (string)
         - strain (string)
         - mutations (array of strings)
         - known_drug_resistances (array of strings)

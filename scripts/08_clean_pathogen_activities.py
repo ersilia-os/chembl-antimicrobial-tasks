@@ -152,11 +152,16 @@ for pathogen in pathogens:
                 nan_values = len(df___[df___['value'].isna()])
                 direction = DIRECTIONS[(act_type, unit)] if (act_type, unit) in DIRECTIONS else np.nan
                 canonical_unit = canonical_map[act_type]
-                ASSAYS_INFO.append([assay, assay_type, assay_organism, doc_chembl_id, target_type, target_chembl_id, 
-                                    target_organism, activity_type, unit, canonical_unit, activities, nan_values, cpds, direction])
+                activity_comment = Counter(df___['activity_comment'].tolist())
+                standard_text = Counter(df___['standard_text'].tolist())
+                activity_comment = activity_comment[-1] + activity_comment[1]
+                standard_text = standard_text[-1] + standard_text[1]
+                ASSAYS_INFO.append([assay, assay_type, assay_organism, doc_chembl_id, target_type, target_chembl_id, target_organism, activity_type, 
+                                    unit, canonical_unit, activities, nan_values, cpds, direction, activity_comment, standard_text])
+                
 
-    ASSAYS_INFO = pd.DataFrame(ASSAYS_INFO, columns=["assay_id", "assay_type", "assay_organism", "doc_chembl_id", "target_type", "target_chembl_id", "target_organism", 
-                                                        "activity_type", "unit", "canonical_unit", "activities", 'nan_values', "cpds", "direction"])
+    ASSAYS_INFO = pd.DataFrame(ASSAYS_INFO, columns=["assay_id", "assay_type", "assay_organism", "doc_chembl_id", "target_type", "target_chembl_id", "target_organism", "activity_type", 
+                                                     "unit", "canonical_unit", "activities", 'nan_values', "cpds", "direction", "activity_comment_counts", 'standard_text_count'])
     ASSAYS_INFO = ASSAYS_INFO.sort_values('cpds', ascending=False).reset_index(drop=True)
 
     # Filter assays with too few compounds

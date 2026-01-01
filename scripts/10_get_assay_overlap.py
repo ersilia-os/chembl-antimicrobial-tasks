@@ -12,7 +12,8 @@ root = os.path.dirname(os.path.abspath(__file__))
 # List of pathogens to process
 pathogens = ["Acinetobacter baumannii", "Candida albicans", "Campylobacter", "Escherichia coli", "Enterococcus faecium", "Enterobacter",
              "Helicobacter pylori", "Klebsiella pneumoniae", "Mycobacterium tuberculosis", "Neisseria gonorrhoeae", "Pseudomonas aeruginosa",
-             "Plasmodium falciparum", "Staphylococcus aureus", "Schistosoma mansoni", "Streptococcus pneumoniae"][8:9]
+             "Plasmodium falciparum", "Staphylococcus aureus", "Schistosoma mansoni", "Streptococcus pneumoniae"]
+pathogens = ["Acinetobacter baumannii", "Mycobacterium tuberculosis", "Klebsiella pneumoniae"]
 
 def get_pathogen_code(pathogen):
     return str(pathogen.split()[0][0] + pathogen.split()[1]).lower() if len(pathogen.split()) > 1 else pathogen.lower()
@@ -41,7 +42,8 @@ for pathogen in pathogens:
         ASSAY_TO_COMPOUNDS[(assay_id, activity_type, unit)].add(compound_chembl_id)
 
     OVERLAP = []
-    items = [i for i in sorted(ASSAY_TO_COMPOUNDS) if len(ASSAY_TO_COMPOUNDS[i]) >= 50]
+    N = 50
+    items = [i for i in ASSAY_TO_COMPOUNDS if len(ASSAY_TO_COMPOUNDS[i]) >= 50]
     print(f"Number of assays with 50 or more compounds: {len(items)}")
 
     # Restrict to assays with more than 10? compounds. 

@@ -104,7 +104,8 @@ root = "."
 # List of pathogens to process
 pathogens = ["Acinetobacter baumannii", "Candida albicans", "Campylobacter", "Escherichia coli", "Enterococcus faecium", "Enterobacter",
              "Helicobacter pylori", "Klebsiella pneumoniae", "Mycobacterium tuberculosis", "Neisseria gonorrhoeae", "Pseudomonas aeruginosa",
-             "Plasmodium falciparum", "Staphylococcus aureus", "Schistosoma mansoni", "Streptococcus pneumoniae"][8:9]
+             "Plasmodium falciparum", "Staphylococcus aureus", "Schistosoma mansoni", "Streptococcus pneumoniae"]
+pathogens = ["Acinetobacter baumannii", "Mycobacterium tuberculosis", "Klebsiella pneumoniae"]
 
 def get_pathogen_code(pathogen):
     return str(pathogen.split()[0][0] + pathogen.split()[1]).lower() if len(pathogen.split()) > 1 else pathogen.lower()
@@ -230,7 +231,8 @@ for pathogen in pathogens:
                             lower, min_, p1, p25, p50, p75, p99, max_, expert_cutoff, positives, ratio])
 
         # Save data
-        ASSAY_DATA.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{assay_chembl_id}_{activity_type}_{str(unit).replace('/', 'FwdS')}.csv.gz"), index=False)
+        if cpds > 100:
+            ASSAY_DATA.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{assay_chembl_id}_{activity_type}_{str(unit).replace('/', 'FwdS')}.csv.gz"), index=False)
 
 DATA_RANGES = pd.DataFrame(DATA_RANGES, columns=["assay_chembl_id", "activity_type", "unit", "target_type", "activities", "cpds", "direction", "equal", "higher", 
                                             "lower", "min_", "p1", "p25", "p50", "p75", "p99", "max_", 'expert_cutoff', 'positives', 'ratio'])

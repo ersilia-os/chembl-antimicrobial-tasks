@@ -32,13 +32,6 @@ In addition to raw exports, the script produces four curated files derived from 
 
 After generating the frequency tables, a **manual curation process** was performed to assign an activity label to the most frequent entries. Items were reviewed and flagged accordingly in `activity_comments.csv` and `standard_text.csv` (labels refer to compound activity):
 
-<!-- - `activity_std_units.csv`.
-
-    Labels refer to the direction of biological activity:
-  - **-1** → lower value = more active (e.g. IC50)
-  - **1** → higher value = more active (e.g. %Inhibition)
-  - **0** → unclear -->
-
   - **1** → active
   - **-1** → inactive
   - **0** → inconclusive or unclear
@@ -81,7 +74,6 @@ The script `05_prepare_conversions.py` generates `unit_conversion.csv` inside `c
 
 Before running this script, make sure the file `UnitStringValidations.csv` mapping ChEMBL's original units to UCUM-compliant formats is available in `config/chembl_processed/`. This file was created externally using the [UCUM-LHC](https://ucum.org/) Online Validator and Converter under the _Validate all unit expressions in a CSV file_ section, uploading the file `standard_units.csv` (produced in Step 00 and found in `config/chembl_activities`) and indicating `standard_units` as the name of the column containing the expressions to be validated. These string validations are merged with a manual curation effort accounting for more than 290 units (found in `config/manual_curation/ucum_GT.csv`), not only mapping ChEMBL units to valid UCUM formats but also converting units from the same kind to a reference one. The file `unit_conversion.csv` is created in `config/chembl_processed` and includes all the information mentioned above. 
 
-
 ⏳ ETA: ~0 minutes.
 
 ## Step 06. Cleaning activities table
@@ -108,7 +100,11 @@ The script `06_preprocess_activity_data.py` produces a curated and standardized 
 
 10. **Converting activity types to their corresponding synonyms**. Mapping activity types to their synonyms as defined in `config/manual_curation/synonyms.csv`. 
 
-11. **Creating and manually annotating curated [activity type - unit] pairs**: Creating a frequency table of the previously curated column pairs `activity_type` & `unit` (e.g., 'POTENCY & umol·L-1') named `activity_std_units_curated.csv` and located in `config/chembl_processed`. Whenever this last step is done, the user is expected to manually annotate the biological direction of multiple `activity_type` & `unit` pairs, and place the results in a file named `activity_std_units_curated_manual_curation.csv` under the `config/manual_curation` directory (column name: `manual_curation`). This annotation process is conceptually analogous to the ones performed in step 00 to create `activity_comments_manual_curation.csv` and `standard_text_manual_curation.csv`.
+11. **Creating and manually annotating curated [activity type - unit] pairs**: Creating a frequency table of the previously curated column pairs `activity_type` & `unit` (e.g., 'POTENCY & umol·L-1') named `activity_std_units_curated.csv` and located in `config/chembl_processed`. Whenever this last step is done, the user is expected to manually annotate the biological direction of multiple `activity_type` & `unit` pairs (see examples below), and place the results in a file named `activity_std_units_curated_manual_curation.csv` under the `config/manual_curation` directory (column name: `manual_curation`). In brief, the curated label refers to the direction in which biological activity increases:
+
+  - **-1** → lower value = more active (e.g. IC50)
+  - **1** → higher value = more active (e.g. %INHIBITION)
+  - **0** → unclear or inconclusive
 
 ⏳ ETA: ~15 minutes.
 
@@ -132,30 +128,34 @@ For example:
 Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
 - `<pathogen_code>_ChEMBL_raw_data.csv`: All ChEMBL activity records for the selected pathogen (based on fields `target_organism` and `assay_organism`).
 - `target_organism_counts.csv`: Frequency of target organisms found in the data.
-- `assays_raw.csv`: List of raw assays with metadata (e.g., unit, activity type, compound count).
+- `assays_raw.csv`: List of raw assays with metadata (e.g., unit, activity type, compound count). Each [`assay_id`, `activity_type`, `unit`] item is treated independently. 
 
-⏳ ETA: ~4 hours.
+⏳ ETA: ~4 hours. [REVISE]
 
 ## Step 08. Cleaning individual pathogen data
 
-The script `06_clean_pathogen_activities.py` cleans organism-specific activity records for the selected pathogens and summarizes their associated assays. The cleaning steps are enumerated below:
+The script `08_clean_pathogen_activities.py` cleans organism-specific activity records for the selected pathogens and summarizes their associated assays. The cleaning steps are enumerated below:
 
+1. **Removing null activities**. Discarding activities with no numerical value nor active or inactive flag in the `activity_comment` nor `standard_text` fields. 
 
+2. **Identifying activity directions**. For each activity type and unit pair, identifying the direction of the biological activity. 
 
-2. **Removing null activities**. Discarding activities with no numerical value nor active or inactive flag in the `activity_comment` nor `standard_text` fields. 
+3. **Removing unmodelable activities**. Keeping only those activities with [-1, +1] direction or active or inactive flag in the `activity_comment` nor `standard_text` fields.
 
-3. **Identifying canonical units**. For each activity type, identifying canonical units i.e. the most occurrying unit. 
+4. **Identifying canonical units**. For each activity type, identifying canonical units i.e. the most occurrying unit for that specific pathogen. 
 
 Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
 - `<pathogen_code>_ChEMBL_cleaned_data.csv`: Cleaned ChEMBL activity records for the selected pathogen (based on fields `target_organism` and `assay_organism`).
 - `activity_type_unit_pairs.csv`: List of unique activity type - unit pairs per pathogen, including counts and a canonical unit flag. 
 - `assays_cleaned.csv`: List of cleaned assays with metadata (e.g., unit, activity type, compound count).
 
-## Step 07. Clustering assay compounds
+## Step 09. Calculating assay clusters
 
-The script `07_get_assay_clusters.py` needs to be executed with a conda environment having [bblean](https://github.com/mqcomplab/bblean) installed. 
+The script `09_calculate_assay_clusters.py` needs to be executed with a conda environment having [bblean](https://github.com/mqcomplab/bblean) installed. For each individual assay ([`assay_id`, `activity_type`, `unit`] item), the number of clusters is calculated at three distinct Tanimoto Coefficient cut-offs: 0.3, 0.6, 0.85.
 
-## Step 08. Assessing compound overlap among assays
+## Step 10. Assessing compound overlap among assays
+
+The script ..
 
 ## Step 09. Preparing assay data
 
@@ -165,7 +165,9 @@ The script `07_get_assay_clusters.py` needs to be executed with a conda environm
 
 ## Step 10. Getting compound descriptors
 
-The script `10_get_compound_descriptors.py` needs to be executed with a conda environment having [lazyqsar](hhttps://github.com/ersilia-os/lazy-qsar) installed. 
+
+
+
 
 
 ETA values were dervied using an ASUS ... 16 CPUs and 32 GB RAM. 

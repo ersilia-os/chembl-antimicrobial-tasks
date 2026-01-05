@@ -119,7 +119,7 @@ for pathogen in pathogens:
 
         - "organism" refers to the particular organism under study in the assay. If already specified and coherent with the rest of the data, leave it as is.
         - “organism” should be the species/cell line name (e.g., Mycobacterium tuberculosis, Homo sapiens), NOT the strain identifier.
-        - "target_type" should only be modified if its current value is UNCHECKED and the assay annotations clearly indicate that it should be one of: SINGLE PROTEIN, CELL-LINE, or ORGANISM.
+        - "target_type" should only be modified if its current value is UNCHECKED and the assay annotations clearly indicate that it should be one of: SINGLE PROTEIN, CELL-LINE, or ORGANISM. If there is not enough information to indicate SINGLE PROTEIN, CELL-LINE or ORGANISM, leave it UNCHECKED.
         - "strain" refers to the particular strain under study in the assay.
         - "strain" refers only to biological strain names (e.g., H37Rv, K12, PAO1). Do NOT include culture collection/catalog identifiers (e.g, ATCC, DSM or NCTC related identifiers or catalog numbers).
         - "atcc_id" refers to the specific ATCC (American Type Culture Collection) identifier, if provided. Otherwise, leave it empty. 

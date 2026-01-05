@@ -103,17 +103,29 @@ for pathogen in pathogens:
         - known_drug_resistances (array of strings)
         - media (string)
 
+        Return EXACTLY this JSON structure (fill values, keep keys unchanged):
+
+        {{
+        "organism": "",
+        "target_type": "",
+        "strain": "",
+        "atcc_id": "",
+        "mutations": [],
+        "known_drug_resistances": [],
+        "media": ""
+        }}
+
             Rules:
 
         - "organism" refers to the particular organism under study in the assay. If already specified and coherent with the rest of the data, leave it as is.
+        - “organism” should be the species/cell line name (e.g., Mycobacterium tuberculosis, Homo sapiens), NOT the strain identifier.
         - "target_type" should only be modified if its current value is UNCHECKED and the assay annotations clearly indicate that it should be one of: SINGLE PROTEIN, CELL-LINE, or ORGANISM.
         - "strain" refers to the particular strain under study in the assay.
-        - "atcc_id" refers to the specifit ATCC (American Type Culture Collection) identifier, if provided. Otherwise, leave it empty. 
+        - "strain" refers only to biological strain names (e.g., H37Rv, K12, PAO1). Do NOT include culture collection/catalog identifiers (e.g, ATCC, DSM or NCTC related identifiers or catalog numbers).
+        - "atcc_id" refers to the specific ATCC (American Type Culture Collection) identifier, if provided. Otherwise, leave it empty. 
         - "mutations" should include specific genetic variants or engineered changes if mentioned; otherwise [].
         - "known_drug_resistances" should list drug resistances of the strain used in the assay; if only general mentions exist, use [].
         - "media" refers to the growth or culture medium (e.g., Middlebrook 7H9 broth, Lowenstein–Jensen, etc.).
-        - “organism” should be the species/cell line name (e.g., Mycobacterium tuberculosis, Homo sapiens), NOT the strain identifier.
-        - "strain" refers only to biological strain names (e.g., H37Rv, K12, PAO1). Do NOT include culture collection/catalog identifiers (e.g., ATCC 25922, DSM 1103, NCTC 8325).
         - If a field is missing or not stated: use "" for strings and [] for arrays.
         - Do not include any other keys or any extra text before or after the JSON.
         - Do not use markdown fences.
@@ -137,7 +149,7 @@ for pathogen in pathogens:
         js = json.loads(response.message['content'])
 
         # Some validation
-        expected = {"organism", "target_type", "strain", "mutations", "known_drug_resistances", "media"}
+        expected = {"organism", "target_type", "strain", "atcc_id", "mutations", "known_drug_resistances", "media"}
         assert set(js.keys()) == expected, f"Unexpected keys: {set(js.keys())}"
 
         # Add metadata

@@ -38,6 +38,7 @@ class Parameters(BaseModel):
     organism: str
     target_type: str
     strain: str
+    atcc_id: str
     mutations: list[str]
     known_drug_resistances: list[str]
     media: str
@@ -97,6 +98,7 @@ for pathogen in pathogens:
         - organism (string)
         - target_type (string)
         - strain (string)
+        - atcc_id (string)
         - mutations (array of strings)
         - known_drug_resistances (array of strings)
         - media (string)
@@ -105,7 +107,8 @@ for pathogen in pathogens:
 
         - "organism" refers to the particular organism under study in the assay. If already specified and coherent with the rest of the data, leave it as is.
         - "target_type" should only be modified if its current value is UNCHECKED and the assay annotations clearly indicate that it should be one of: SINGLE PROTEIN, CELL-LINE, or ORGANISM.
-        - "strain" refers to the particular strain under study in the assay. 
+        - "strain" refers to the particular strain under study in the assay.
+        - "atcc_id" refers to the specifit ATCC (American Type Culture Collection) identifier, if provided. Otherwise, leave it empty. 
         - "mutations" should include specific genetic variants or engineered changes if mentioned; otherwise [].
         - "known_drug_resistances" should list drug resistances of the strain used in the assay; if only general mentions exist, use [].
         - "media" refers to the growth or culture medium (e.g., Middlebrook 7H9 broth, Lowenstein–Jensen, etc.).

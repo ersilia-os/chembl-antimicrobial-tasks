@@ -46,7 +46,7 @@ for pathogen in pathogens:
     items = [i for i in ASSAY_TO_COMPOUNDS if len(ASSAY_TO_COMPOUNDS[i]) >= 50]
     print(f"Number of assays with 50 or more compounds: {len(items)}")
 
-    # Restrict to assays with more than 10? compounds. 
+    # Restrict to assays with more than N compounds. 
     for c, (assay_id_1, activity_type_1, unit_1) in tqdm(enumerate(items)):
         cpds_1 = ASSAY_TO_COMPOUNDS[(assay_id_1, activity_type_1, unit_1)]
         for assay_id_2, activity_type_2, unit_2 in items[c:]:

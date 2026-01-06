@@ -37,7 +37,7 @@ pathogens = ["Acinetobacter baumannii", "Mycobacterium tuberculosis", "Klebsiell
 
 class Parameters(BaseModel):
     organism: str
-    target_type: str
+    target_type_curated: str
     strain: str
     atcc_id: str
     mutations: list[str]
@@ -147,7 +147,7 @@ for pathogen in pathogens:
         js = json.loads(response.message['content'])
 
         # Some validation
-        expected = {"organism", "target_type", "strain", "atcc_id", "mutations", "known_drug_resistances", "media"}
+        expected = {"organism", "target_type_curated", "strain", "atcc_id", "mutations", "known_drug_resistances", "media"}
         assert set(js.keys()) == expected, f"Unexpected keys: {set(js.keys())}"
 
         # # Add metadata

@@ -1,3 +1,4 @@
+# This script needs to be run with a GPU machine available
 from collections import Counter
 from pydantic import BaseModel
 from zipfile import ZipFile, ZIP_DEFLATED
@@ -96,7 +97,7 @@ for pathogen in pathogens:
 
         Your job is to return ONLY a JSON object with these keys:
         - organism (string)
-        - target_type (string)
+        - target_type_curated (string)
         - strain (string)
         - atcc_id (string)
         - mutations (array of strings)
@@ -107,7 +108,7 @@ for pathogen in pathogens:
 
         {{
         "organism": "",
-        "target_type": "",
+        "target_type_curated": "",
         "strain": "",
         "atcc_id": "",
         "mutations": [],
@@ -115,24 +116,21 @@ for pathogen in pathogens:
         "media": ""
         }}
 
-            Rules:
+        Rules:
 
-        - "organism" refers to the particular organism under study in the assay. If already specified and coherent with the rest of the data, leave it as is.
-        - “organism” should be the species/cell line name (e.g., Mycobacterium tuberculosis, Homo sapiens), NOT the strain identifier.
-        - "target_type" should only be modified if its current value is UNCHECKED and the assay annotations clearly indicate that it should be one of: SINGLE PROTEIN, CELL-LINE, or ORGANISM. If there is not enough information to indicate SINGLE PROTEIN, CELL-LINE or ORGANISM, leave it UNCHECKED.
-        - "strain" refers to the particular strain under study in the assay.
-        - "strain" refers only to biological strain names (e.g., H37Rv, K12, PAO1). Do NOT include culture collection/catalog identifiers (e.g, ATCC, DSM or NCTC related identifiers or catalog numbers).
-        - "atcc_id" refers to the specific ATCC (American Type Culture Collection) identifier, if provided. Otherwise, leave it empty. 
-        - "mutations" should include specific genetic variants or engineered changes if mentioned; otherwise [].
-        - "known_drug_resistances" should list drug resistances of the strain used in the assay; if only general mentions exist, use [].
-        - "media" refers to the growth or culture medium (e.g., Middlebrook 7H9 broth, Lowenstein–Jensen, etc.).
-        - If a field is missing or not stated: use "" for strings and [] for arrays.
-        - Do not include any other keys or any extra text before or after the JSON.
-        - Do not use markdown fences.
-        - Must be valid JSON
-        - Use double quotes
-        - Always include all keys
-        - Only extract information explicitly stated in the provided assay annotations. Do not infer or use external background knowledge.
+        1. Only extract information explicitly stated in the provided assay annotations. Do NOT infer or use external background knowledge.
+        2. If a field is missing or not stated, use "" for strings and [] for arrays. Do not use null.
+        3. Use double quotes. Output must be valid JSON. Do not include any other keys or any extra text before or after the JSON. Do not use markdown fences.
+
+        Field definitions:
+
+        - "organism": refers to the species/cell line name (e.g., "Mycobacterium tuberculosis", "Homo sapiens"). Do NOT use strain identifiers here.
+        - "target_type_curated": refers to target type and should only be modified if its current value is UNCHECKED and the assay annotations clearly indicate that it should be one of: SINGLE PROTEIN, CELL-LINE, or ORGANISM. If there is not enough information/evidence to set it to SINGLE PROTEIN, CELL-LINE or ORGANISM, leave it UNCHECKED.
+        - "strain": refers only to biological strain names (e.g., H37Rv, K12, PAO1). Do NOT include culture collection/catalog identifiers (e.g, ATCC, DSM or NCTC related identifiers or catalog numbers).
+        - "atcc_id": refers to the specific ATCC (American Type Culture Collection) identifier, if explicitly stated. Otherwise, leave it empty. 
+        - "mutations": include ONLY explicit mutations or variants stated in the text. Mutation format MUST be: one-letter amino acid + position (integer) + one-letter amino acid (e.g., "S450L"). If the text uses a longer form (e.g., Ser450Leu) and the conversion is explicit/unambiguous, convert it to the one-letter format.
+        - "known_drug_resistances": list drugs for which resistance is explicitly stated (e.g., ["rifampicin", "isoniazid"]). Do NOT infer resistance from mutations. Only include resistances explicitly stated.
+        - "media": refers to the growth or culture medium explicitly stated (e.g., Middlebrook 7H9 broth, Lowenstein–Jensen, etc.).
 
             Assay annotations:
 
@@ -152,11 +150,11 @@ for pathogen in pathogens:
         expected = {"organism", "target_type", "strain", "atcc_id", "mutations", "known_drug_resistances", "media"}
         assert set(js.keys()) == expected, f"Unexpected keys: {set(js.keys())}"
 
-        # Add metadata
-        js["assay_id"] = ASSAY.assay_id
-        js["assay_type"] = ASSAY.assay_type
-        js["activity_type"] = ASSAY.activity_type
-        js["unit"] = ASSAY.unit
+        # # Add metadata
+        # js["assay_id"] = ASSAY.assay_id
+        # js["assay_type"] = ASSAY.assay_type
+        # js["activity_type"] = ASSAY.activity_type
+        # js["unit"] = ASSAY.unit
 
         # Write to a JSON file
         out_path = os.path.join(PATH_TO_OUTPUT, "_".join([ASSAY.assay_id, str(ASSAY.activity_type), str(ASSAY.unit)]) + "_parameters.json")

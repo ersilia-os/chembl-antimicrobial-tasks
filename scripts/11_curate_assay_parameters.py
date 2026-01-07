@@ -126,9 +126,9 @@ for pathogen in pathogens:
         Field definitions:
 
         - "organism": refers to the species/cell line name (e.g., "Mycobacterium tuberculosis", "Homo sapiens"). Do NOT use strain identifiers here.
-        - "target_type_curated": refers to target type and should only be modified if its current value is UNCHECKED and the assay annotations clearly indicate that it should be one of: SINGLE PROTEIN or ORGANISM. If there is not enough information/evidence to set it to SINGLE PROTEIN or ORGANISM, leave it UNCHECKED.
+        - "target_type_curated": refers to target type and should only be modified if target_type is UNCHECKED and the assay annotations clearly indicate that it should be one of: SINGLE PROTEIN or ORGANISM. If there is not enough information/evidence to set it to SINGLE PROTEIN or ORGANISM, leave it UNCHECKED. If the original target_type IS NOT UNCHECKED, target_type_curated should equate to target_type.
         - "strain": refers only to biological strain names (e.g., H37Rv, K12, PAO1). Do NOT include culture collection/catalog identifiers (e.g, ATCC, DSM or NCTC related identifiers or catalog numbers).
-        - "atcc_id": refers to the specific ATCC (American Type Culture Collection) identifier, if explicitly stated. Otherwise, leave it empty. 
+        - "atcc_id": refers to the specific ATCC (American Type Culture Collection) identifier, if explicitly stated. Otherwise, leave it empty. Explicitly include "ATCC " before the numerical ID. 
         - "mutations": include ONLY explicit mutations or variants stated in the text. Mutation format MUST be: one-letter amino acid + position (integer) + one-letter amino acid (e.g., "S450L"). If the text uses a longer form (e.g., Ser450Leu) and the conversion is explicit/unambiguous, convert it to the one-letter format.
         - "known_drug_resistances": list drugs for which resistance is explicitly stated (e.g., ["rifampicin", "isoniazid"]). Do NOT infer resistance from mutations. Only include resistances explicitly stated.
         - "media": refers to the growth or culture medium explicitly stated (e.g., Middlebrook 7H9 broth, Lowenstein–Jensen, etc.).

@@ -320,26 +320,26 @@ def get_assay_data_qualitative(ASSAY_DATA):
         Filtered dataframe with one row per compound and `qualitative_label` in {1, -1}.
     """
     # Qualitative view
-    ASSAY_DATA = ASSAY_DATA.copy()
-    cond_nan = (ASSAY_DATA['activity_comment'] == 0) & (ASSAY_DATA['standard_text'] == 0)
-    cond_pos = (ASSAY_DATA['activity_comment'] == 1) | (ASSAY_DATA['standard_text'] == 1)
-    cond_neg = (ASSAY_DATA['activity_comment'] == -1) | (ASSAY_DATA['standard_text'] == -1)
+    ASSAY_DATA_QUALITATIVE = ASSAY_DATA.copy()
+    cond_nan = (ASSAY_DATA_QUALITATIVE['activity_comment'] == 0) & (ASSAY_DATA_QUALITATIVE['standard_text'] == 0)
+    cond_pos = (ASSAY_DATA_QUALITATIVE['activity_comment'] == 1) | (ASSAY_DATA_QUALITATIVE['standard_text'] == 1)
+    cond_neg = (ASSAY_DATA_QUALITATIVE['activity_comment'] == -1) | (ASSAY_DATA_QUALITATIVE['standard_text'] == -1)
 
     # Detect row-level conflicts
     conflict = cond_pos & cond_neg
     if conflict.any():
         raise ValueError(
             "Conflicting labels (contains both 1 and -1):\n"
-            + ASSAY_DATA.loc[conflict, ["compound_chembl_id", "activity_comment", "standard_text"]].head(20).to_string())
+            + ASSAY_DATA_QUALITATIVE.loc[conflict, ["compound_chembl_id", "activity_comment", "standard_text"]].head(20).to_string())
 
     # Assign row-level label
-    ASSAY_DATA["qualitative_label_row"] = np.nan
-    ASSAY_DATA.loc[cond_pos, "qualitative_label_row"] = 1
-    ASSAY_DATA.loc[cond_neg, "qualitative_label_row"] = -1
-    ASSAY_DATA.loc[cond_nan, "qualitative_label_row"] = 0
+    ASSAY_DATA_QUALITATIVE["qualitative_label_row"] = np.nan
+    ASSAY_DATA_QUALITATIVE.loc[cond_pos, "qualitative_label_row"] = 1
+    ASSAY_DATA_QUALITATIVE.loc[cond_neg, "qualitative_label_row"] = -1
+    ASSAY_DATA_QUALITATIVE.loc[cond_nan, "qualitative_label_row"] = 0
 
     # Aggregate to compound-level label
-    compound_labels = ASSAY_DATA.groupby("compound_chembl_id")["qualitative_label_row"].apply(set)
+    compound_labels = ASSAY_DATA_QUALITATIVE.groupby("compound_chembl_id")["qualitative_label_row"].apply(set)
 
     # Detect compound-level conflicts (same compound has 1 and -1)
     compound_ids = compound_labels.index.tolist()
@@ -356,22 +356,22 @@ def get_assay_data_qualitative(ASSAY_DATA):
     compound_final = dict(zip(compound_ids, compound_final))
 
     # Assign back to all rows
-    ASSAY_DATA["qualitative_label"] = ASSAY_DATA["compound_chembl_id"].map(compound_final)
+    ASSAY_DATA_QUALITATIVE["qualitative_label"] = ASSAY_DATA_QUALITATIVE["compound_chembl_id"].map(compound_final)
 
     # Keep only one row per compound
-    ASSAY_DATA = ASSAY_DATA.drop_duplicates(subset=["compound_chembl_id"]).reset_index(drop=True)
+    ASSAY_DATA_QUALITATIVE = ASSAY_DATA_QUALITATIVE.drop_duplicates(subset=["compound_chembl_id"]).reset_index(drop=True)
 
     # Remove compounds labeled as 0
-    ASSAY_DATA = ASSAY_DATA[ASSAY_DATA["qualitative_label"] != 0].reset_index(drop=True)
+    ASSAY_DATA_QUALITATIVE = ASSAY_DATA_QUALITATIVE[ASSAY_DATA_QUALITATIVE["qualitative_label"] != 0].reset_index(drop=True)
 
     # Binary label
-    ASSAY_DATA["bin"] = [0 if x == -1 else 1 for x in ASSAY_DATA["qualitative_label"].tolist()]
+    ASSAY_DATA_QUALITATIVE["bin"] = [0 if x == -1 else 1 for x in ASSAY_DATA_QUALITATIVE["qualitative_label"].tolist()]
 
     # Take only interesting columns
     cols = ["compound_chembl_id", "canonical_smiles", "activity_type", "unit", "activity_comment", "standard_text", "qualitative_label", 'bin'] 
-    ASSAY_DATA = ASSAY_DATA[cols]
+    ASSAY_DATA_QUALITATIVE = ASSAY_DATA_QUALITATIVE[cols]
 
-    return ASSAY_DATA
+    return ASSAY_DATA_QUALITATIVE
 
 def set_variables_quantitative(ASSAY_DATA_QUANTITATIVE):
     """
@@ -390,11 +390,11 @@ def set_variables_quantitative(ASSAY_DATA_QUANTITATIVE):
     tuple
         (positives_quantitative, ratio_quantitative, compounds_quantitative)
     """
-    if len(ASSAY_DATA_QUANTITATIVE) > 0:
-        positives_quantitative = (ASSAY_DATA_QUANTITATIVE["bin"] == 1).sum()
-        ratio_quantitative = round(positives_quantitative / len(ASSAY_DATA_QUANTITATIVE), 3)
-        compounds_quantitative = len(ASSAY_DATA_QUANTITATIVE)
-        activities_quantitative = ASSAY_DATA_QUANTITATIVE['value'].tolist()
+    if len(ASSAY_DATA_QUANTITATIVE) > 0 and ASSAY_DATA_QUANTITATIVE['bin'].isna().any() == False:
+            positives_quantitative = (ASSAY_DATA_QUANTITATIVE["bin"] == 1).sum()
+            ratio_quantitative = round(positives_quantitative / len(ASSAY_DATA_QUANTITATIVE), 3)
+            compounds_quantitative = len(ASSAY_DATA_QUANTITATIVE)
+            activities_quantitative = ASSAY_DATA_QUANTITATIVE['value'].tolist()
     else:
         positives_quantitative = np.nan
         ratio_quantitative = np.nan
@@ -460,7 +460,7 @@ def binarize_with_expert_cutoff(ASSAY_DATA_QUANTITATIVE, expert_cutoff, directio
         if direction == +1:
             ASSAY_DATA_QUANTITATIVE["bin"] = (ASSAY_DATA_QUANTITATIVE["value"] >= expert_cutoff).astype(int)
         else:
-            ASSAY_DATA_QUANTITATIVE["bin"] = (ASSAY_DATA["value"] <= expert_cutoff).astype(int)
+            ASSAY_DATA_QUANTITATIVE["bin"] = (ASSAY_DATA_QUANTITATIVE["value"] <= expert_cutoff).astype(int)
     else:
         ASSAY_DATA_QUANTITATIVE["bin"] = [np.nan] * len(ASSAY_DATA_QUANTITATIVE)
 
@@ -494,16 +494,13 @@ def get_activity_stats_quantitative(activities_quantitative):
     return min_, p1, p25, p50, p75, p99, max_
 
 # Define root directory
-# root = os.path.dirname(os.path.abspath(__file__))
-root = "."
+root = os.path.dirname(os.path.abspath(__file__))
 
 # List of pathogens to process
 pathogens = ["Acinetobacter baumannii", "Candida albicans", "Campylobacter", "Escherichia coli", "Enterococcus faecium", "Enterobacter",
              "Helicobacter pylori", "Klebsiella pneumoniae", "Mycobacterium tuberculosis", "Neisseria gonorrhoeae", "Pseudomonas aeruginosa",
              "Plasmodium falciparum", "Staphylococcus aureus", "Schistosoma mansoni", "Streptococcus pneumoniae"]
 pathogens = ["Acinetobacter baumannii", "Mycobacterium tuberculosis", "Klebsiella pneumoniae"]
-
-
 
 # Create output directory
 OUTPUT = os.path.join(root, "..", "output")
@@ -519,6 +516,7 @@ for pathogen in pathogens[1:2]:
 
     # Define PATH to parameters
     PATH_TO_PARAMETERS = os.path.join(root, "..", "output", pathogen_code, 'parameters')
+    # PATH_TO_PARAMETERS = os.path.join(root, "..", "output", pathogen_code, 'assay_parameters')
 
     # Get curated target type
     ASSAYS_CLEANED = add_target_type_curated(ASSAYS_CLEANED, PATH_TO_PARAMETERS)
@@ -537,8 +535,9 @@ for pathogen in pathogens[1:2]:
     # Define data ranges
     DATA_RANGES = []
 
-    for assay_chembl_id, activity_type, unit, target_type, target_type_curated, activities, cpds, direction in tqdm(ASSAYS_CLEANED[['assay_id', 'activity_type', 'unit', 'target_type',
-                                                                                                            'target_type_curated', 'activities', 'cpds', 'direction']].values):
+    for assay_chembl_id, activity_type, unit, target_type, target_type_curated, activities, nan_values, cpds, direction, acc, stdtc in tqdm(ASSAYS_CLEANED[['assay_id', 
+                                        'activity_type', 'unit', 'target_type','target_type_curated', 'activities', 'nan_values', 'cpds', 'direction', 
+                                        'activity_comment_counts', 'standard_text_count']].values[:]):
 
         # Filtering [assay, activity_type, unit] data
         cols = ['compound_chembl_id', 'canonical_smiles', 'activity_type', 'value', 'relation', 'unit', 'activity_comment', 'standard_text']
@@ -579,42 +578,45 @@ for pathogen in pathogens[1:2]:
             positives_quantitative, ratio_quantitative, compounds_quantitative, activities_quantitative = set_variables_quantitative(ASSAY_DATA_QUANTITATIVE)
 
             # Set the dataset type
-            if compounds_qualitative == 0:
-                dataset_type = 'quantitative'
+            if np.isnan(expert_cutoff):
+                if np.isnan(compounds_qualitative):
+                    dataset_type = 'none'
+                else:
+                    dataset_type = 'qualitative'
             else:
-                dataset_type = 'mixed'
+                if np.isnan(compounds_qualitative):
+                    dataset_type = 'quantitative'
+                else:
+                    dataset_type = 'mixed'
         else:
 
             # Qualitative assay
             dataset_type = 'qualitative'    
 
             # Setting up some variables
-            if len(ASSAY_DATA_QUANTITATIVE) == 0:
-                positives_quantitative, ratio_quantitative, compounds_quantitative, activities_quantitative = set_variables_quantitative(ASSAY_DATA_QUANTITATIVE)
-            else:  # direction is 0 but activities are flagged to -1/1
-                positives_quantitative = np.nan
-                ratio_quantitative = np.nan
-                compounds_quantitative = len(set(ASSAY_DATA_QUANTITATIVE['compound_chembl_id']))
-                activities_quantitative = ASSAY_DATA_QUANTITATIVE['value'].tolist()
+            positives_quantitative = np.nan
+            ratio_quantitative = np.nan
+            compounds_quantitative = np.nan
+            activities_quantitative = np.nan
 
         # Get activity stats
         min_, p1, p25, p50, p75, p99, max_ = get_activity_stats_quantitative(activities_quantitative)
 
         # Store data range
-        DATA_RANGES.append([assay_chembl_id, activity_type, unit, target_type, target_type_curated, activities, cpds, direction, equal, higher, lower, dataset_type, 
+        DATA_RANGES.append([assay_chembl_id, activity_type, unit, target_type, target_type_curated, activities, nan_values, cpds, direction, acc, stdtc, equal, higher, lower, dataset_type, 
                             expert_cutoff, positives_quantitative, ratio_quantitative, compounds_quantitative, min_, p1, p25, p50, p75, p99, max_, positives_qualitative, 
                             ratio_qualitative, compounds_qualitative])
 
         # Save data only if number of compounds is >= 100
         dataset_name = f"{assay_chembl_id}_{activity_type}_{str(unit).replace('/', 'FwdS')}"
-        if compounds_quantitative >= 100:
+        if compounds_quantitative >= 100 and np.isnan(expert_cutoff) == False:
             ASSAY_DATA_QUANTITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_qt.csv.gz"), index=False)
         if compounds_qualitative >= 100:
             ASSAY_DATA_QUALITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_ql.csv.gz"), index=False)
 
 
-    DATA_RANGES = pd.DataFrame(DATA_RANGES, columns=["assay_id", "activity_type", "unit", "target_type", "target_type_curated", "activities", "cpds", "direction", 
-                                                    "equal", "higher", "lower", "dataset_type", "expert_cutoff", "pos_qt", "ratio_qt", "cpds_qt", "min_", "p1", "p25", 
-                                                    "p50", "p75", "p99", "max_", "pos_ql", "ratio_ql", "cpds_ql"])
+    DATA_RANGES = pd.DataFrame(DATA_RANGES, columns=["assay_id", "activity_type", "unit", "target_type", "target_type_curated", "activities", "nan_values", "cpds", "direction", 
+                                                     'activity_comment_counts', 'standard_text_count', "equal", "higher", "lower", "dataset_type", "expert_cutoff", "pos_qt", 
+                                                     "ratio_qt", "cpds_qt", "min_", "p1", "p25", "p50", "p75", "p99", "max_", "pos_ql", "ratio_ql", "cpds_ql"])
     DATA_RANGES.to_csv(os.path.join(OUTPUT, pathogen_code, 'assays_data.csv'), index=False)
     print("\n\n\n")

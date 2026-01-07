@@ -3,6 +3,7 @@ from tqdm import tqdm
 import pandas as pd
 import numpy as np
 import pickle
+import json
 import sys
 import os
 
@@ -19,7 +20,7 @@ def adjust_relation(ASSAY_DATA: pd.DataFrame, DIRECTION: int, CUT: float) -> pd.
         -1 → lower = more active (e.g. IC50, MIC)
     CUT : float
         Extreme value used to replace censored measurements
-        on the wrong side of the direction (min-1 or max+1)
+        on the wrong side of the direction (min or max)
 
     Returns
     -------
@@ -97,9 +98,9 @@ def disambiguate_compounds(ASSAY_DATA: pd.DataFrame, DIRECTION: int) -> pd.DataF
 
     return df_best.reset_index(drop=True)
 
+
 # Define root directory
-# root = os.path.dirname(os.path.abspath(__file__))
-root = "."
+root = os.path.dirname(os.path.abspath(__file__))
 
 # List of pathogens to process
 pathogens = ["Acinetobacter baumannii", "Candida albicans", "Campylobacter", "Escherichia coli", "Enterococcus faecium", "Enterobacter",
@@ -117,16 +118,39 @@ OUTPUT = os.path.join(root, "..", "output")
 for pathogen in pathogens:
 
     print("\n\n\n")
+    pathogen_code = get_pathogen_code(pathogen)
+
+    # Load cleaned assays
+    ASSAYS_CLEANED = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, "assays_cleaned.csv"))
+
+    # Define PATH to parameters
+    PATH_TO_PARAMETERS = os.path.join(root, "..", "output", pathogen_code, 'parameters')
+
+    TARGET_TYPE_CURATED = []
+
+    # Iterating over assays
+    for assay_id, activity_type, unit in ASSAYS_CLEANED[['assay_id', 'activity_type', 'unit']].values:
+
+        # Prepare filename
+        filename = "_".join([str(assay_id), str(activity_type), str(unit), 'parameters']) + ".json"
+        
+        # Read JSON file
+        with open(os.path.join(PATH_TO_PARAMETERS, filename), "r") as file:
+            par = json.load(file)
+
+        # Store results
+        TARGET_TYPE_CURATED.append(par['target_type_curated'])
+
+    # Complete table
+    ASSAYS_CLEANED['target_type_curated'] = TARGET_TYPE_CURATED
 
     # Loading pathogen data
-    pathogen_code = get_pathogen_code(pathogen)
     os.makedirs(os.path.join(OUTPUT, pathogen_code, 'datasets'), exist_ok=True)
     print(f"Loading ChEMBL cleaned data for {pathogen_code}...")
     ChEMBL_pathogen = pd.read_csv(os.path.join(OUTPUT, pathogen_code, f"{pathogen_code}_ChEMBL_cleaned_data.csv.gz"), low_memory=False)
     print(f"Number of activities for {pathogen_code}: {len(ChEMBL_pathogen)}")
     print(f"Number of compounds for {pathogen_code}: {len(set(ChEMBL_pathogen['compound_chembl_id']))}")
-    ASSAYS_CLEANED = pd.read_csv(os.path.join(OUTPUT, pathogen_code, 'assays_cleaned.csv'))
-    print(f"Cleaned number of assays: {len(ASSAYS_CLEANED)}")
+    print(f"Number of cleaned assays: {len(ASSAYS_CLEANED)}")
 
     # Load expert cut-offs
     EXPERT_CUTOFFS = pd.read_csv(os.path.join(root, "..", "config", "manual_curation", "expert_cutoffs.csv"))
@@ -139,17 +163,11 @@ for pathogen in pathogens:
     # Define data ranges
     DATA_RANGES = []
 
-    for assay_chembl_id, activity_type, unit, target_type, activities, cpds, direction in tqdm(ASSAYS_CLEANED[['assay_id', 'activity_type', 'unit',
-                                                                                                            'target_type', 'activities', 'cpds', 'direction']].values):
-            
-        if direction not in [+1, -1]:
-            if direction == 0:
-                print(f"Direction is 0: ({activity_type}, {unit}). Omitting assay {assay_chembl_id}...")
-            else:
-                print(f"Direction not found for ({activity_type}, {unit}). Consider adding the direction manually in 'activity_std_units_curated_manual_curation.csv'")
+    for assay_chembl_id, activity_type, unit, target_type, target_type_curated, activities, cpds, direction in tqdm(ASSAYS_CLEANED[['assay_id', 'activity_type', 'unit', 'target_type',
+                                                                                                            'target_type_curated', 'activities', 'cpds', 'direction']].values):
 
         # Loading assay data
-        cols = ['compound_chembl_id', 'canonical_smiles', 'activity_type', 'value', 'relation', 'unit']
+        cols = ['compound_chembl_id', 'canonical_smiles', 'activity_type', 'value', 'relation', 'unit', 'activity_comment', 'standard_text']
         if type(unit) == str:
             ASSAY_DATA = ChEMBL_pathogen[(ChEMBL_pathogen['assay_chembl_id'] == assay_chembl_id) & 
                                         (ChEMBL_pathogen['activity_type'] == activity_type) & 
@@ -168,10 +186,10 @@ for pathogen in pathogens:
         elif direction == -1:
             CUT = max(ASSAY_DATA['value'])
         else:
-            CUT = None
+            CUT = np.nan
 
-        # Get expert cut-off if exists
-        key = (activity_type, unit, target_type, pathogen_code)
+        # Get expert cut-off if it exists
+        key = (activity_type, unit, target_type_curated, pathogen_code)
         expert_cutoff = EXPERT_CUTOFFS[key] if key in EXPERT_CUTOFFS else np.nan
 
         if direction in [+1, -1]:
@@ -180,38 +198,64 @@ for pathogen in pathogens:
             ASSAY_DATA = adjust_relation(ASSAY_DATA, direction, CUT)
 
             # Disambiguate duplicated compounds and returns 'sorted' data (depending on direction)
+            # Numerical values are prioritized over nans
             ASSAY_DATA = disambiguate_compounds(ASSAY_DATA, direction)
 
             # Remove nans
             assay_activities = [i for i in ASSAY_DATA['value'].tolist() if np.isnan(i) == False]
+
+            # Fully qualitative assay
             if len(assay_activities) == 0:
                 assay_activities = [np.nan]
+                dataset_type = 'qualitative'
+            elif len(assay_activities) < len(ASSAY_DATA):
+                dataset_type = 'mixed'
+            else:
+                dataset_type = 'quantitative'
 
             # Binarization with expert cut-off
             if np.isnan(expert_cutoff) == False:
                 if direction == +1:
-                    ASSAY_DATA["bin"] = (ASSAY_DATA["value"] >= expert_cutoff).astype(int)
+                    ASSAY_DATA["bin_quantitative"] = (ASSAY_DATA["value"] >= expert_cutoff).astype(int)
                 else:
-                    ASSAY_DATA["bin"] = (ASSAY_DATA["value"] <= expert_cutoff).astype(int)
-                positives = Counter(ASSAY_DATA['bin'].tolist())[1]
+                    ASSAY_DATA["bin_quantitative"] = (ASSAY_DATA["value"] <= expert_cutoff).astype(int)
+                positives = Counter(ASSAY_DATA['bin_quantitative'].tolist())[1]
                 ratio = round(positives / len(ASSAY_DATA), 5)
             else:
-                ASSAY_DATA['bin'] = [np.nan] * len(ASSAY_DATA)
+                # Dataset could not be binarized using values due to missing expert cut-off
+                ASSAY_DATA['bin_quantitative'] = [np.nan] * len(ASSAY_DATA)
                 positives = np.nan
                 ratio = np.nan
 
         else:
 
-            # Take only equal relations
-            assay_activities = [i for i,j in ASSAY_DATA[['value', 'relation']].values if np.isnan(i) == False and j == "="]
-            if len(assay_activities) == 0:
-                assay_activities = [np.nan]
+            # Qualitative assay
+            dataset_type = 'qualitative'    
 
-            # Binarization with expert cut-off
-            ASSAY_DATA['bin'] = [np.nan] * len(ASSAY_DATA)
+            # Not binarizing a null-direction assay
+            ASSAY_DATA['bin_quantitative'] = [np.nan] * len(ASSAY_DATA)
             positives = np.nan
             ratio = np.nan
-        
+            assay_activities = [np.nan]
+
+
+        # Getting qualitative bin
+        ASSAY_DATA['bin_qualitative'] = [np.nan for i in range(len(ASSAY_DATA))]
+        cond_nan = (ASSAY_DATA['activity_comment'] == 0) & (ASSAY_DATA['standard_text'] == 0)
+        cond_pos = (ASSAY_DATA['activity_comment'] == 1) | (ASSAY_DATA['standard_text'] == 1)
+        cond_neg = (ASSAY_DATA['activity_comment'] == -1) | (ASSAY_DATA['standard_text'] == -1)
+        conflict = cond_pos & cond_neg
+        if conflict.any():
+            raise ValueError(
+                "Conflicting labels (contains both 1 and -1):\n"
+                + ASSAY_DATA.loc[conflict, ["activity_comment", "standard_text"]].head(20).to_string())
+        ASSAY_DATA.loc[cond_pos, "bin_qualitative"] = 1
+        ASSAY_DATA.loc[cond_neg, "bin_qualitative"] = 0
+
+        # Positives and negatives qualitative
+        positives_qual = Counter(ASSAY_DATA['bin_qualitative'].tolist())[1]
+        negatives_qual = Counter(ASSAY_DATA['bin_qualitative'].tolist())[0]
+
         # Calculate data
         min_ = round(np.min(assay_activities), 3)
         p1 = round(np.percentile(assay_activities, 1), 3)
@@ -227,13 +271,14 @@ for pathogen in pathogens:
         higher = counter_relations[">"]
 
         # Store data range
-        DATA_RANGES.append([assay_chembl_id, activity_type, unit, target_type, activities, cpds, direction, equal, higher, 
-                            lower, min_, p1, p25, p50, p75, p99, max_, expert_cutoff, positives, ratio])
+        DATA_RANGES.append([assay_chembl_id, activity_type, unit, target_type, target_type_curated, activities, cpds, direction, equal, higher, 
+                            lower, min_, p1, p25, p50, p75, p99, max_, expert_cutoff, positives, ratio, dataset_type, positives_qual, negatives_qual])
 
         # Save data
-        if cpds > 100:
+        if cpds >= 100:
             ASSAY_DATA.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{assay_chembl_id}_{activity_type}_{str(unit).replace('/', 'FwdS')}.csv.gz"), index=False)
 
-DATA_RANGES = pd.DataFrame(DATA_RANGES, columns=["assay_chembl_id", "activity_type", "unit", "target_type", "activities", "cpds", "direction", "equal", "higher", 
-                                            "lower", "min_", "p1", "p25", "p50", "p75", "p99", "max_", 'expert_cutoff', 'positives', 'ratio'])
-DATA_RANGES.to_csv(os.path.join(OUTPUT, pathogen_code, 'assay_data_ranges.csv'), index=False)
+    DATA_RANGES = pd.DataFrame(DATA_RANGES, columns=["assay_id", "activity_type", "unit", "target_type", "target_type_curated", "activities", "cpds", "direction", 
+                                                    "equal", "higher", "lower", "min_", "p1", "p25", "p50", "p75", "p99", "max_", 'expert_cutoff', 'positives_quant', 'ratio_quant', 
+                                                    'dataset_type', 'positives_qual', 'negatives_qual'])
+    DATA_RANGES.to_csv(os.path.join(OUTPUT, pathogen_code, 'assays_data_ranges.csv'), index=False)

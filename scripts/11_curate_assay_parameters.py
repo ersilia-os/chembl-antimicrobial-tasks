@@ -52,7 +52,7 @@ for pathogen in pathogens:
     # Creating output directory
     print(f"Processing pathogen: {pathogen}...")
     pathogen_code = get_pathogen_code(pathogen)
-    PATH_TO_OUTPUT = os.path.join(root, "..", "output", pathogen_code, "parameters")
+    PATH_TO_OUTPUT = os.path.join(root, "..", "output", pathogen_code, "assay_parameters")
     os.makedirs(PATH_TO_OUTPUT, exist_ok=True)
 
     # Loading assay data
@@ -160,3 +160,5 @@ for pathogen in pathogens:
         out_path = os.path.join(PATH_TO_OUTPUT, "_".join([ASSAY.assay_id, str(ASSAY.activity_type), str(ASSAY.unit)]) + "_parameters.json")
         with open(out_path, "w") as outfile:
             json.dump(js, outfile, indent=2)
+
+    # Compress all JSON files

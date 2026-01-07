@@ -609,10 +609,14 @@ for pathogen in pathogens[1:2]:
 
         # Save data only if number of compounds is >= 100
         dataset_name = f"{assay_chembl_id}_{activity_type}_{str(unit).replace('/', 'FwdS')}"
-        if compounds_quantitative >= 100 and np.isnan(expert_cutoff) == False:
+        if compounds_quantitative >= 1 and np.isnan(expert_cutoff) == False:
             ASSAY_DATA_QUANTITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_qt.csv.gz"), index=False)
-        if compounds_qualitative >= 100:
+        if compounds_qualitative >= 1:
             ASSAY_DATA_QUALITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_ql.csv.gz"), index=False)
+        # if compounds_quantitative >= 100 and np.isnan(expert_cutoff) == False:
+        #     ASSAY_DATA_QUANTITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_qt.csv.gz"), index=False)
+        # if compounds_qualitative >= 100:
+        #     ASSAY_DATA_QUALITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_ql.csv.gz"), index=False)
 
 
     DATA_RANGES = pd.DataFrame(DATA_RANGES, columns=["assay_id", "activity_type", "unit", "target_type", "target_type_curated", "activities", "nan_values", "cpds", "direction", 

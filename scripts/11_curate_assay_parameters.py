@@ -56,7 +56,7 @@ for pathogen in pathogens:
     os.makedirs(PATH_TO_OUTPUT, exist_ok=True)
 
     # Loading assay data
-    ASSAYS = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, "assays_cleaned.csv"))
+    ASSAYS = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, "assays_cleaned.csv"))[:10]
 
     # For each assay
     for idx, ASSAY in tqdm(ASSAYS.iterrows()):
@@ -125,7 +125,7 @@ for pathogen in pathogens:
         Field definitions:
 
         - "organism": refers to the species/cell line name (e.g., "Mycobacterium tuberculosis", "Homo sapiens"). Do NOT use strain identifiers here.
-        - "target_type_curated": refers to target type and should only be modified if its current value is UNCHECKED and the assay annotations clearly indicate that it should be one of: SINGLE PROTEIN, CELL-LINE, or ORGANISM. If there is not enough information/evidence to set it to SINGLE PROTEIN, CELL-LINE or ORGANISM, leave it UNCHECKED.
+        - "target_type_curated": refers to target type and should only be modified if its current value is UNCHECKED and the assay annotations clearly indicate that it should be one of: SINGLE PROTEIN or ORGANISM. If there is not enough information/evidence to set it to SINGLE PROTEIN or ORGANISM, leave it UNCHECKED.
         - "strain": refers only to biological strain names (e.g., H37Rv, K12, PAO1). Do NOT include culture collection/catalog identifiers (e.g, ATCC, DSM or NCTC related identifiers or catalog numbers).
         - "atcc_id": refers to the specific ATCC (American Type Culture Collection) identifier, if explicitly stated. Otherwise, leave it empty. 
         - "mutations": include ONLY explicit mutations or variants stated in the text. Mutation format MUST be: one-letter amino acid + position (integer) + one-letter amino acid (e.g., "S450L"). If the text uses a longer form (e.g., Ser450Leu) and the conversion is explicit/unambiguous, convert it to the one-letter format.
@@ -161,4 +161,4 @@ for pathogen in pathogens:
         with open(out_path, "w") as outfile:
             json.dump(js, outfile, indent=2)
 
-    # Compress all JSON files
+    # Compress all JSON files in a ZIP file

@@ -5,6 +5,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
+import shutil
 import ollama
 import json
 import sys
@@ -56,7 +57,7 @@ for pathogen in pathogens:
     os.makedirs(PATH_TO_OUTPUT, exist_ok=True)
 
     # Loading assay data
-    ASSAYS = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, "assays_cleaned.csv"))[:10]
+    ASSAYS = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, "assays_cleaned.csv"))
 
     # For each assay
     for idx, ASSAY in tqdm(ASSAYS.iterrows()):
@@ -132,6 +133,10 @@ for pathogen in pathogens:
         - "known_drug_resistances": list drugs for which resistance is explicitly stated (e.g., ["rifampicin", "isoniazid"]). Do NOT infer resistance from mutations. Only include resistances explicitly stated.
         - "media": refers to the growth or culture medium explicitly stated (e.g., Middlebrook 7H9 broth, Lowenstein–Jensen, etc.).
 
+        Important considerations:
+
+        - If assay_type is BINDING and target_type is UNCHECKED, target_type_curated can only be set to UNCHECKED or SINGLE PROTEIN, not ORGANISM.
+
             Assay annotations:
 
         {result}"""
@@ -150,15 +155,19 @@ for pathogen in pathogens:
         expected = {"organism", "target_type_curated", "strain", "atcc_id", "mutations", "known_drug_resistances", "media"}
         assert set(js.keys()) == expected, f"Unexpected keys: {set(js.keys())}"
 
-        # # Add metadata
-        # js["assay_id"] = ASSAY.assay_id
-        # js["assay_type"] = ASSAY.assay_type
-        # js["activity_type"] = ASSAY.activity_type
-        # js["unit"] = ASSAY.unit
-
         # Write to a JSON file
         out_path = os.path.join(PATH_TO_OUTPUT, "_".join([ASSAY.assay_id, str(ASSAY.activity_type), str(ASSAY.unit)]) + "_parameters.json")
         with open(out_path, "w") as outfile:
             json.dump(js, outfile, indent=2)
 
     # Compress all JSON files in a ZIP file
+    zip_path = os.path.join(root, "..", "output", pathogen_code, "assay_parameters.zip")
+    with ZipFile(zip_path, "w", compression=ZIP_DEFLATED) as zipf:
+        for fname in os.listdir(PATH_TO_OUTPUT):
+            if fname.endswith(".json"):
+                full_path = os.path.join(PATH_TO_OUTPUT, fname)
+                # store inside zip without the full directory path
+                zipf.write(full_path, arcname=fname)
+
+    # Remove the whole directory after zipping
+    shutil.rmtree(PATH_TO_OUTPUT)

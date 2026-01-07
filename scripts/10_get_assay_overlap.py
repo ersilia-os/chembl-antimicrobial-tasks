@@ -58,4 +58,4 @@ for pathogen in pathogens:
     # Save results
     OVERLAP = pd.DataFrame(OVERLAP, columns=["assay_id_1", "activity_type_1", "unit_1", "assay_id_2", "activity_type_2", "unit_2", "cpds_1", "cpds_2", "intersection", "ratio"])
     OVERLAP = OVERLAP.sort_values(by='intersection', ascending=False)
-    OVERLAP.to_csv(os.path.join(OUTPUT, pathogen_code, 'assay_overlap.csv'), index=False)
+    OVERLAP.to_csv(os.path.join(OUTPUT, pathogen_code, 'assays_overlap.csv'), index=False)

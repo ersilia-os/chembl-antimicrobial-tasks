@@ -40,6 +40,8 @@ for pathogen in pathogens:
     df = pd.DataFrame([[i, df[i]] for i in sorted(df, key = lambda x: df[x], reverse=True)], columns=['organism', 'count'])
     df.to_csv(os.path.join(PATH_TO_OUTPUT, "target_organism_counts.csv"), index=False)
     ChEMBL_pathogen.to_csv(os.path.join(PATH_TO_OUTPUT, f"{pathogen_code}_ChEMBL_raw_data.csv.gz"), index=False)
+    pair_counts = ChEMBL_pathogen[['compound_chembl_id', 'canonical_smiles']].value_counts().reset_index(name='count')
+    pair_counts.to_csv(os.path.join(root, "..", "output", pathogen_code, "compound_counts.csv.gz"), index=False)
 
     # Helper function - is there only a single value?
     def only_one(values, name):

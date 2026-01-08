@@ -128,6 +128,7 @@ For example:
 Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
 - `<pathogen_code>_ChEMBL_raw_data.csv`: All ChEMBL activity records for the selected pathogen (based on fields `target_organism` and `assay_organism`).
 - `target_organism_counts.csv`: Frequency of target organisms found in the data.
+- `compound_counts.csv`: Frequency of compounds found in the data.
 - `assays_raw.csv`: List of raw assays with metadata (e.g., unit, activity type, compound count). Each [`assay_id`, `activity_type`, `unit`] item is treated independently. 
 
 ⏳ ETA: ~4 hours. [REVISE]

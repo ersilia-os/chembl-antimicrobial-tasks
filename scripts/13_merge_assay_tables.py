@@ -1,4 +1,5 @@
 import pandas as pd
+import zipfile
 import json
 import os
 
@@ -24,7 +25,7 @@ for pathogen in pathogens[1:2]:
     pathogen_code = get_pathogen_code(pathogen)
 
     # Define path to parameters
-    PATH_TO_PARAMETERS = os.path.join(OUTPUT, pathogen_code, "parameters")
+    PATH_TO_PARAMETERS = os.path.join(OUTPUT, pathogen_code, "assay_parameters.zip")
 
     # Load assays info
     ASSAYS_CLEANED = pd.read_csv(os.path.join(OUTPUT, pathogen_code, "assays_cleaned.csv"))
@@ -56,24 +57,27 @@ for pathogen in pathogens[1:2]:
 
     ORGNISM_CURATED, TARGET_TYPE_CURATED, STRAIN, ATCC_ID, MUTATIONS, KDR, MEDIA = [], [], [], [], [], [], []
 
-    # Iterating over assays
-    for assay_id, activity_type, unit in ASSAYS_CLEANED[['assay_id', 'activity_type', 'unit']].values:
+     # Inside zip file
+    with zipfile.ZipFile(PATH_TO_PARAMETERS) as z:
 
-        # Prepare filename
-        filename = "_".join([str(assay_id), str(activity_type), str(unit), 'parameters']) + ".json"
-        
-        # Read JSON file
-        with open(os.path.join(PATH_TO_PARAMETERS, filename), "r") as file:
-            par = json.load(file)
+        # Iterating over assays
+        for assay_id, activity_type, unit in ASSAYS_CLEANED[['assay_id', 'activity_type', 'unit']].values:
 
-        # Store results
-        ORGNISM_CURATED.append(par['organism'])
-        TARGET_TYPE_CURATED.append(par['target_type_curated'])
-        STRAIN.append(par['strain'])
-        ATCC_ID.append(par['atcc_id'])
-        MUTATIONS.append(";".join(par['mutations']))
-        KDR.append(";".join(par['known_drug_resistances']))
-        MEDIA.append(par['media'])
+            # Prepare filename
+            filename = "_".join([str(assay_id), str(activity_type), str(unit), 'parameters']) + ".json"
+            
+            # Read JSON file inside zip
+            with z.open(filename) as file:
+                par = json.load(file)
+
+            # Store results
+            ORGNISM_CURATED.append(par['organism'])
+            TARGET_TYPE_CURATED.append(par['target_type_curated'])
+            STRAIN.append(par['strain'])
+            ATCC_ID.append(par['atcc_id'])
+            MUTATIONS.append(";".join(par['mutations']))
+            KDR.append(";".join(par['known_drug_resistances']))
+            MEDIA.append(par['media'])    
 
     # Complete table
     ASSAYS_CLEANED['organism_curated'] = ORGNISM_CURATED

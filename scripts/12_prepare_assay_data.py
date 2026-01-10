@@ -2,9 +2,8 @@ from collections import Counter
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
-import pickle
+import zipfile
 import json
-import sys
 import os
 
 def adjust_relation(ASSAY_DATA: pd.DataFrame, DIRECTION: int, CUT: float) -> pd.DataFrame:
@@ -103,7 +102,8 @@ def get_pathogen_code(pathogen):
 
 def add_target_type_curated(ASSAYS_CLEANED, PATH_TO_PARAMETERS):
     """
-    Add a `target_type_curated` column to ASSAYS_CLEANED by reading parameter JSON files.
+    Add a `target_type_curated` column to ASSAYS_CLEANED by reading parameter JSON files
+    from a ZIP archive.
 
     For each row in ASSAYS_CLEANED, a JSON file is opened using the pattern:
         "{assay_id}_{activity_type}_{unit}_parameters.json"
@@ -116,7 +116,7 @@ def add_target_type_curated(ASSAYS_CLEANED, PATH_TO_PARAMETERS):
     ASSAYS_CLEANED : pandas.DataFrame
         DataFrame containing at least the columns: `assay_id`, `activity_type`, `unit`.
     PATH_TO_PARAMETERS : str
-        Path to the directory containing the JSON parameter files.
+        Path to the ZIP archive containing the JSON parameter files.
 
     Returns
     -------
@@ -125,18 +125,21 @@ def add_target_type_curated(ASSAYS_CLEANED, PATH_TO_PARAMETERS):
     """
     TARGET_TYPE_CURATED = []
 
-    # Iterating over assays
-    for assay_id, activity_type, unit in ASSAYS_CLEANED[['assay_id', 'activity_type', 'unit']].values:
+    # Inside zip file
+    with zipfile.ZipFile(PATH_TO_PARAMETERS) as z:
 
-        # Prepare filename
-        filename = "_".join([str(assay_id), str(activity_type), str(unit), 'parameters']) + ".json"
-        
-        # Read JSON file
-        with open(os.path.join(PATH_TO_PARAMETERS, filename), "r") as file:
-            par = json.load(file)
+        # Iterating over assays
+        for assay_id, activity_type, unit in ASSAYS_CLEANED[['assay_id', 'activity_type', 'unit']].values:
 
-        # Store results
-        TARGET_TYPE_CURATED.append(par['target_type_curated'])
+            # Prepare filename
+            filename = "_".join([str(assay_id), str(activity_type), str(unit), 'parameters']) + ".json"
+
+            # Read JSON file inside zip
+            with z.open(filename) as file:
+                par = json.load(file)
+
+            # Store results
+            TARGET_TYPE_CURATED.append(par['target_type_curated'])
 
     # Complete table
     ASSAYS_CLEANED['target_type_curated'] = TARGET_TYPE_CURATED
@@ -515,8 +518,7 @@ for pathogen in pathogens[1:2]:
     ASSAYS_CLEANED = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, "assays_cleaned.csv"))
 
     # Define PATH to parameters
-    PATH_TO_PARAMETERS = os.path.join(root, "..", "output", pathogen_code, 'parameters')
-    # PATH_TO_PARAMETERS = os.path.join(root, "..", "output", pathogen_code, 'assay_parameters')
+    PATH_TO_PARAMETERS = os.path.join(root, "..", "output", pathogen_code, 'assay_parameters.zip')
 
     # Get curated target type
     ASSAYS_CLEANED = add_target_type_curated(ASSAYS_CLEANED, PATH_TO_PARAMETERS)
@@ -560,7 +562,7 @@ for pathogen in pathogens[1:2]:
         positives_qualitative, ratio_qualitative, compounds_qualitative = set_variables_qualitative(ASSAY_DATA_QUALITATIVE)
 
         # If direction is 1 or -1
-        if direction in [+1, -1]:
+        if direction in [+1, -1] and len(ASSAY_DATA_QUANTITATIVE) > 0:
 
             # Get value to adjust relations
             CUT = get_cut_value(ASSAY_DATA, direction)

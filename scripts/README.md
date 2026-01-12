@@ -42,9 +42,13 @@ This manual curation allows downstream scripts to automatically use a standardiz
 
 ## Step 01. Processing compounds
 
-This script calculates the molecular weight (MW) of each compound based on its SMILES (Simplified Molecular Input Line Entry System) representation using RDKit. Running `01_get_compound_info.py` creates the `config/chembl_processed` folder, containing a newly generated file named `compound_info.csv` (table with `molregno`, `chembl_id`, `molecule_type`, `canonical_smiles`, and `calculated MW`).
+This script merges ChEMBL compound structure information with compound identifiers to generate a single compound table. Specifically, it combines `config/chembl_activities/compound_structures.csv` with `config/chembl_activities/molecule_dictionary.csv` to map each `molregno` to its corresponding `chembl_id`, and saves the result as `compound_info.csv` in `config/chembl_processed/`.
 
-⏳ ETA: ~10 minutes.
+Outputs are saved in the folder: `config/chembl_processed/`, and include:
+
+`compound_info.csv`: Compound table containing `molregno`, structural fields from `compound_structures.csv`, and the corresponding `chembl_id`.
+
+⏳ ETA: ~0 minutes.
 
 ## Step 02. Saniziting and standardizing compounds
 

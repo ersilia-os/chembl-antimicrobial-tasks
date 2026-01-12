@@ -22,19 +22,6 @@ df2 = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "molecule_dictio
 # Merge tables
 df_merged = df1.merge(df2[['molregno', 'chembl_id']], on='molregno', how='left')
 
-# Calculate Molecular Weight
-MW = []
-for smiles in tqdm(df_merged['canonical_smiles'].tolist()):
-    try:
-        mol = Chem.MolFromSmiles(smiles)
-        mw = Descriptors.MolWt(mol)
-        MW.append(round(mw, 3))
-    except:
-        MW.append(np.nan)
-
-# Add new column
-df_merged['MW'] = MW
-
 # Save file
 df_merged = df_merged.sort_values('molregno').reset_index(drop=True)
 df_merged.to_csv(os.path.join(output_dir, "compound_info.csv"), index=False)

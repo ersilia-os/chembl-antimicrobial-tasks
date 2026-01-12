@@ -68,7 +68,7 @@ for pathogen in pathogens:
                     thr_to_clusters[thr] = clusters
                 except:
                     thr_to_clusters[thr] = np.nan
-            CLUSTERS.append([thr_to_clusters[i] for i in thr_to_clusters])
+            CLUSTERS.append([thr_to_clusters[thr] for thr in thrs])
 
         except:
 

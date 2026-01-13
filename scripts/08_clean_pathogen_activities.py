@@ -1,3 +1,4 @@
+from collections import defaultdict
 from collections import Counter
 from tqdm import tqdm
 import pandas as pd
@@ -18,17 +19,41 @@ pathogens = ["Acinetobacter baumannii", "Candida albicans", "Campylobacter", "Es
              "Plasmodium falciparum", "Staphylococcus aureus", "Schistosoma mansoni", "Streptococcus pneumoniae"]
 pathogens = ["Acinetobacter baumannii", "Mycobacterium tuberculosis", "Klebsiella pneumoniae"]
 
+# Create output directory
+OUTPUT = os.path.join(root, "..", "output")
+
 def get_pathogen_code(pathogen):
     return str(pathogen.split()[0][0] + pathogen.split()[1]).lower() if len(pathogen.split()) > 1 else pathogen.lower()
 
-# Helper function - is there only a single value?
 def only_one(values, name):
+    # Helper function - is there only a single value?
     if len(values) != 1:
         raise ValueError(f"Expected exactly one {name}, found {values}")
     return values[0]
 
-# Create output directory
-OUTPUT = os.path.join(root, "..", "output")
+def create_text_flag(ChEMBL_pathogen):
+
+    cond_nan = (ChEMBL_pathogen['activity_comment'] == 0) & (ChEMBL_pathogen['standard_text'] == 0)
+    cond_pos = (ChEMBL_pathogen['activity_comment'] == 1) | (ChEMBL_pathogen['standard_text'] == 1)
+    cond_neg = (ChEMBL_pathogen['activity_comment'] == -1) | (ChEMBL_pathogen['standard_text'] == -1)
+
+    # Detect row-level conflicts
+    conflict = cond_pos & cond_neg
+    if conflict.any():
+        raise ValueError(
+            "Conflicting labels (contains both 1 and -1):\n"
+            + ChEMBL_pathogen.loc[conflict, ["compound_chembl_id", "activity_comment", "standard_text"]].head(20).to_string())
+
+    # Assign row-level label
+    ChEMBL_pathogen["text_flag"] = np.nan
+    ChEMBL_pathogen.loc[cond_pos, "text_flag"] = 1
+    ChEMBL_pathogen.loc[cond_neg, "text_flag"] = -1
+    ChEMBL_pathogen.loc[cond_nan, "text_flag"] = 0
+
+    # Remove original fields
+    ChEMBL_pathogen = ChEMBL_pathogen.drop(columns=['activity_comment', 'standard_text'])
+
+    return ChEMBL_pathogen
 
 # For each pathogen
 for pathogen in pathogens:
@@ -39,17 +64,26 @@ for pathogen in pathogens:
     pathogen_code = get_pathogen_code(pathogen)
     print(f"Loading ChEMBL preprocessed data for {pathogen_code}...")
     ChEMBL_pathogen = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, f"{pathogen_code}_ChEMBL_raw_data.csv.gz"), low_memory=False)
+    ASSAYS_RAW = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, 'assays_raw.csv'))
     print(f"Number of activities for {pathogen_code}: {len(ChEMBL_pathogen)}")
     print(f"Number of compounds for {pathogen_code}: {len(set(ChEMBL_pathogen['compound_chembl_id']))}")
-    ASSAYS_RAW = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, 'assays_raw.csv'))
-    print(f"Original number of assays-all: {len(ASSAYS_RAW)}")
+    print(f"Original number of assays: {len(ASSAYS_RAW)} (unique: {len(set(ASSAYS_RAW['assay_id']))})")
 
-    # Discard activities with no value nor act/inact flag in activity_comment not standard_text
+    # Create text flag
+    ChEMBL_pathogen = create_text_flag(ChEMBL_pathogen)
+
+    # Discard activities with no value nor text_flag
     ChEMBL_pathogen = ChEMBL_pathogen[(ChEMBL_pathogen['value'].isna() == False) | 
-                                    (ChEMBL_pathogen['activity_comment'] != 0) | 
-                                    (ChEMBL_pathogen['standard_text'] != 0)].reset_index(drop=True)
+                                    (ChEMBL_pathogen['text_flag'] != 0)].reset_index(drop=True)
     
-    print(f"Removing activities with no value nor act/inact flag in activity_comment nor standard_test...")
+    print(f"Removing activities with no value nor text_flag...")
+    print(f"Number of activities for {pathogen_code}: {len(ChEMBL_pathogen)}")
+    print(f"Number of compounds for {pathogen_code}: {len(set(ChEMBL_pathogen['compound_chembl_id']))}")
+
+    print(f"Keeping only those activities with consensus units")
+    CONSENSUS_UNITS = set(pd.read_csv(os.path.join(root, "..", "config", 'chembl_processed', "unit_conversion.csv"))['final_unit'])
+    ChEMBL_pathogen = ChEMBL_pathogen[(ChEMBL_pathogen['unit'].isin(CONSENSUS_UNITS) == True) |
+                                      (ChEMBL_pathogen['unit'].isna() == True)].reset_index(drop=True)
     print(f"Number of activities for {pathogen_code}: {len(ChEMBL_pathogen)}")
     print(f"Number of compounds for {pathogen_code}: {len(set(ChEMBL_pathogen['compound_chembl_id']))}")
 
@@ -63,41 +97,72 @@ for pathogen in pathogens:
     print(f"Assigned directions [-1, 0, +1]: {round((count_directions[1] + count_directions[-1] + count_directions[0]) / len(ChEMBL_pathogen) * 100, 1)}%")
     print(f"Assigned directions [-1, +1]: {round((count_directions[1] + count_directions[-1]) / len(ChEMBL_pathogen) * 100, 1)}%")
 
-    print(f"Keeping only activities with a direction [-1,+1] OR active/inactive flag")
+    print(f"Keeping only activities with a direction [-1,+1] OR active/inactive text_flag")
     ChEMBL_pathogen = ChEMBL_pathogen[(ChEMBL_pathogen['direction'].isin([1, -1]) == True) | 
-                                      (ChEMBL_pathogen['activity_comment'].isin([1, -1])) | 
-                                      (ChEMBL_pathogen['standard_text'].isin([1, -1]))].reset_index(drop=True)
+                                      (ChEMBL_pathogen['text_flag'].isin([1, -1]))].reset_index(drop=True)
     print(f"Number of activities for {pathogen_code}: {len(ChEMBL_pathogen)}")
     print(f"Number of compounds for {pathogen_code}: {len(set(ChEMBL_pathogen['compound_chembl_id']))}")
+
     
-    # Identify canonical unit per activity type
-    print("Identifying canonical unit per activity type...")
+    # Identify activity_type - unit pairs
+    print("Identifying activity_type - unit pairs...")
     # Get pair counts
     s = ChEMBL_pathogen[["activity_type", "unit"]]
     out = (
     s.value_counts(subset=["activity_type", "unit"], dropna=False)
         .reset_index(name="count")
         .sort_values("count", ascending=False, ignore_index=True))
-
-    # Identify the most occurring pairs
-    idx = out.groupby("activity_type")['count'].idxmax()
-    out["canonical_unit"] = False
-    out.loc[idx, "canonical_unit"] = True
-    print(f"Number of unique activity type - unit pairs: {len(out)}")
-
-    # Get canonical unit per activity type
-    canonical = (
-        out[out["canonical_unit"] == True]
-        .set_index("activity_type")[["unit"]])
-    canonical_map = canonical["unit"].to_dict()
-    ChEMBL_pathogen["canonical_unit"] = ChEMBL_pathogen["activity_type"].map(canonical_map)
+    total_count = out['count'].sum()
+    out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
 
     # Assign direction to activity_type_unit_pairs
     out['direction'] = [DIRECTIONS[(i,j)] if (i,j) in DIRECTIONS else np.nan 
                                     for i,j in zip(out['activity_type'], out['unit'])]
+    
+    tmp = ChEMBL_pathogen[["activity_type", "unit", "text_flag"]].copy()
+    tmp["activity_type"] = tmp["activity_type"].fillna("")
+
+    # Define interesting index
+    tmp["has_unit"] = ~tmp["unit"].isna()
+    tmp["has_comment"] = ~(tmp['text_flag'] == 0)
+    
+    # Count per activity_type x (has_unit, has_comment)
+    counts_long = (
+        tmp.groupby(["activity_type", "has_unit", "has_comment"], dropna=False)
+        .size()
+        .reset_index(name="count"))
+
+    # Pivot to wide: one row per activity_type, 4 count columns
+    cols = ["unit_comment", "nounit_comment", "unit_nocomment", "nounit_no_comment"]
+    counts_wide = (
+        counts_long
+        .assign(
+            bucket=np.select(
+                [
+                    counts_long["has_unit"] & counts_long["has_comment"],
+                    ~counts_long["has_unit"] & counts_long["has_comment"],
+                    counts_long["has_unit"] & ~counts_long["has_comment"],
+                    ~counts_long["has_unit"] & ~counts_long["has_comment"],
+                ],
+                cols)))
+
+    counts_wide = counts_wide.pivot_table(index="activity_type", columns="bucket", values="count",
+                    fill_value=0, aggfunc="sum").reset_index()
+    
+    # If any columns is not created (not appearences for that pathogen), create it manually with 0's
+    for c in cols:
+        if c not in counts_wide.columns:
+            counts_wide[c] = 0
+
+    # Sort by total counts
+    counts_wide["total_count"] = counts_wide[cols].sum(axis=1)
+    counts_wide = counts_wide.sort_values("total_count", ascending=False, ignore_index=True)
 
     # Save pair summary
     out.to_csv(os.path.join(root, "..", "output", pathogen_code, "activity_type_unit_pairs.csv"), index=False)
+
+    # Save pair summary
+    counts_wide.to_csv(os.path.join(root, "..", "output", pathogen_code, "activity_type_unit_comment.csv"), index=False)
 
     # Save cleaned data
     ChEMBL_pathogen.to_csv(os.path.join(root, "..", "output", pathogen_code, f"{pathogen_code}_ChEMBL_cleaned_data.csv.gz"), index=False)
@@ -109,11 +174,17 @@ for pathogen in pathogens:
     print("Collecting individual assay information...")
     print(f"Number of unique assays: {len(assays)}")
 
+    # Get assay to index mapping
+    assay_to_idx = defaultdict(list)
+    for i, assay_id in enumerate(ChEMBL_pathogen["assay_chembl_id"].to_numpy()):
+        assay_to_idx[assay_id].append(i)
+
     # For each assay
     for assay in tqdm(assays):
 
-        # Get subset of strain + assay data
-        df_ = ChEMBL_pathogen[ChEMBL_pathogen["assay_chembl_id"] == assay]
+
+        # Get subset of assay data
+        df_ = ChEMBL_pathogen.iloc[assay_to_idx[assay]]
         
         # Get values
         assay_type = list(set(df_['assay_type']))
@@ -141,27 +212,29 @@ for pathogen in pathogens:
             units = list(set(df__['unit']))
 
             for u in units:
-                if type(u) != str:
+
+
+                # If unit is nan
+                if pd.isna(u):
                     df___ = df__[df__["unit"].isna()]
                 else:
                     df___ = df__[df__["unit"] == u]
+
+                # Get metadata for that assay
                 unit = list(set(df___['unit']))
                 unit = only_one(unit, "unit")
                 activities = len(df___)
                 cpds = len(set(df___['compound_chembl_id']))
                 nan_values = len(df___[df___['value'].isna()])
                 direction = DIRECTIONS[(act_type, unit)] if (act_type, unit) in DIRECTIONS else np.nan
-                canonical_unit = canonical_map[act_type]
-                activity_comment = Counter(df___['activity_comment'].tolist())
-                standard_text = Counter(df___['standard_text'].tolist())
-                activity_comment = activity_comment[-1] + activity_comment[1]
-                standard_text = standard_text[-1] + standard_text[1]
+                text_flag = Counter(df___['text_flag'].tolist())
+                text_flag = text_flag[-1] + text_flag[1]
                 ASSAYS_INFO.append([assay, assay_type, assay_organism, doc_chembl_id, target_type, target_chembl_id, target_organism, activity_type, 
-                                    unit, canonical_unit, activities, nan_values, cpds, direction, activity_comment, standard_text])
+                                    unit, activities, nan_values, cpds, direction, text_flag])
                 
 
     ASSAYS_INFO = pd.DataFrame(ASSAYS_INFO, columns=["assay_id", "assay_type", "assay_organism", "doc_chembl_id", "target_type", "target_chembl_id", "target_organism", "activity_type", 
-                                                     "unit", "canonical_unit", "activities", 'nan_values', "cpds", "direction", "activity_comment_counts", 'standard_text_count'])
+                                                     "unit", "activities", 'nan_values', "cpds", "direction", "text_flag_counts"])
     ASSAYS_INFO = ASSAYS_INFO.sort_values('cpds', ascending=False).reset_index(drop=True)
 
     # Filter assays with too few compounds

@@ -142,20 +142,29 @@ Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
 
 ## Step 08. Cleaning individual pathogen data
 
-The script `08_clean_pathogen_activities.py` cleans organism-specific activity records for the selected pathogens and summarizes their associated assays. The cleaning steps are enumerated below:
+The script `08_clean_pathogen_activities.py` cleans organism-specific ChEMBL activity records for selected pathogens and produces summarized assay-level outputs. The main steps are:
 
-1. **Removing null activities**. Discarding activities with no numerical value or active/inactive flag in the `activity_comment` nor `standard_text` fields. 
+1. **Creating text-based activity flags**: Activity annotations in `activity_comment` and `standard_text` are consolidated into a single `text_flag` (-1, 0, +1). Conflicting annotations are not allowed.
 
-2. **Identifying activity directions**. For each activity type and unit pair, identifying the direction of the biological activity. 
+2. **Removing empty activities**: Activities lacking both a numerical value and a non-zero `text_flag` are discarded.
 
-3. **Removing unmodelable activities**. Keeping only those activities with [-1, +1] direction or active or inactive flag in the `activity_comment` nor `standard_text` fields.
+3. **Filtering by supported units**: Only activities with consensus units (from `unit_conversion.csv`) or missing units are retained.
 
-4. **Identifying canonical units**. For each activity type, identifying canonical units i.e. the most occurrying unit for that specific pathogen. 
+4. **Assigning activity direction**: Biological direction (-1, 0, +1) is assigned per (`activity_type`, `unit`) pair using manual curation.
 
-Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
-- `<pathogen_code>_ChEMBL_cleaned_data.csv`: Cleaned ChEMBL activity records for the selected pathogen (based on fields `target_organism` and `assay_organism`).
-- `activity_type_unit_pairs.csv`: List of unique activity type - unit pairs per pathogen, including counts, canonical unit flags, and assigned biological direction (when available). 
-- `assays_cleaned.csv`: List of cleaned assays with metadata (e.g., unit, activity type, compound count).
+5. **Removing unmodelable activities**: Activities are kept only if they have a clear direction (-1 or +1) or an active/inactive `text_flag`.
+
+6. **Summarizing activity type–unit pairs**: Unique (`activity_type`, `unit`) pairs are counted, annotated with direction, and ranked by frequency.
+
+7. **Aggregating cleaned assay data**: Assays are split by `activity_type` and `unit`, summarized with metadata (compound counts, missing values, direction, text annotations), and filtered by minimum assay size.
+
+Outputs are written to **output/<pathogen_code>/** and include:
+
+- `<pathogen_code>_ChEMBL_cleaned_data.csv.gz`: cleaned activity-level data for the selected pathogen (based on fields `target_organism` and `assay_organism`).
+- `activity_type_unit_pairs.csv`: counts and directions for activity type–unit combinations.
+- `activity_type_unit_comment.csv`: activity type summaries by unit availability and text annotations.
+- `assays_cleaned.csv`: cleaned and filtered assay-level metadata.
+
 
 ## Step 09. Calculating assay clusters
 

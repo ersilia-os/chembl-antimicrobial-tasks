@@ -64,7 +64,7 @@ for pathogen in pathogens:
     # For each assay
     for assay in tqdm(assays):
 
-        # Get subset of strain + assay data
+        # Get subset of assay data
         df_ = ChEMBL_pathogen.iloc[assay_to_idx[assay]]
         
         # Get values

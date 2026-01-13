@@ -164,7 +164,7 @@ Outputs are written to **output/<pathogen_code>/** and include:
 - `activity_type_unit_pairs.csv`: counts and directions for activity type–unit combinations.
 - `activity_type_unit_comment.csv`: activity type summaries by unit availability and text annotations.
 - `assays_cleaned.csv`: cleaned and filtered assay-level metadata.
-
+  
 
 ## Step 09. Calculating assay clusters
 

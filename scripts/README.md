@@ -48,7 +48,7 @@ Outputs are saved in the folder: `config/chembl_processed/`, and include:
 
 `compound_info.csv`: Compound table containing `molregno`, structural fields from `compound_structures.csv`, and the corresponding `chembl_id`.
 
-⏳ ETA: ~0 minutes.
+⏳ ETA: ~1 minute.
 
 ## Step 02. Saniziting and standardizing compounds
 
@@ -109,6 +109,9 @@ The script `06_preprocess_activity_data.py` produces a curated and standardized 
   - **-1** → lower value = more active (e.g. IC50)
   - **1** → higher value = more active (e.g. %INHIBITION)
   - **0** → unclear or inconclusive
+
+  Additionally, the script generates a summary table (`activity_std_units_counts_unit_comment.csv`, saved in `config/chembl_processed`) reporting, for each `activity_type`, the number of records with:
+  (i) unit + comment, (ii) no unit + comment, (iii) unit + no comment, and (iv) no unit + no comment. A comment is defined as present when either `activity_comment` or `standard_text` is non-zero The table is sorted by total record count per activity type and is intended for quick inspection of quantitative vs qualitative coverage.
 
 ⏳ ETA: ~15 minutes.
 

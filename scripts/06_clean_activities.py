@@ -232,8 +232,49 @@ s.value_counts(subset=["activity_type", "unit"], dropna=False)
 )
 total_count = out['count'].sum()
 out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
+out['manual_curation'] = np.nan
 out.to_csv(os.path.join(CONFIGPATH, "chembl_processed", "activity_std_units_curated.csv"), index=False)
 print(f"Total number of unique activity type - standard unit pairs: {len(out)}")
+
+# More on step 11.
+
+tmp = activities_all_raw[["activity_type", "unit", "activity_comment", "standard_text"]].copy()
+tmp["activity_type"] = tmp["activity_type"].fillna("")
+
+# Define interesting index
+tmp["has_unit"] = ~tmp["unit"].isna()
+ac = tmp["activity_comment"]
+st = tmp["standard_text"]
+tmp["has_comment"] = ~((ac == 0) & (st == 0))
+tmp["activity_type"] = tmp["activity_type"].fillna("")
+
+# Count per activity_type x (has_unit, has_comment)
+counts_long = (
+    tmp.groupby(["activity_type", "has_unit", "has_comment"], dropna=False)
+      .size()
+      .reset_index(name="count"))
+
+# Pivot to wide: one row per activity_type, 4 count columns
+cols = ["unit_comment", "nounit_comment", "unit_nocomment", "nounit_no_comment"]
+counts_wide = (
+    counts_long
+    .assign(
+        bucket=np.select(
+            [
+                counts_long["has_unit"] & counts_long["has_comment"],
+                ~counts_long["has_unit"] & counts_long["has_comment"],
+                counts_long["has_unit"] & ~counts_long["has_comment"],
+                ~counts_long["has_unit"] & ~counts_long["has_comment"],
+            ],
+            cols)))
+
+counts_wide = counts_wide.pivot_table(index="activity_type", columns="bucket", values="count",
+                 fill_value=0, aggfunc="sum").reset_index()
+
+# Sort by total counts
+counts_wide["total_count"] = counts_wide[cols].sum(axis=1)
+counts_wide = counts_wide.sort_values("total_count", ascending=False, ignore_index=True)
+counts_wide.to_csv(os.path.join(CONFIGPATH, "chembl_processed", "activity_std_units_counts_unit_comment.csv"), index=False)
 
 print("Saving results...")
 activities_all_raw.to_csv(os.path.join(CONFIGPATH, 'chembl_processed', 'activities_preprocessed.csv'), index=False)

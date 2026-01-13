@@ -1,3 +1,4 @@
+from collections import defaultdict
 from collections import Counter
 from tqdm import tqdm
 import pandas as pd
@@ -41,7 +42,7 @@ for pathogen in pathogens:
     df.to_csv(os.path.join(PATH_TO_OUTPUT, "target_organism_counts.csv"), index=False)
     ChEMBL_pathogen.to_csv(os.path.join(PATH_TO_OUTPUT, f"{pathogen_code}_ChEMBL_raw_data.csv.gz"), index=False)
     pair_counts = ChEMBL_pathogen[['compound_chembl_id', 'canonical_smiles']].value_counts().reset_index(name='count')
-    pair_counts.to_csv(os.path.join(root, "..", "output", pathogen_code, "compound_counts.csv.gz"), index=False)
+    pair_counts.to_csv(os.path.join(PATH_TO_OUTPUT, "compound_counts.csv.gz"), index=False)
 
     # Helper function - is there only a single value?
     def only_one(values, name):
@@ -52,6 +53,11 @@ for pathogen in pathogens:
     # Get unique assays
     assays = sorted(set(ChEMBL_pathogen['assay_chembl_id']))
 
+    # Get assay to index mapping
+    assay_to_idx = defaultdict(list)
+    for i, assay_id in enumerate(ChEMBL_pathogen["assay_chembl_id"].to_numpy()):
+        assay_to_idx[assay_id].append(i)
+
     ASSAYS_INFO = []
     print("Collecting individual assay information...")
 
@@ -59,7 +65,7 @@ for pathogen in pathogens:
     for assay in tqdm(assays):
 
         # Get subset of strain + assay data
-        df_ = ChEMBL_pathogen[ChEMBL_pathogen["assay_chembl_id"] == assay]
+        df_ = ChEMBL_pathogen.iloc[assay_to_idx[assay]]
         
         # Get values
         assay_type = list(set(df_['assay_type']))
@@ -87,10 +93,14 @@ for pathogen in pathogens:
             units = list(set(df__['unit']))
 
             for u in units:
-                if type(u) != str:
+
+                # If unit is nan
+                if pd.isna(u):
                     df___ = df__[df__["unit"].isna()]
                 else:
                     df___ = df__[df__["unit"] == u]
+
+                # Get metadata for that assay
                 unit = list(set(df___['unit']))
                 unit = only_one(unit, "unit")
                 activities = len(df___)

@@ -1,7 +1,8 @@
-config/*
+config/**
 output/*
 tmp/*
 
+!config/
 !config/chembl_activities/
 !config/chembl_activities/standard_text.csv
 !config/chembl_activities/bioassay_ontology.csv
@@ -232,5 +233,3 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
-/config
-/output

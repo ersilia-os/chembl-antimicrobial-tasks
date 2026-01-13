@@ -1,0 +1,616 @@
+activity_type,unit,target_type,direction,pathogen_code,expert_cutoff
+MIC,umol.L-1,ORGANISM,-1.0,abaumannii,10.0
+MIC,umol.L-1,ORGANISM,-1.0,calbicans,10.0
+MIC,umol.L-1,ORGANISM,-1.0,campylobacter,10.0
+MIC,umol.L-1,ORGANISM,-1.0,ecoli,10.0
+MIC,umol.L-1,ORGANISM,-1.0,efaecium,10.0
+MIC,umol.L-1,ORGANISM,-1.0,enterobacter,10.0
+MIC,umol.L-1,ORGANISM,-1.0,hpylori,10.0
+MIC,umol.L-1,ORGANISM,-1.0,kpneumoniae,10.0
+MIC,umol.L-1,ORGANISM,-1.0,mtuberculosis,10.0
+MIC,umol.L-1,ORGANISM,-1.0,ngonorrhoeae,10.0
+MIC,umol.L-1,ORGANISM,-1.0,paeruginosa,10.0
+MIC,umol.L-1,ORGANISM,-1.0,pfalciparum,10.0
+MIC,umol.L-1,ORGANISM,-1.0,saureus,10.0
+MIC,umol.L-1,ORGANISM,-1.0,smansoni,10.0
+MIC,umol.L-1,ORGANISM,-1.0,spneumoniae,10.0
+INHIBITION,%,ORGANISM,1.0,abaumannii,50.0
+INHIBITION,%,ORGANISM,1.0,calbicans,50.0
+INHIBITION,%,ORGANISM,1.0,campylobacter,50.0
+INHIBITION,%,ORGANISM,1.0,ecoli,50.0
+INHIBITION,%,ORGANISM,1.0,efaecium,50.0
+INHIBITION,%,ORGANISM,1.0,enterobacter,50.0
+INHIBITION,%,ORGANISM,1.0,hpylori,50.0
+INHIBITION,%,ORGANISM,1.0,kpneumoniae,50.0
+INHIBITION,%,ORGANISM,1.0,mtuberculosis,50.0
+INHIBITION,%,ORGANISM,1.0,ngonorrhoeae,50.0
+INHIBITION,%,ORGANISM,1.0,paeruginosa,50.0
+INHIBITION,%,ORGANISM,1.0,pfalciparum,50.0
+INHIBITION,%,ORGANISM,1.0,saureus,50.0
+INHIBITION,%,ORGANISM,1.0,smansoni,50.0
+INHIBITION,%,ORGANISM,1.0,spneumoniae,50.0
+POTENCY,umol.L-1,ORGANISM,-1.0,abaumannii,10.0
+POTENCY,umol.L-1,ORGANISM,-1.0,calbicans,10.0
+POTENCY,umol.L-1,ORGANISM,-1.0,campylobacter,10.0
+POTENCY,umol.L-1,ORGANISM,-1.0,ecoli,10.0
+POTENCY,umol.L-1,ORGANISM,-1.0,efaecium,10.0
+POTENCY,umol.L-1,ORGANISM,-1.0,enterobacter,10.0
+POTENCY,umol.L-1,ORGANISM,-1.0,hpylori,10.0
+POTENCY,umol.L-1,ORGANISM,-1.0,kpneumoniae,10.0
+POTENCY,umol.L-1,ORGANISM,-1.0,mtuberculosis,10.0
+POTENCY,umol.L-1,ORGANISM,-1.0,ngonorrhoeae,10.0
+POTENCY,umol.L-1,ORGANISM,-1.0,paeruginosa,10.0
+POTENCY,umol.L-1,ORGANISM,-1.0,pfalciparum,10.0
+POTENCY,umol.L-1,ORGANISM,-1.0,saureus,10.0
+POTENCY,umol.L-1,ORGANISM,-1.0,smansoni,10.0
+POTENCY,umol.L-1,ORGANISM,-1.0,spneumoniae,10.0
+PERCENTEFFECT,%,SINGLE PROTEIN,1.0,abaumannii,50.0
+PERCENTEFFECT,%,SINGLE PROTEIN,1.0,calbicans,50.0
+PERCENTEFFECT,%,SINGLE PROTEIN,1.0,campylobacter,50.0
+PERCENTEFFECT,%,SINGLE PROTEIN,1.0,ecoli,50.0
+PERCENTEFFECT,%,SINGLE PROTEIN,1.0,efaecium,50.0
+PERCENTEFFECT,%,SINGLE PROTEIN,1.0,enterobacter,50.0
+PERCENTEFFECT,%,SINGLE PROTEIN,1.0,hpylori,50.0
+PERCENTEFFECT,%,SINGLE PROTEIN,1.0,kpneumoniae,50.0
+PERCENTEFFECT,%,SINGLE PROTEIN,1.0,mtuberculosis,50.0
+PERCENTEFFECT,%,SINGLE PROTEIN,1.0,ngonorrhoeae,50.0
+PERCENTEFFECT,%,SINGLE PROTEIN,1.0,paeruginosa,50.0
+PERCENTEFFECT,%,SINGLE PROTEIN,1.0,pfalciparum,50.0
+PERCENTEFFECT,%,SINGLE PROTEIN,1.0,saureus,50.0
+PERCENTEFFECT,%,SINGLE PROTEIN,1.0,smansoni,50.0
+PERCENTEFFECT,%,SINGLE PROTEIN,1.0,spneumoniae,50.0
+PERCENTEFFECT,%,ORGANISM,1.0,abaumannii,50.0
+PERCENTEFFECT,%,ORGANISM,1.0,calbicans,50.0
+PERCENTEFFECT,%,ORGANISM,1.0,campylobacter,50.0
+PERCENTEFFECT,%,ORGANISM,1.0,ecoli,50.0
+PERCENTEFFECT,%,ORGANISM,1.0,efaecium,50.0
+PERCENTEFFECT,%,ORGANISM,1.0,enterobacter,50.0
+PERCENTEFFECT,%,ORGANISM,1.0,hpylori,50.0
+PERCENTEFFECT,%,ORGANISM,1.0,kpneumoniae,50.0
+PERCENTEFFECT,%,ORGANISM,1.0,mtuberculosis,50.0
+PERCENTEFFECT,%,ORGANISM,1.0,ngonorrhoeae,50.0
+PERCENTEFFECT,%,ORGANISM,1.0,paeruginosa,50.0
+PERCENTEFFECT,%,ORGANISM,1.0,pfalciparum,50.0
+PERCENTEFFECT,%,ORGANISM,1.0,saureus,50.0
+PERCENTEFFECT,%,ORGANISM,1.0,smansoni,50.0
+PERCENTEFFECT,%,ORGANISM,1.0,spneumoniae,50.0
+POTENCY,umol.L-1,SINGLE PROTEIN,-1.0,abaumannii,1.0
+POTENCY,umol.L-1,SINGLE PROTEIN,-1.0,calbicans,1.0
+POTENCY,umol.L-1,SINGLE PROTEIN,-1.0,campylobacter,1.0
+POTENCY,umol.L-1,SINGLE PROTEIN,-1.0,ecoli,1.0
+POTENCY,umol.L-1,SINGLE PROTEIN,-1.0,efaecium,1.0
+POTENCY,umol.L-1,SINGLE PROTEIN,-1.0,enterobacter,1.0
+POTENCY,umol.L-1,SINGLE PROTEIN,-1.0,hpylori,1.0
+POTENCY,umol.L-1,SINGLE PROTEIN,-1.0,kpneumoniae,1.0
+POTENCY,umol.L-1,SINGLE PROTEIN,-1.0,mtuberculosis,1.0
+POTENCY,umol.L-1,SINGLE PROTEIN,-1.0,ngonorrhoeae,1.0
+POTENCY,umol.L-1,SINGLE PROTEIN,-1.0,paeruginosa,1.0
+POTENCY,umol.L-1,SINGLE PROTEIN,-1.0,pfalciparum,1.0
+POTENCY,umol.L-1,SINGLE PROTEIN,-1.0,saureus,1.0
+POTENCY,umol.L-1,SINGLE PROTEIN,-1.0,smansoni,1.0
+POTENCY,umol.L-1,SINGLE PROTEIN,-1.0,spneumoniae,1.0
+PERCENTEFFECT,%,PROTEIN COMPLEX,1.0,abaumannii,
+PERCENTEFFECT,%,PROTEIN COMPLEX,1.0,calbicans,
+PERCENTEFFECT,%,PROTEIN COMPLEX,1.0,campylobacter,
+PERCENTEFFECT,%,PROTEIN COMPLEX,1.0,ecoli,
+PERCENTEFFECT,%,PROTEIN COMPLEX,1.0,efaecium,
+PERCENTEFFECT,%,PROTEIN COMPLEX,1.0,enterobacter,
+PERCENTEFFECT,%,PROTEIN COMPLEX,1.0,hpylori,
+PERCENTEFFECT,%,PROTEIN COMPLEX,1.0,kpneumoniae,
+PERCENTEFFECT,%,PROTEIN COMPLEX,1.0,mtuberculosis,
+PERCENTEFFECT,%,PROTEIN COMPLEX,1.0,ngonorrhoeae,
+PERCENTEFFECT,%,PROTEIN COMPLEX,1.0,paeruginosa,
+PERCENTEFFECT,%,PROTEIN COMPLEX,1.0,pfalciparum,
+PERCENTEFFECT,%,PROTEIN COMPLEX,1.0,saureus,
+PERCENTEFFECT,%,PROTEIN COMPLEX,1.0,smansoni,
+PERCENTEFFECT,%,PROTEIN COMPLEX,1.0,spneumoniae,
+IC50,umol.L-1,ORGANISM,-1.0,abaumannii,10.0
+IC50,umol.L-1,ORGANISM,-1.0,calbicans,10.0
+IC50,umol.L-1,ORGANISM,-1.0,campylobacter,10.0
+IC50,umol.L-1,ORGANISM,-1.0,ecoli,10.0
+IC50,umol.L-1,ORGANISM,-1.0,efaecium,10.0
+IC50,umol.L-1,ORGANISM,-1.0,enterobacter,10.0
+IC50,umol.L-1,ORGANISM,-1.0,hpylori,10.0
+IC50,umol.L-1,ORGANISM,-1.0,kpneumoniae,10.0
+IC50,umol.L-1,ORGANISM,-1.0,mtuberculosis,10.0
+IC50,umol.L-1,ORGANISM,-1.0,ngonorrhoeae,10.0
+IC50,umol.L-1,ORGANISM,-1.0,paeruginosa,10.0
+IC50,umol.L-1,ORGANISM,-1.0,pfalciparum,10.0
+IC50,umol.L-1,ORGANISM,-1.0,saureus,10.0
+IC50,umol.L-1,ORGANISM,-1.0,smansoni,10.0
+IC50,umol.L-1,ORGANISM,-1.0,spneumoniae,10.0
+IZ,mm,ORGANISM,1.0,abaumannii,10.0
+IZ,mm,ORGANISM,1.0,calbicans,10.0
+IZ,mm,ORGANISM,1.0,campylobacter,10.0
+IZ,mm,ORGANISM,1.0,ecoli,10.0
+IZ,mm,ORGANISM,1.0,efaecium,10.0
+IZ,mm,ORGANISM,1.0,enterobacter,10.0
+IZ,mm,ORGANISM,1.0,hpylori,10.0
+IZ,mm,ORGANISM,1.0,kpneumoniae,10.0
+IZ,mm,ORGANISM,1.0,mtuberculosis,10.0
+IZ,mm,ORGANISM,1.0,ngonorrhoeae,10.0
+IZ,mm,ORGANISM,1.0,paeruginosa,10.0
+IZ,mm,ORGANISM,1.0,pfalciparum,10.0
+IZ,mm,ORGANISM,1.0,saureus,10.0
+IZ,mm,ORGANISM,1.0,smansoni,10.0
+IZ,mm,ORGANISM,1.0,spneumoniae,10.0
+IC50,umol.L-1,SINGLE PROTEIN,-1.0,abaumannii,1.0
+IC50,umol.L-1,SINGLE PROTEIN,-1.0,calbicans,1.0
+IC50,umol.L-1,SINGLE PROTEIN,-1.0,campylobacter,1.0
+IC50,umol.L-1,SINGLE PROTEIN,-1.0,ecoli,1.0
+IC50,umol.L-1,SINGLE PROTEIN,-1.0,efaecium,1.0
+IC50,umol.L-1,SINGLE PROTEIN,-1.0,enterobacter,1.0
+IC50,umol.L-1,SINGLE PROTEIN,-1.0,hpylori,1.0
+IC50,umol.L-1,SINGLE PROTEIN,-1.0,kpneumoniae,1.0
+IC50,umol.L-1,SINGLE PROTEIN,-1.0,mtuberculosis,1.0
+IC50,umol.L-1,SINGLE PROTEIN,-1.0,ngonorrhoeae,1.0
+IC50,umol.L-1,SINGLE PROTEIN,-1.0,paeruginosa,1.0
+IC50,umol.L-1,SINGLE PROTEIN,-1.0,pfalciparum,1.0
+IC50,umol.L-1,SINGLE PROTEIN,-1.0,saureus,1.0
+IC50,umol.L-1,SINGLE PROTEIN,-1.0,smansoni,1.0
+IC50,umol.L-1,SINGLE PROTEIN,-1.0,spneumoniae,1.0
+EC50,umol.L-1,ORGANISM,-1.0,abaumannii,10.0
+EC50,umol.L-1,ORGANISM,-1.0,calbicans,10.0
+EC50,umol.L-1,ORGANISM,-1.0,campylobacter,10.0
+EC50,umol.L-1,ORGANISM,-1.0,ecoli,10.0
+EC50,umol.L-1,ORGANISM,-1.0,efaecium,10.0
+EC50,umol.L-1,ORGANISM,-1.0,enterobacter,10.0
+EC50,umol.L-1,ORGANISM,-1.0,hpylori,10.0
+EC50,umol.L-1,ORGANISM,-1.0,kpneumoniae,10.0
+EC50,umol.L-1,ORGANISM,-1.0,mtuberculosis,10.0
+EC50,umol.L-1,ORGANISM,-1.0,ngonorrhoeae,10.0
+EC50,umol.L-1,ORGANISM,-1.0,paeruginosa,10.0
+EC50,umol.L-1,ORGANISM,-1.0,pfalciparum,10.0
+EC50,umol.L-1,ORGANISM,-1.0,saureus,10.0
+EC50,umol.L-1,ORGANISM,-1.0,smansoni,10.0
+EC50,umol.L-1,ORGANISM,-1.0,spneumoniae,10.0
+INHIBITION,%,SINGLE PROTEIN,1.0,abaumannii,50.0
+INHIBITION,%,SINGLE PROTEIN,1.0,calbicans,50.0
+INHIBITION,%,SINGLE PROTEIN,1.0,campylobacter,50.0
+INHIBITION,%,SINGLE PROTEIN,1.0,ecoli,50.0
+INHIBITION,%,SINGLE PROTEIN,1.0,efaecium,50.0
+INHIBITION,%,SINGLE PROTEIN,1.0,enterobacter,50.0
+INHIBITION,%,SINGLE PROTEIN,1.0,hpylori,50.0
+INHIBITION,%,SINGLE PROTEIN,1.0,kpneumoniae,50.0
+INHIBITION,%,SINGLE PROTEIN,1.0,mtuberculosis,50.0
+INHIBITION,%,SINGLE PROTEIN,1.0,ngonorrhoeae,50.0
+INHIBITION,%,SINGLE PROTEIN,1.0,paeruginosa,50.0
+INHIBITION,%,SINGLE PROTEIN,1.0,pfalciparum,50.0
+INHIBITION,%,SINGLE PROTEIN,1.0,saureus,50.0
+INHIBITION,%,SINGLE PROTEIN,1.0,smansoni,50.0
+INHIBITION,%,SINGLE PROTEIN,1.0,spneumoniae,50.0
+MIC90,umol.L-1,ORGANISM,-1.0,abaumannii,10.0
+MIC90,umol.L-1,ORGANISM,-1.0,calbicans,10.0
+MIC90,umol.L-1,ORGANISM,-1.0,campylobacter,10.0
+MIC90,umol.L-1,ORGANISM,-1.0,ecoli,10.0
+MIC90,umol.L-1,ORGANISM,-1.0,efaecium,10.0
+MIC90,umol.L-1,ORGANISM,-1.0,enterobacter,10.0
+MIC90,umol.L-1,ORGANISM,-1.0,hpylori,10.0
+MIC90,umol.L-1,ORGANISM,-1.0,kpneumoniae,10.0
+MIC90,umol.L-1,ORGANISM,-1.0,mtuberculosis,10.0
+MIC90,umol.L-1,ORGANISM,-1.0,ngonorrhoeae,10.0
+MIC90,umol.L-1,ORGANISM,-1.0,paeruginosa,10.0
+MIC90,umol.L-1,ORGANISM,-1.0,pfalciparum,10.0
+MIC90,umol.L-1,ORGANISM,-1.0,saureus,10.0
+MIC90,umol.L-1,ORGANISM,-1.0,smansoni,10.0
+MIC90,umol.L-1,ORGANISM,-1.0,spneumoniae,10.0
+ACTIVITY,%,ORGANISM,1.0,abaumannii,50.0
+ACTIVITY,%,ORGANISM,1.0,calbicans,50.0
+ACTIVITY,%,ORGANISM,1.0,campylobacter,50.0
+ACTIVITY,%,ORGANISM,1.0,ecoli,50.0
+ACTIVITY,%,ORGANISM,1.0,efaecium,50.0
+ACTIVITY,%,ORGANISM,1.0,enterobacter,50.0
+ACTIVITY,%,ORGANISM,1.0,hpylori,50.0
+ACTIVITY,%,ORGANISM,1.0,kpneumoniae,50.0
+ACTIVITY,%,ORGANISM,1.0,mtuberculosis,50.0
+ACTIVITY,%,ORGANISM,1.0,ngonorrhoeae,50.0
+ACTIVITY,%,ORGANISM,1.0,paeruginosa,50.0
+ACTIVITY,%,ORGANISM,1.0,pfalciparum,50.0
+ACTIVITY,%,ORGANISM,1.0,saureus,50.0
+ACTIVITY,%,ORGANISM,1.0,smansoni,50.0
+ACTIVITY,%,ORGANISM,1.0,spneumoniae,50.0
+MIC50,umol.L-1,ORGANISM,-1.0,abaumannii,10.0
+MIC50,umol.L-1,ORGANISM,-1.0,calbicans,10.0
+MIC50,umol.L-1,ORGANISM,-1.0,campylobacter,10.0
+MIC50,umol.L-1,ORGANISM,-1.0,ecoli,10.0
+MIC50,umol.L-1,ORGANISM,-1.0,efaecium,10.0
+MIC50,umol.L-1,ORGANISM,-1.0,enterobacter,10.0
+MIC50,umol.L-1,ORGANISM,-1.0,hpylori,10.0
+MIC50,umol.L-1,ORGANISM,-1.0,kpneumoniae,10.0
+MIC50,umol.L-1,ORGANISM,-1.0,mtuberculosis,10.0
+MIC50,umol.L-1,ORGANISM,-1.0,ngonorrhoeae,10.0
+MIC50,umol.L-1,ORGANISM,-1.0,paeruginosa,10.0
+MIC50,umol.L-1,ORGANISM,-1.0,pfalciparum,10.0
+MIC50,umol.L-1,ORGANISM,-1.0,saureus,10.0
+MIC50,umol.L-1,ORGANISM,-1.0,smansoni,10.0
+MIC50,umol.L-1,ORGANISM,-1.0,spneumoniae,10.0
+GI,%,ORGANISM,1.0,abaumannii,50.0
+GI,%,ORGANISM,1.0,calbicans,50.0
+GI,%,ORGANISM,1.0,campylobacter,50.0
+GI,%,ORGANISM,1.0,ecoli,50.0
+GI,%,ORGANISM,1.0,efaecium,50.0
+GI,%,ORGANISM,1.0,enterobacter,50.0
+GI,%,ORGANISM,1.0,hpylori,50.0
+GI,%,ORGANISM,1.0,kpneumoniae,50.0
+GI,%,ORGANISM,1.0,mtuberculosis,50.0
+GI,%,ORGANISM,1.0,ngonorrhoeae,50.0
+GI,%,ORGANISM,1.0,paeruginosa,50.0
+GI,%,ORGANISM,1.0,pfalciparum,50.0
+GI,%,ORGANISM,1.0,saureus,50.0
+GI,%,ORGANISM,1.0,smansoni,50.0
+GI,%,ORGANISM,1.0,spneumoniae,50.0
+MIC80,umol.L-1,ORGANISM,-1.0,abaumannii,10.0
+MIC80,umol.L-1,ORGANISM,-1.0,calbicans,10.0
+MIC80,umol.L-1,ORGANISM,-1.0,campylobacter,10.0
+MIC80,umol.L-1,ORGANISM,-1.0,ecoli,10.0
+MIC80,umol.L-1,ORGANISM,-1.0,efaecium,10.0
+MIC80,umol.L-1,ORGANISM,-1.0,enterobacter,10.0
+MIC80,umol.L-1,ORGANISM,-1.0,hpylori,10.0
+MIC80,umol.L-1,ORGANISM,-1.0,kpneumoniae,10.0
+MIC80,umol.L-1,ORGANISM,-1.0,mtuberculosis,10.0
+MIC80,umol.L-1,ORGANISM,-1.0,ngonorrhoeae,10.0
+MIC80,umol.L-1,ORGANISM,-1.0,paeruginosa,10.0
+MIC80,umol.L-1,ORGANISM,-1.0,pfalciparum,10.0
+MIC80,umol.L-1,ORGANISM,-1.0,saureus,10.0
+MIC80,umol.L-1,ORGANISM,-1.0,smansoni,10.0
+MIC80,umol.L-1,ORGANISM,-1.0,spneumoniae,10.0
+MIC99,umol.L-1,ORGANISM,-1.0,abaumannii,10.0
+MIC99,umol.L-1,ORGANISM,-1.0,calbicans,10.0
+MIC99,umol.L-1,ORGANISM,-1.0,campylobacter,10.0
+MIC99,umol.L-1,ORGANISM,-1.0,ecoli,10.0
+MIC99,umol.L-1,ORGANISM,-1.0,efaecium,10.0
+MIC99,umol.L-1,ORGANISM,-1.0,enterobacter,10.0
+MIC99,umol.L-1,ORGANISM,-1.0,hpylori,10.0
+MIC99,umol.L-1,ORGANISM,-1.0,kpneumoniae,10.0
+MIC99,umol.L-1,ORGANISM,-1.0,mtuberculosis,10.0
+MIC99,umol.L-1,ORGANISM,-1.0,ngonorrhoeae,10.0
+MIC99,umol.L-1,ORGANISM,-1.0,paeruginosa,10.0
+MIC99,umol.L-1,ORGANISM,-1.0,pfalciparum,10.0
+MIC99,umol.L-1,ORGANISM,-1.0,saureus,10.0
+MIC99,umol.L-1,ORGANISM,-1.0,smansoni,10.0
+MIC99,umol.L-1,ORGANISM,-1.0,spneumoniae,10.0
+KI,umol.L-1,SINGLE PROTEIN,-1.0,abaumannii,1.0
+KI,umol.L-1,SINGLE PROTEIN,-1.0,calbicans,1.0
+KI,umol.L-1,SINGLE PROTEIN,-1.0,campylobacter,1.0
+KI,umol.L-1,SINGLE PROTEIN,-1.0,ecoli,1.0
+KI,umol.L-1,SINGLE PROTEIN,-1.0,efaecium,1.0
+KI,umol.L-1,SINGLE PROTEIN,-1.0,enterobacter,1.0
+KI,umol.L-1,SINGLE PROTEIN,-1.0,hpylori,1.0
+KI,umol.L-1,SINGLE PROTEIN,-1.0,kpneumoniae,1.0
+KI,umol.L-1,SINGLE PROTEIN,-1.0,mtuberculosis,1.0
+KI,umol.L-1,SINGLE PROTEIN,-1.0,ngonorrhoeae,1.0
+KI,umol.L-1,SINGLE PROTEIN,-1.0,paeruginosa,1.0
+KI,umol.L-1,SINGLE PROTEIN,-1.0,pfalciparum,1.0
+KI,umol.L-1,SINGLE PROTEIN,-1.0,saureus,1.0
+KI,umol.L-1,SINGLE PROTEIN,-1.0,smansoni,1.0
+KI,umol.L-1,SINGLE PROTEIN,-1.0,spneumoniae,1.0
+AC50,umol.L-1,SINGLE PROTEIN,-1.0,abaumannii,1.0
+AC50,umol.L-1,SINGLE PROTEIN,-1.0,calbicans,1.0
+AC50,umol.L-1,SINGLE PROTEIN,-1.0,campylobacter,1.0
+AC50,umol.L-1,SINGLE PROTEIN,-1.0,ecoli,1.0
+AC50,umol.L-1,SINGLE PROTEIN,-1.0,efaecium,1.0
+AC50,umol.L-1,SINGLE PROTEIN,-1.0,enterobacter,1.0
+AC50,umol.L-1,SINGLE PROTEIN,-1.0,hpylori,1.0
+AC50,umol.L-1,SINGLE PROTEIN,-1.0,kpneumoniae,1.0
+AC50,umol.L-1,SINGLE PROTEIN,-1.0,mtuberculosis,1.0
+AC50,umol.L-1,SINGLE PROTEIN,-1.0,ngonorrhoeae,1.0
+AC50,umol.L-1,SINGLE PROTEIN,-1.0,paeruginosa,1.0
+AC50,umol.L-1,SINGLE PROTEIN,-1.0,pfalciparum,1.0
+AC50,umol.L-1,SINGLE PROTEIN,-1.0,saureus,1.0
+AC50,umol.L-1,SINGLE PROTEIN,-1.0,smansoni,1.0
+AC50,umol.L-1,SINGLE PROTEIN,-1.0,spneumoniae,1.0
+IC50,umol.L-1,PROTEIN COMPLEX,-1.0,abaumannii,
+IC50,umol.L-1,PROTEIN COMPLEX,-1.0,calbicans,
+IC50,umol.L-1,PROTEIN COMPLEX,-1.0,campylobacter,
+IC50,umol.L-1,PROTEIN COMPLEX,-1.0,ecoli,
+IC50,umol.L-1,PROTEIN COMPLEX,-1.0,efaecium,
+IC50,umol.L-1,PROTEIN COMPLEX,-1.0,enterobacter,
+IC50,umol.L-1,PROTEIN COMPLEX,-1.0,hpylori,
+IC50,umol.L-1,PROTEIN COMPLEX,-1.0,kpneumoniae,
+IC50,umol.L-1,PROTEIN COMPLEX,-1.0,mtuberculosis,
+IC50,umol.L-1,PROTEIN COMPLEX,-1.0,ngonorrhoeae,
+IC50,umol.L-1,PROTEIN COMPLEX,-1.0,paeruginosa,
+IC50,umol.L-1,PROTEIN COMPLEX,-1.0,pfalciparum,
+IC50,umol.L-1,PROTEIN COMPLEX,-1.0,saureus,
+IC50,umol.L-1,PROTEIN COMPLEX,-1.0,smansoni,
+IC50,umol.L-1,PROTEIN COMPLEX,-1.0,spneumoniae,
+EC50,umol.L-1,SINGLE PROTEIN,-1.0,abaumannii,1.0
+EC50,umol.L-1,SINGLE PROTEIN,-1.0,calbicans,1.0
+EC50,umol.L-1,SINGLE PROTEIN,-1.0,campylobacter,1.0
+EC50,umol.L-1,SINGLE PROTEIN,-1.0,ecoli,1.0
+EC50,umol.L-1,SINGLE PROTEIN,-1.0,efaecium,1.0
+EC50,umol.L-1,SINGLE PROTEIN,-1.0,enterobacter,1.0
+EC50,umol.L-1,SINGLE PROTEIN,-1.0,hpylori,1.0
+EC50,umol.L-1,SINGLE PROTEIN,-1.0,kpneumoniae,1.0
+EC50,umol.L-1,SINGLE PROTEIN,-1.0,mtuberculosis,1.0
+EC50,umol.L-1,SINGLE PROTEIN,-1.0,ngonorrhoeae,1.0
+EC50,umol.L-1,SINGLE PROTEIN,-1.0,paeruginosa,1.0
+EC50,umol.L-1,SINGLE PROTEIN,-1.0,pfalciparum,1.0
+EC50,umol.L-1,SINGLE PROTEIN,-1.0,saureus,1.0
+EC50,umol.L-1,SINGLE PROTEIN,-1.0,smansoni,1.0
+EC50,umol.L-1,SINGLE PROTEIN,-1.0,spneumoniae,1.0
+IC90,umol.L-1,ORGANISM,-1.0,abaumannii,10.0
+IC90,umol.L-1,ORGANISM,-1.0,calbicans,10.0
+IC90,umol.L-1,ORGANISM,-1.0,campylobacter,10.0
+IC90,umol.L-1,ORGANISM,-1.0,ecoli,10.0
+IC90,umol.L-1,ORGANISM,-1.0,efaecium,10.0
+IC90,umol.L-1,ORGANISM,-1.0,enterobacter,10.0
+IC90,umol.L-1,ORGANISM,-1.0,hpylori,10.0
+IC90,umol.L-1,ORGANISM,-1.0,kpneumoniae,10.0
+IC90,umol.L-1,ORGANISM,-1.0,mtuberculosis,10.0
+IC90,umol.L-1,ORGANISM,-1.0,ngonorrhoeae,10.0
+IC90,umol.L-1,ORGANISM,-1.0,paeruginosa,10.0
+IC90,umol.L-1,ORGANISM,-1.0,pfalciparum,10.0
+IC90,umol.L-1,ORGANISM,-1.0,saureus,10.0
+IC90,umol.L-1,ORGANISM,-1.0,smansoni,10.0
+IC90,umol.L-1,ORGANISM,-1.0,spneumoniae,10.0
+ACTIVITY,%,SINGLE PROTEIN,1.0,abaumannii,50.0
+ACTIVITY,%,SINGLE PROTEIN,1.0,calbicans,50.0
+ACTIVITY,%,SINGLE PROTEIN,1.0,campylobacter,50.0
+ACTIVITY,%,SINGLE PROTEIN,1.0,ecoli,50.0
+ACTIVITY,%,SINGLE PROTEIN,1.0,efaecium,50.0
+ACTIVITY,%,SINGLE PROTEIN,1.0,enterobacter,50.0
+ACTIVITY,%,SINGLE PROTEIN,1.0,hpylori,50.0
+ACTIVITY,%,SINGLE PROTEIN,1.0,kpneumoniae,50.0
+ACTIVITY,%,SINGLE PROTEIN,1.0,mtuberculosis,50.0
+ACTIVITY,%,SINGLE PROTEIN,1.0,ngonorrhoeae,50.0
+ACTIVITY,%,SINGLE PROTEIN,1.0,paeruginosa,50.0
+ACTIVITY,%,SINGLE PROTEIN,1.0,pfalciparum,50.0
+ACTIVITY,%,SINGLE PROTEIN,1.0,saureus,50.0
+ACTIVITY,%,SINGLE PROTEIN,1.0,smansoni,50.0
+ACTIVITY,%,SINGLE PROTEIN,1.0,spneumoniae,50.0
+ED50,ug.mg-1,ORGANISM,-1.0,abaumannii,
+ED50,ug.mg-1,ORGANISM,-1.0,calbicans,
+ED50,ug.mg-1,ORGANISM,-1.0,campylobacter,
+ED50,ug.mg-1,ORGANISM,-1.0,ecoli,
+ED50,ug.mg-1,ORGANISM,-1.0,efaecium,
+ED50,ug.mg-1,ORGANISM,-1.0,enterobacter,
+ED50,ug.mg-1,ORGANISM,-1.0,hpylori,
+ED50,ug.mg-1,ORGANISM,-1.0,kpneumoniae,
+ED50,ug.mg-1,ORGANISM,-1.0,mtuberculosis,
+ED50,ug.mg-1,ORGANISM,-1.0,ngonorrhoeae,
+ED50,ug.mg-1,ORGANISM,-1.0,paeruginosa,
+ED50,ug.mg-1,ORGANISM,-1.0,pfalciparum,
+ED50,ug.mg-1,ORGANISM,-1.0,saureus,
+ED50,ug.mg-1,ORGANISM,-1.0,smansoni,
+ED50,ug.mg-1,ORGANISM,-1.0,spneumoniae,
+MIC,umol.L-1,SINGLE PROTEIN,-1.0,abaumannii,1.0
+MIC,umol.L-1,SINGLE PROTEIN,-1.0,calbicans,1.0
+MIC,umol.L-1,SINGLE PROTEIN,-1.0,campylobacter,1.0
+MIC,umol.L-1,SINGLE PROTEIN,-1.0,ecoli,1.0
+MIC,umol.L-1,SINGLE PROTEIN,-1.0,efaecium,1.0
+MIC,umol.L-1,SINGLE PROTEIN,-1.0,enterobacter,1.0
+MIC,umol.L-1,SINGLE PROTEIN,-1.0,hpylori,1.0
+MIC,umol.L-1,SINGLE PROTEIN,-1.0,kpneumoniae,1.0
+MIC,umol.L-1,SINGLE PROTEIN,-1.0,mtuberculosis,1.0
+MIC,umol.L-1,SINGLE PROTEIN,-1.0,ngonorrhoeae,1.0
+MIC,umol.L-1,SINGLE PROTEIN,-1.0,paeruginosa,1.0
+MIC,umol.L-1,SINGLE PROTEIN,-1.0,pfalciparum,1.0
+MIC,umol.L-1,SINGLE PROTEIN,-1.0,saureus,1.0
+MIC,umol.L-1,SINGLE PROTEIN,-1.0,smansoni,1.0
+MIC,umol.L-1,SINGLE PROTEIN,-1.0,spneumoniae,1.0
+ACTIVITY,umol.L-1,ORGANISM,-1.0,abaumannii,10.0
+ACTIVITY,umol.L-1,ORGANISM,-1.0,calbicans,10.0
+ACTIVITY,umol.L-1,ORGANISM,-1.0,campylobacter,10.0
+ACTIVITY,umol.L-1,ORGANISM,-1.0,ecoli,10.0
+ACTIVITY,umol.L-1,ORGANISM,-1.0,efaecium,10.0
+ACTIVITY,umol.L-1,ORGANISM,-1.0,enterobacter,10.0
+ACTIVITY,umol.L-1,ORGANISM,-1.0,hpylori,10.0
+ACTIVITY,umol.L-1,ORGANISM,-1.0,kpneumoniae,10.0
+ACTIVITY,umol.L-1,ORGANISM,-1.0,mtuberculosis,10.0
+ACTIVITY,umol.L-1,ORGANISM,-1.0,ngonorrhoeae,10.0
+ACTIVITY,umol.L-1,ORGANISM,-1.0,paeruginosa,10.0
+ACTIVITY,umol.L-1,ORGANISM,-1.0,pfalciparum,10.0
+ACTIVITY,umol.L-1,ORGANISM,-1.0,saureus,10.0
+ACTIVITY,umol.L-1,ORGANISM,-1.0,smansoni,10.0
+ACTIVITY,umol.L-1,ORGANISM,-1.0,spneumoniae,10.0
+ED50,umol.L-1,ORGANISM,-1.0,abaumannii,
+ED50,umol.L-1,ORGANISM,-1.0,calbicans,
+ED50,umol.L-1,ORGANISM,-1.0,campylobacter,
+ED50,umol.L-1,ORGANISM,-1.0,ecoli,
+ED50,umol.L-1,ORGANISM,-1.0,efaecium,
+ED50,umol.L-1,ORGANISM,-1.0,enterobacter,
+ED50,umol.L-1,ORGANISM,-1.0,hpylori,
+ED50,umol.L-1,ORGANISM,-1.0,kpneumoniae,
+ED50,umol.L-1,ORGANISM,-1.0,mtuberculosis,
+ED50,umol.L-1,ORGANISM,-1.0,ngonorrhoeae,
+ED50,umol.L-1,ORGANISM,-1.0,paeruginosa,
+ED50,umol.L-1,ORGANISM,-1.0,pfalciparum,
+ED50,umol.L-1,ORGANISM,-1.0,saureus,
+ED50,umol.L-1,ORGANISM,-1.0,smansoni,
+ED50,umol.L-1,ORGANISM,-1.0,spneumoniae,
+KD,umol.L-1,SINGLE PROTEIN,-1.0,abaumannii,
+KD,umol.L-1,SINGLE PROTEIN,-1.0,calbicans,
+KD,umol.L-1,SINGLE PROTEIN,-1.0,campylobacter,
+KD,umol.L-1,SINGLE PROTEIN,-1.0,ecoli,
+KD,umol.L-1,SINGLE PROTEIN,-1.0,efaecium,
+KD,umol.L-1,SINGLE PROTEIN,-1.0,enterobacter,
+KD,umol.L-1,SINGLE PROTEIN,-1.0,hpylori,
+KD,umol.L-1,SINGLE PROTEIN,-1.0,kpneumoniae,
+KD,umol.L-1,SINGLE PROTEIN,-1.0,mtuberculosis,
+KD,umol.L-1,SINGLE PROTEIN,-1.0,ngonorrhoeae,
+KD,umol.L-1,SINGLE PROTEIN,-1.0,paeruginosa,
+KD,umol.L-1,SINGLE PROTEIN,-1.0,pfalciparum,
+KD,umol.L-1,SINGLE PROTEIN,-1.0,saureus,
+KD,umol.L-1,SINGLE PROTEIN,-1.0,smansoni,
+KD,umol.L-1,SINGLE PROTEIN,-1.0,spneumoniae,
+INHIBITION,%,PROTEIN COMPLEX,1.0,abaumannii,
+INHIBITION,%,PROTEIN COMPLEX,1.0,calbicans,
+INHIBITION,%,PROTEIN COMPLEX,1.0,campylobacter,
+INHIBITION,%,PROTEIN COMPLEX,1.0,ecoli,
+INHIBITION,%,PROTEIN COMPLEX,1.0,efaecium,
+INHIBITION,%,PROTEIN COMPLEX,1.0,enterobacter,
+INHIBITION,%,PROTEIN COMPLEX,1.0,hpylori,
+INHIBITION,%,PROTEIN COMPLEX,1.0,kpneumoniae,
+INHIBITION,%,PROTEIN COMPLEX,1.0,mtuberculosis,
+INHIBITION,%,PROTEIN COMPLEX,1.0,ngonorrhoeae,
+INHIBITION,%,PROTEIN COMPLEX,1.0,paeruginosa,
+INHIBITION,%,PROTEIN COMPLEX,1.0,pfalciparum,
+INHIBITION,%,PROTEIN COMPLEX,1.0,saureus,
+INHIBITION,%,PROTEIN COMPLEX,1.0,smansoni,
+INHIBITION,%,PROTEIN COMPLEX,1.0,spneumoniae,
+TIME,s,ORGANISM,0.0,abaumannii,
+TIME,s,ORGANISM,0.0,calbicans,
+TIME,s,ORGANISM,0.0,campylobacter,
+TIME,s,ORGANISM,0.0,ecoli,
+TIME,s,ORGANISM,0.0,efaecium,
+TIME,s,ORGANISM,0.0,enterobacter,
+TIME,s,ORGANISM,0.0,hpylori,
+TIME,s,ORGANISM,0.0,kpneumoniae,
+TIME,s,ORGANISM,0.0,mtuberculosis,
+TIME,s,ORGANISM,0.0,ngonorrhoeae,
+TIME,s,ORGANISM,0.0,paeruginosa,
+TIME,s,ORGANISM,0.0,pfalciparum,
+TIME,s,ORGANISM,0.0,saureus,
+TIME,s,ORGANISM,0.0,smansoni,
+TIME,s,ORGANISM,0.0,spneumoniae,
+AC50,umol.L-1,ORGANISM,-1.0,abaumannii,
+AC50,umol.L-1,ORGANISM,-1.0,calbicans,
+AC50,umol.L-1,ORGANISM,-1.0,campylobacter,
+AC50,umol.L-1,ORGANISM,-1.0,ecoli,
+AC50,umol.L-1,ORGANISM,-1.0,efaecium,
+AC50,umol.L-1,ORGANISM,-1.0,enterobacter,
+AC50,umol.L-1,ORGANISM,-1.0,hpylori,
+AC50,umol.L-1,ORGANISM,-1.0,kpneumoniae,
+AC50,umol.L-1,ORGANISM,-1.0,mtuberculosis,
+AC50,umol.L-1,ORGANISM,-1.0,ngonorrhoeae,
+AC50,umol.L-1,ORGANISM,-1.0,paeruginosa,
+AC50,umol.L-1,ORGANISM,-1.0,pfalciparum,
+AC50,umol.L-1,ORGANISM,-1.0,saureus,
+AC50,umol.L-1,ORGANISM,-1.0,smansoni,
+AC50,umol.L-1,ORGANISM,-1.0,spneumoniae,
+MIC,umol.L-1,PROTEIN COMPLEX,-1.0,abaumannii,
+MIC,umol.L-1,PROTEIN COMPLEX,-1.0,calbicans,
+MIC,umol.L-1,PROTEIN COMPLEX,-1.0,campylobacter,
+MIC,umol.L-1,PROTEIN COMPLEX,-1.0,ecoli,
+MIC,umol.L-1,PROTEIN COMPLEX,-1.0,efaecium,
+MIC,umol.L-1,PROTEIN COMPLEX,-1.0,enterobacter,
+MIC,umol.L-1,PROTEIN COMPLEX,-1.0,hpylori,
+MIC,umol.L-1,PROTEIN COMPLEX,-1.0,kpneumoniae,
+MIC,umol.L-1,PROTEIN COMPLEX,-1.0,mtuberculosis,
+MIC,umol.L-1,PROTEIN COMPLEX,-1.0,ngonorrhoeae,
+MIC,umol.L-1,PROTEIN COMPLEX,-1.0,paeruginosa,
+MIC,umol.L-1,PROTEIN COMPLEX,-1.0,pfalciparum,
+MIC,umol.L-1,PROTEIN COMPLEX,-1.0,saureus,
+MIC,umol.L-1,PROTEIN COMPLEX,-1.0,smansoni,
+MIC,umol.L-1,PROTEIN COMPLEX,-1.0,spneumoniae,
+SURVIVAL,%,ORGANISM,-1.0,abaumannii,
+SURVIVAL,%,ORGANISM,-1.0,calbicans,
+SURVIVAL,%,ORGANISM,-1.0,campylobacter,
+SURVIVAL,%,ORGANISM,-1.0,ecoli,
+SURVIVAL,%,ORGANISM,-1.0,efaecium,
+SURVIVAL,%,ORGANISM,-1.0,enterobacter,
+SURVIVAL,%,ORGANISM,-1.0,hpylori,
+SURVIVAL,%,ORGANISM,-1.0,kpneumoniae,
+SURVIVAL,%,ORGANISM,-1.0,mtuberculosis,
+SURVIVAL,%,ORGANISM,-1.0,ngonorrhoeae,
+SURVIVAL,%,ORGANISM,-1.0,paeruginosa,
+SURVIVAL,%,ORGANISM,-1.0,pfalciparum,
+SURVIVAL,%,ORGANISM,-1.0,saureus,
+SURVIVAL,%,ORGANISM,-1.0,smansoni,
+SURVIVAL,%,ORGANISM,-1.0,spneumoniae,
+INHIBITION,%,UNKNOWN,1.0,abaumannii,
+INHIBITION,%,UNKNOWN,1.0,calbicans,
+INHIBITION,%,UNKNOWN,1.0,campylobacter,
+INHIBITION,%,UNKNOWN,1.0,ecoli,
+INHIBITION,%,UNKNOWN,1.0,efaecium,
+INHIBITION,%,UNKNOWN,1.0,enterobacter,
+INHIBITION,%,UNKNOWN,1.0,hpylori,
+INHIBITION,%,UNKNOWN,1.0,kpneumoniae,
+INHIBITION,%,UNKNOWN,1.0,mtuberculosis,
+INHIBITION,%,UNKNOWN,1.0,ngonorrhoeae,
+INHIBITION,%,UNKNOWN,1.0,paeruginosa,
+INHIBITION,%,UNKNOWN,1.0,pfalciparum,
+INHIBITION,%,UNKNOWN,1.0,saureus,
+INHIBITION,%,UNKNOWN,1.0,smansoni,
+INHIBITION,%,UNKNOWN,1.0,spneumoniae,
+KOFF,s-1,SINGLE PROTEIN,-1.0,abaumannii,
+KOFF,s-1,SINGLE PROTEIN,-1.0,calbicans,
+KOFF,s-1,SINGLE PROTEIN,-1.0,campylobacter,
+KOFF,s-1,SINGLE PROTEIN,-1.0,ecoli,
+KOFF,s-1,SINGLE PROTEIN,-1.0,efaecium,
+KOFF,s-1,SINGLE PROTEIN,-1.0,enterobacter,
+KOFF,s-1,SINGLE PROTEIN,-1.0,hpylori,
+KOFF,s-1,SINGLE PROTEIN,-1.0,kpneumoniae,
+KOFF,s-1,SINGLE PROTEIN,-1.0,mtuberculosis,
+KOFF,s-1,SINGLE PROTEIN,-1.0,ngonorrhoeae,
+KOFF,s-1,SINGLE PROTEIN,-1.0,paeruginosa,
+KOFF,s-1,SINGLE PROTEIN,-1.0,pfalciparum,
+KOFF,s-1,SINGLE PROTEIN,-1.0,saureus,
+KOFF,s-1,SINGLE PROTEIN,-1.0,smansoni,
+KOFF,s-1,SINGLE PROTEIN,-1.0,spneumoniae,
+ACTIVITY,%,NUCLEIC-ACID,1.0,abaumannii,
+ACTIVITY,%,NUCLEIC-ACID,1.0,calbicans,
+ACTIVITY,%,NUCLEIC-ACID,1.0,campylobacter,
+ACTIVITY,%,NUCLEIC-ACID,1.0,ecoli,
+ACTIVITY,%,NUCLEIC-ACID,1.0,efaecium,
+ACTIVITY,%,NUCLEIC-ACID,1.0,enterobacter,
+ACTIVITY,%,NUCLEIC-ACID,1.0,hpylori,
+ACTIVITY,%,NUCLEIC-ACID,1.0,kpneumoniae,
+ACTIVITY,%,NUCLEIC-ACID,1.0,mtuberculosis,
+ACTIVITY,%,NUCLEIC-ACID,1.0,ngonorrhoeae,
+ACTIVITY,%,NUCLEIC-ACID,1.0,paeruginosa,
+ACTIVITY,%,NUCLEIC-ACID,1.0,pfalciparum,
+ACTIVITY,%,NUCLEIC-ACID,1.0,saureus,
+ACTIVITY,%,NUCLEIC-ACID,1.0,smansoni,
+ACTIVITY,%,NUCLEIC-ACID,1.0,spneumoniae,
+MIC,umol.L-1,NON-MOLECULAR,-1.0,abaumannii,
+MIC,umol.L-1,NON-MOLECULAR,-1.0,calbicans,
+MIC,umol.L-1,NON-MOLECULAR,-1.0,campylobacter,
+MIC,umol.L-1,NON-MOLECULAR,-1.0,ecoli,
+MIC,umol.L-1,NON-MOLECULAR,-1.0,efaecium,
+MIC,umol.L-1,NON-MOLECULAR,-1.0,enterobacter,
+MIC,umol.L-1,NON-MOLECULAR,-1.0,hpylori,
+MIC,umol.L-1,NON-MOLECULAR,-1.0,kpneumoniae,
+MIC,umol.L-1,NON-MOLECULAR,-1.0,mtuberculosis,
+MIC,umol.L-1,NON-MOLECULAR,-1.0,ngonorrhoeae,
+MIC,umol.L-1,NON-MOLECULAR,-1.0,paeruginosa,
+MIC,umol.L-1,NON-MOLECULAR,-1.0,pfalciparum,
+MIC,umol.L-1,NON-MOLECULAR,-1.0,saureus,
+MIC,umol.L-1,NON-MOLECULAR,-1.0,smansoni,
+MIC,umol.L-1,NON-MOLECULAR,-1.0,spneumoniae,
+ACTIVITY,umol.L-1,SINGLE PROTEIN,-1.0,abaumannii,
+ACTIVITY,umol.L-1,SINGLE PROTEIN,-1.0,calbicans,
+ACTIVITY,umol.L-1,SINGLE PROTEIN,-1.0,campylobacter,
+ACTIVITY,umol.L-1,SINGLE PROTEIN,-1.0,ecoli,
+ACTIVITY,umol.L-1,SINGLE PROTEIN,-1.0,efaecium,
+ACTIVITY,umol.L-1,SINGLE PROTEIN,-1.0,enterobacter,
+ACTIVITY,umol.L-1,SINGLE PROTEIN,-1.0,hpylori,
+ACTIVITY,umol.L-1,SINGLE PROTEIN,-1.0,kpneumoniae,
+ACTIVITY,umol.L-1,SINGLE PROTEIN,-1.0,mtuberculosis,
+ACTIVITY,umol.L-1,SINGLE PROTEIN,-1.0,ngonorrhoeae,
+ACTIVITY,umol.L-1,SINGLE PROTEIN,-1.0,paeruginosa,
+ACTIVITY,umol.L-1,SINGLE PROTEIN,-1.0,pfalciparum,
+ACTIVITY,umol.L-1,SINGLE PROTEIN,-1.0,saureus,
+ACTIVITY,umol.L-1,SINGLE PROTEIN,-1.0,smansoni,
+ACTIVITY,umol.L-1,SINGLE PROTEIN,-1.0,spneumoniae,
+IC50,umol.L-1,MACROMOLECULE,-1.0,abaumannii,
+IC50,umol.L-1,MACROMOLECULE,-1.0,calbicans,
+IC50,umol.L-1,MACROMOLECULE,-1.0,campylobacter,
+IC50,umol.L-1,MACROMOLECULE,-1.0,ecoli,
+IC50,umol.L-1,MACROMOLECULE,-1.0,efaecium,
+IC50,umol.L-1,MACROMOLECULE,-1.0,enterobacter,
+IC50,umol.L-1,MACROMOLECULE,-1.0,hpylori,
+IC50,umol.L-1,MACROMOLECULE,-1.0,kpneumoniae,
+IC50,umol.L-1,MACROMOLECULE,-1.0,mtuberculosis,
+IC50,umol.L-1,MACROMOLECULE,-1.0,ngonorrhoeae,
+IC50,umol.L-1,MACROMOLECULE,-1.0,paeruginosa,
+IC50,umol.L-1,MACROMOLECULE,-1.0,pfalciparum,
+IC50,umol.L-1,MACROMOLECULE,-1.0,saureus,
+IC50,umol.L-1,MACROMOLECULE,-1.0,smansoni,
+IC50,umol.L-1,MACROMOLECULE,-1.0,spneumoniae,
+ACTIVITY,%,SUBCELLULAR,1.0,abaumannii,
+ACTIVITY,%,SUBCELLULAR,1.0,calbicans,
+ACTIVITY,%,SUBCELLULAR,1.0,campylobacter,
+ACTIVITY,%,SUBCELLULAR,1.0,ecoli,
+ACTIVITY,%,SUBCELLULAR,1.0,efaecium,
+ACTIVITY,%,SUBCELLULAR,1.0,enterobacter,
+ACTIVITY,%,SUBCELLULAR,1.0,hpylori,
+ACTIVITY,%,SUBCELLULAR,1.0,kpneumoniae,
+ACTIVITY,%,SUBCELLULAR,1.0,mtuberculosis,
+ACTIVITY,%,SUBCELLULAR,1.0,ngonorrhoeae,
+ACTIVITY,%,SUBCELLULAR,1.0,paeruginosa,
+ACTIVITY,%,SUBCELLULAR,1.0,pfalciparum,
+ACTIVITY,%,SUBCELLULAR,1.0,saureus,
+ACTIVITY,%,SUBCELLULAR,1.0,smansoni,
+ACTIVITY,%,SUBCELLULAR,1.0,spneumoniae,

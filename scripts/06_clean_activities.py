@@ -98,9 +98,9 @@ activities_all_raw['new_standard_text_value'] = NEW_STANDARD_TEXT
 print(f"New standard text: {dict(Counter(activities_all_raw['new_standard_text_value']))}")
 
 
-# 4. Harmonizing units and values
+# 4. Standardizing units and values
 NEW_VALUES, NEW_UNITS = [], []
-print("Harmonizing units and converting values")
+print("Standardizing units and converting values")
 for mw, std_value, std_unit in tqdm(activities_all_raw[['MW', 'standard_value', 'standard_units']].values):
 
     # Get conversion formula

@@ -38,17 +38,17 @@ After generating the frequency tables, a **manual curation process** was perform
 
 This manual curation allows downstream scripts to automatically use a standardized direction of biological activity for text entries, ensuring consistency across diverse assays and readouts. Both manually curated files are located in `config/manual_curated` (named `activity_comments_manual_curation.csv` and `standard_text_manual_curation.csv`, new column name: `manual_curation`). The user is encouraged to extend or complete these files as needed.
 
-⏳ ETA: ~10 minutes.
+⏳ ETA: ~5 minutes.
 
 ## Step 01. Processing compounds
 
-This script merges ChEMBL compound structure information with compound identifiers to generate a single compound table. Specifically, it combines `config/chembl_activities/compound_structures.csv` with `config/chembl_activities/molecule_dictionary.csv` to map each `molregno` to its corresponding `chembl_id`, and saves the result as `compound_info.csv` in `config/chembl_processed/`.
+This script merges ChEMBL compound structure information with compound identifiers to generate a single compound table. Specifically, it combines `config/chembl_activities/compound_structures.csv` with `config/chembl_activities/molecule_dictionary.csv` to map each `molregno` to its corresponding `chembl_id`, and saves the result as `compound_info.csv` in `config/chembl_processed/`. Additionally, molecular weight is calculated for all compounds (`canonical_smiles`) and saved as a `MW` column. 
 
 Outputs are saved in the folder: `config/chembl_processed/`, and include:
 
-`compound_info.csv`: Compound table containing `molregno`, structural fields from `compound_structures.csv`, and the corresponding `chembl_id`.
+`compound_info.csv`: Compound table containing `molregno`, structural fields from `compound_structures.csv`, molecular weight (`MW`) and the corresponding `chembl_id`.
 
-⏳ ETA: ~1 minute.
+⏳ ETA: ~10 minutes.
 
 ## Step 02. Saniziting and standardizing compounds
 
@@ -110,8 +110,8 @@ The script `06_preprocess_activity_data.py` produces a curated and standardized 
   - **1** → higher value = more active (e.g. %INHIBITION)
   - **0** → unclear or inconclusive
 
-  Additionally, the script generates a summary table (`activity_std_units_counts_unit_comment.csv`, saved in `config/chembl_processed`) reporting, for each `activity_type`, the number of records with:
-  (i) unit + comment, (ii) no unit + comment, (iii) unit + no comment, and (iv) no unit + no comment. A comment is defined as present when either `activity_comment` or `standard_text` is non-zero The table is sorted by total record count per activity type and is intended for quick inspection of quantitative vs qualitative coverage.
+    Additionally, the script generates a summary table (`activity_std_units_counts_unit_comment.csv`, saved in `config/chembl_processed`) reporting, for each `activity_type`, the number of records with:
+    (i) unit + comment, (ii) no unit + comment, (iii) unit + no comment, and (iv) no unit + no comment. A comment is defined as present when either `activity_comment` or `standard_text` is non-zero The table is sorted by total record count per activity type and is intended for quick inspection of quantitative vs qualitative coverage.
 
 ⏳ ETA: ~15 minutes.
 

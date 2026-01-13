@@ -1,6 +1,7 @@
 config/**
 output/*
 tmp/*
+scripts/old/*
 
 !config/
 !config/chembl_activities/

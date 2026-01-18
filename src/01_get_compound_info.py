@@ -9,22 +9,25 @@ import os
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import CONFIGPATH
+from default import DATAPATH
 
 # Define output path
-output_dir = os.path.join(CONFIGPATH, "chembl_processed")
+print("Step 01")
+output_dir = os.path.join(DATAPATH, "chembl_processed")
 os.makedirs(output_dir, exist_ok=True)
 
 # Load tables
-df1 = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "compound_structures.csv"), low_memory=False)
-df2 = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "molecule_dictionary.csv"), low_memory=False)
+print("Loading compound tables")
+df1 = pd.read_csv(os.path.join(DATAPATH, "chembl_activities", "compound_structures.csv"), low_memory=False)
+df2 = pd.read_csv(os.path.join(DATAPATH, "chembl_activities", "molecule_dictionary.csv"), low_memory=False)
 
 # Merge tables
+print("Merging compound tables")
 df_merged = df1.merge(df2[['molregno', 'chembl_id']], on='molregno', how='left')
 
 # Calculate Molecular Weight
 MW = []
-print("Calculating MW...")
+print("Calculating MW for all compounds")
 for smiles in tqdm(df_merged['canonical_smiles'].tolist()):
     try:
         mol = Chem.MolFromSmiles(smiles)

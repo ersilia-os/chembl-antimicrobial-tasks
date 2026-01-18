@@ -1,4 +1,0 @@
-activity_type,synonyms
-MIC90,MIC>=90;MIC>90;MIC=>90
-MIC99,MIC>=99;MIC>99;MIC=>99
-MIC80,MIC>=80;MIC>80;MIC=>80

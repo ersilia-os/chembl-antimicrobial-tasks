@@ -7,14 +7,10 @@ DATABASE_NAME = "chembl_36"
 CHEMBL_USR = "chembl_user"
 CHEMBL_PWD = "aaa"
 
-# # LLM defaults
-# LLM_BIN_FILENAME = "gemma-2-9b-it.Q6_K.llamafile"
-
 # Path defaults
 CONFIGPATH = os.path.join(abspath, "..", "config")
-# DATAPATH = os.path.join(abspath, "..", "data")
-# TMPDIR = os.path.join(abspath, "..", "tmp")
-# PATHOGENSPATH = os.path.join(DATAPATH, "pathogens.csv")
+DATAPATH = os.path.join(abspath, "..", "data")
+TMPDIR = os.path.join(abspath, "..", "tmp")
 
 # Parameters for binarization
 # PCHEMBL_CUTOFFS = [5, 6, 7, 8, 9]

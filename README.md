@@ -1,6 +1,8 @@
 # 🦠 Antimicrobial binary ML tasks from ChEMBL 💊
 
-Get antimicrobial tasks from ChEMBL framed as binary classifications. This repository is currently **WORK IN PROGRESS**. ⚠️🚧
+Get antimicrobial tasks from ChEMBL framed as binary classifications. 
+
+This repository is currently **WORK IN PROGRESS**. ⚠️🚧
 
 ## Setup 🛠️
 
@@ -18,6 +20,19 @@ conda create -n camt python=3.10 -y
 conda activate camt
 pip install -r requirements.txt
 ```
+
+## Pipeline overview
+
+The pipeline is divided into two main stages: (i) processing ChEMBL (steps X-X) and (ii) creating binarized bioactivity datasets and training ML models for a given pathogen of interest (steps X-X). 
+
+
+## Repository architecture
+
+- `config`: ...
+- `data`: ChEMBL ...
+- `output`: Results associated to 
+- 
+
 
 ## About the Ersilia Open Source Initiative 🌍🤝
 

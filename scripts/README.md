@@ -1,14 +1,38 @@
+Before running any script, create a **local copy of the ChEMBL Database** following the instructions detailed in `docs/install_ChEMBL.md`. Currently, this is set to *ChEMBL_36* (latest version), but if a new release appears simply download the new version and change the Database name in `src/default.py` (DATABASE_NAME).
+
 # README for scripts
 
-The `scripts` folder contains scripts that are meant to be run sequentially. Essentially, steps can be grouped in data curation and preprocessing (00-09), data binarization (10-XX) ...
+The `scripts` folder contains two scripts that are meant to be run sequentially. 
+
+The first one, named `process_chembl.sh` fetches tables from ChEMBL (step 00), organizes compound data (step 01), standardizes compounds following a well defined and reproducible protocol (step 02), merges heterogeneous data from multiple sources (step 03), converts units (step 04), harmonizes multiple fields (step 04) and creates a single, cleaned file for ChEMBL bioactivities including compound, assay and target information (step 05). This script is meant to be executed only once, and should take no longer than 1 hour on a desktop machine. 
+
+Files to review before processing ChEMBL:
+
+- `config/activity_comments_manual_curation.csv`: generated in step 00 and needed in step XX
+- `config/standard_text_manual_curation.csv`: generated in step 00 and needed in step XX
+
+
+To process ChEMBL:
+
+```
+...
+```
+
+To ...:
+
+Files to review before ...
+
+```
+...
+```
+
+More details on each step are provided in the text below.
+
 
 ## Step 00. Fetching ChEMBL data
 
-Before running `00_export_chembl_activities.py`, create a **local copy of the ChEMBL Database** following the instructions in `docs/install_ChEMBL.md`. 
 
-Currently, this is set to *ChEMBL_36* (latest version), but if a new release appears simply download the new one and change the Database name in `src/default.py` (DATABASE_NAME).
-
-By running `00_export_chembl_activities.py`, a folder named `chembl_activities` will be created inside `config`, containing unmodified activity data extracted directly from ChEMBL tables:
+By running `00_export_chembl_activities.py`, a folder named `chembl_activities` will be created inside `data`, containing unmodified activity data extracted directly from ChEMBL tables:
 
 - `activities.csv`
 - `assays.csv`
@@ -36,15 +60,15 @@ After generating the frequency tables, a **manual curation process** was perform
   - **-1** → inactive
   - **0** → inconclusive or unclear
 
-This manual curation allows downstream scripts to automatically use a standardized direction of biological activity for text entries, ensuring consistency across diverse assays and readouts. Both manually curated files are located in `config/manual_curated` (named `activity_comments_manual_curation.csv` and `standard_text_manual_curation.csv`, new column name: `manual_curation`). The user is encouraged to extend or complete these files as needed.
+This manual curation allows downstream scripts to automatically use a standardized direction of biological activity for text entries, ensuring consistency across diverse assays and readouts. Both manually curated files are located in `config` (named `activity_comments_manual_curation.csv` and `standard_text_manual_curation.csv`, new column name: `manual_curation_activity`). The user is encouraged to extend or complete these files at will.
 
 ⏳ ETA: ~5 minutes.
 
 ## Step 01. Processing compounds
 
-This script merges ChEMBL compound structure information with compound identifiers to generate a single compound table. Specifically, it combines `config/chembl_activities/compound_structures.csv` with `config/chembl_activities/molecule_dictionary.csv` to map each `molregno` to its corresponding `chembl_id`, and saves the result as `compound_info.csv` in `config/chembl_processed/`. Additionally, molecular weight is calculated for all compounds (`canonical_smiles`) and saved as a `MW` column. 
+This script merges ChEMBL compound structure information with compound identifiers to generate a single compound table. Specifically, it combines `data/chembl_activities/compound_structures.csv` with `data/chembl_activities/molecule_dictionary.csv` to map each `molregno` to its corresponding `chembl_id`, and saves the result as `compound_info.csv` in `data/chembl_processed/`. Additionally, molecular weight is calculated for all compounds (`canonical_smiles`) and saved as a `MW` column. 
 
-Outputs are saved in the folder: `config/chembl_processed/`, and include:
+Outputs are saved in the folder: `data/chembl_processed/`, and include:
 
 `compound_info.csv`: Compound table containing `molregno`, structural fields from `compound_structures.csv`, molecular weight (`MW`) and the corresponding `chembl_id`.
 
@@ -55,11 +79,11 @@ Outputs are saved in the folder: `config/chembl_processed/`, and include:
 (...)
 
 
-### Step 03. Calculating compound descriptors
+<!-- ### Step 03. Calculating compound descriptors
 
 The script `03_get_compound_descriptors.py` calculates ECFPs (radius 3, 2048 bits) for sanitized and standardized compounds (previous step) using RDKit, ommiting failed SMILES and storing results in H5 file format (`output/descriptors.h5`).
 
-⏳ ETA: ~10 minutes.
+⏳ ETA: ~10 minutes. -->
 
 ## Step 04. Merging activities, assays, compounds & targets
 

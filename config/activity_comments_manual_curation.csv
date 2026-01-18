@@ -1,4 +1,4 @@
-activity_comment,count,rank,cumulative_prop,manual_curation
+activity_comment,count,rank,cumulative_prop,manual_curation_activity
 ,11380987,1,0.469,0
 inactive,3344278,2,0.607,-1
 inconclusive,2898395,3,0.726,0

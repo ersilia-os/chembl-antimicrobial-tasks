@@ -27,7 +27,7 @@ df_merged = df1.merge(df2[['molregno', 'chembl_id']], on='molregno', how='left')
 
 # Calculate Molecular Weight
 MW = []
-print("Calculating MW for all compounds")
+print("Calculating Molecular Weight for all compounds")
 for smiles in tqdm(df_merged['canonical_smiles'].tolist()):
     try:
         mol = Chem.MolFromSmiles(smiles)

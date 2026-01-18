@@ -3,28 +3,18 @@ tmp/**
 old/**
 data/**
 
-!config/
-!config/chembl_activities/
-!config/chembl_activities/standard_text.csv
-!config/chembl_activities/bioassay_ontology.csv
-!config/chembl_activities/activity_stds_lookup.csv
-!config/chembl_activities/standard_units.csv
-!config/chembl_activities/activity_std_units.csv
-!config/chembl_activities/target_dictionary.csv
-!config/chembl_processed/
-!config/chembl_processed/converted_units.csv
-!config/chembl_processed/converted_units_map.csv
-!config/chembl_processed/unit_conversion.csv
-!config/chembl_processed/harmonized_types_map.csv
-!config/chembl_processed/activity_std_units_curated.csv
-!config/chembl_processed/UnitStringValidations.csv
-!config/manual_curation/
-!config/manual_curation/activity_comments_manual_curation.csv
-!config/manual_curation/expert_cutoffs.csv
-!config/manual_curation/standard_text_manual_curation.csv
-!config/manual_curation/synonyms.csv
-!config/manual_curation/ucum_GT.csv
-!config/manual_curation/activity_std_units_curated_manual_curation.csv
+# data/chembl_activities/activities.csv
+# data/chembl_activities/compound_structures.csv
+# data/chembl_activities/assays.csv
+# data/chembl_activities/assay_descriptions.csv
+# data/chembl_activities/molecule_dictionary.csv
+# data/chembl_activities/docs.csv
+# data/chembl_activities/assay_parameters.csv
+# data/chembl_activities/activity_comments.csv
+
+# data/chembl_processed/activities_preprocessed.csv
+# data/chembl_processed/compound_info.csv
+# data/chembl_processed/compound_info_standardized.csv
 
 
 # Byte-compiled / optimized / DLL files

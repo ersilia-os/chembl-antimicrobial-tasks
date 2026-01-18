@@ -9,24 +9,25 @@ import re
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import CONFIGPATH
+from default import DATAPATH, CONFIGPATH
 
 # Load data
+print("Step 05")
 print("Loading data...")
-activities_all_raw = pd.read_csv(os.path.join(CONFIGPATH, "chembl_processed", "activities_all_raw.csv"), low_memory=False)
+activities_all_raw = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "activities_all_raw.csv"), low_memory=False)
 
 # 2. Flagging activity comments
-activity_comments_bin = pd.read_csv(os.path.join(CONFIGPATH, "manual_curation", "activity_comments_manual_curation.csv"), low_memory=False)
-activity_comments_act = set(activity_comments_bin[activity_comments_bin['manual_curation'] == 1]['activity_comment'])
-activity_comments_inact = set(activity_comments_bin[activity_comments_bin['manual_curation'] == -1]['activity_comment'])
+activity_comments_bin = pd.read_csv(os.path.join(CONFIGPATH, "activity_comments_manual_curation.csv"), low_memory=False)
+activity_comments_act = set(activity_comments_bin[activity_comments_bin['manual_curation_activity'] == 1]['activity_comment'])
+activity_comments_inact = set(activity_comments_bin[activity_comments_bin['manual_curation_activity'] == -1]['activity_comment'])
 
 # 3. Flagging standard text
-standard_text_bin = pd.read_csv(os.path.join(CONFIGPATH, "manual_curation", "standard_text_manual_curation.csv"), low_memory=False)
-standard_text_act = set(standard_text_bin[standard_text_bin['manual_curation'] == 1]['standard_text_value'])
-standard_text_inact = set(standard_text_bin[standard_text_bin['manual_curation'] == -1]['standard_text_value'])
+standard_text_bin = pd.read_csv(os.path.join(CONFIGPATH, "standard_text_manual_curation.csv"), low_memory=False)
+standard_text_act = set(standard_text_bin[standard_text_bin['manual_curation_activity'] == 1]['standard_text_value'])
+standard_text_inact = set(standard_text_bin[standard_text_bin['manual_curation_activity'] == -1]['standard_text_value'])
 
 # 4. Unit conversion
-unit_conversion = pd.read_csv(os.path.join(CONFIGPATH, "chembl_processed", "unit_conversion.csv"))
+unit_conversion = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "unit_conversion.csv"))
 standard_unit_to_final_unit = {i: j for i,j in zip(unit_conversion['standard_units'], unit_conversion['final_unit'])}
 standard_unit_to_conversion_formula = {i: j for i,j in zip(unit_conversion['standard_units'], unit_conversion['conversion_formula'])}
 
@@ -54,13 +55,18 @@ def calculate_pchembl(uM):
         return np.nan
     
 # 8. Converting doc_id to doc_chembl_id
-docs = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "docs.csv"), low_memory=False)
+docs = pd.read_csv(os.path.join(DATAPATH, "chembl_activities", "docs.csv"), low_memory=False)
 doc_id_to_doc_chembl_id = {i: j for i, j in zip(docs['doc_id'], docs["chembl_id"])}
 
 # 1. Removing those activities having no canonical smiles
 nans = len(activities_all_raw[activities_all_raw['canonical_smiles'].isna()])
 print(f"Removing activities having no associated canonical smiles ({nans}) ...")
 activities_all_raw = activities_all_raw[activities_all_raw['canonical_smiles'].isna() == False].reset_index(drop=True)
+
+# # 1. Removing those activities having no standardized smiles
+# nans = len(activities_all_raw[activities_all_raw['standardized_smiles'].isna()])
+# print(f"Removing activities having no associated standardized_smiles ({nans}) ...")
+# activities_all_raw = activities_all_raw[activities_all_raw['standardized_smiles'].isna() == False].reset_index(drop=True)
 
 # 2. Cleaning activity comments
 print("Cleaning activity comments...")
@@ -139,7 +145,7 @@ df = [[unit, d[unit]] for unit in sorted(d, key=lambda x: d[x])[::-1]]
 df = pd.DataFrame(df, columns=['unit', 'count'])
 total_count = np.sum(df['count'])
 df['cumulative_prop'] = (df['count'].cumsum() / total_count).round(3)
-df.to_csv(os.path.join(CONFIGPATH, "chembl_processed", "converted_units.csv"), index=False)
+df.to_csv(os.path.join(DATAPATH, "chembl_processed", "converted_units.csv"), index=False)
 
 # Dict mapping old units with new units
 new_unit_to_old_units = {i: set() for i in set(NEW_UNITS)}
@@ -149,7 +155,7 @@ for i,j in zip(activities_all_raw['converted_units'], activities_all_raw['standa
 df = [[unit, len(new_unit_to_old_units[unit]), " ; ".join([str(k) for k in new_unit_to_old_units[unit]])] 
       for unit in sorted(new_unit_to_old_units, key=lambda x: len(new_unit_to_old_units[x]))[::-1]]
 df = pd.DataFrame(df, columns=['unit', 'count', 'old_units'])
-df.to_csv(os.path.join(CONFIGPATH, "chembl_processed", "converted_units_map.csv"), index=False)
+df.to_csv(os.path.join(DATAPATH, "chembl_processed", "converted_units_map.csv"), index=False)
 
 
 # 5. Harmonizing activity types
@@ -168,7 +174,7 @@ for ty, harm_ty in zip(activities_all_raw['standard_type'], activities_all_raw['
 df = [[ty, len(harmonized_types_to_types[ty]), " ; ".join([str(k) for k in harmonized_types_to_types[ty]])] 
       for ty in sorted(harmonized_types_to_types, key=lambda x: len(harmonized_types_to_types[x]))[::-1]]
 df = pd.DataFrame(df, columns=['type', 'count', 'old_types'])
-df.to_csv(os.path.join(CONFIGPATH, "chembl_processed", "harmonized_types_map.csv"), index=False)
+df.to_csv(os.path.join(DATAPATH, "chembl_processed", "harmonized_types_map.csv"), index=False)
 
 # 6. Clean relations
 print("Cleaning relations...")
@@ -189,10 +195,12 @@ for unit, value, pch in tqdm(activities_all_raw[['converted_units', 'converted_v
 activities_all_raw['calculated_pChEMBLs'] = calculated_pChEMBLs
 
 # 8. Converting doc_id to doc_chembl_id
-docs = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "docs.csv"), low_memory=False)
+docs = pd.read_csv(os.path.join(DATAPATH, "chembl_activities", "docs.csv"), low_memory=False)
 doc_id_to_doc_chembl_id = {i: j for i, j in zip(docs['doc_id'], docs["chembl_id"])}
+len_docs = len(docs)
+del docs
 print(f"Converting Doc IDs...")
-print(f"Number of docs: {len(docs)}; Number of mappings: {len(doc_id_to_doc_chembl_id)}")
+print(f"Number of docs: {len_docs}; Number of mappings: {len(doc_id_to_doc_chembl_id)}")
 activities_all_raw['doc_id'] = [doc_id_to_doc_chembl_id[i] for i in activities_all_raw['doc_id']]
 
 
@@ -217,7 +225,8 @@ activities_all_raw = activities_all_raw.rename(columns={
         })
 
 # 10. Converting activity types to their corresponding synonyms
-synonyms = pd.read_csv(os.path.join(root, "..", "config", "manual_curation", "synonyms.csv"))
+print("Mapping activity types to their synonyms")
+synonyms = pd.read_csv(os.path.join(CONFIGPATH, "synonyms.csv"))
 for activity, syns in zip(synonyms['activity_type'], synonyms['synonyms']):
     for syn in syns.split(";"):
         activities_all_raw.loc[activities_all_raw['activity_type'] == syn, 'activity_type'] = activity
@@ -232,49 +241,31 @@ s.value_counts(subset=["activity_type", "unit"], dropna=False)
 )
 total_count = out['count'].sum()
 out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
-out['manual_curation'] = np.nan
-out.to_csv(os.path.join(CONFIGPATH, "chembl_processed", "activity_std_units_curated.csv"), index=False)
+out['manual_curation_direction'] = np.nan
+out.to_csv(os.path.join(DATAPATH, "chembl_processed", "activity_std_units_curated.csv"), index=False)
 print(f"Total number of unique activity type - standard unit pairs: {len(out)}")
 
 # More on step 11.
+cols = ["activity_type", "unit", "activity_comment", "standard_text"]
+df = activities_all_raw[cols]
 
-tmp = activities_all_raw[["activity_type", "unit", "activity_comment", "standard_text"]].copy()
-tmp["activity_type"] = tmp["activity_type"].fillna("")
+c1 = pd.to_numeric(df["activity_comment"], errors="coerce")
+c2 = pd.to_numeric(df["standard_text"], errors="coerce")
+flag = c1.isin((1, -1)) | c2.isin((1, -1))
 
-# Define interesting index
-tmp["has_unit"] = ~tmp["unit"].isna()
-ac = tmp["activity_comment"]
-st = tmp["standard_text"]
-tmp["has_comment"] = ~((ac == 0) & (st == 0))
-tmp["activity_type"] = tmp["activity_type"].fillna("")
+tmp = df[["activity_type", "unit"]].copy()
+tmp["flagged"] = flag.to_numpy()  # small + avoids alignment overhead
 
-# Count per activity_type x (has_unit, has_comment)
-counts_long = (
-    tmp.groupby(["activity_type", "has_unit", "has_comment"], dropna=False)
-      .size()
-      .reset_index(name="count"))
+out = (
+    tmp.groupby(["activity_type", "unit"], dropna=False)
+       .agg(count=("flagged", "size"), comments=("flagged", "sum"))
+       .reset_index()
+       .sort_values("count", ascending=False, ignore_index=True))
 
-# Pivot to wide: one row per activity_type, 4 count columns
-cols = ["unit_comment", "nounit_comment", "unit_nocomment", "nounit_no_comment"]
-counts_wide = (
-    counts_long
-    .assign(
-        bucket=np.select(
-            [
-                counts_long["has_unit"] & counts_long["has_comment"],
-                ~counts_long["has_unit"] & counts_long["has_comment"],
-                counts_long["has_unit"] & ~counts_long["has_comment"],
-                ~counts_long["has_unit"] & ~counts_long["has_comment"],
-            ],
-            cols)))
-
-counts_wide = counts_wide.pivot_table(index="activity_type", columns="bucket", values="count",
-                 fill_value=0, aggfunc="sum").reset_index()
-
-# Sort by total counts
-counts_wide["total_count"] = counts_wide[cols].sum(axis=1)
-counts_wide = counts_wide.sort_values("total_count", ascending=False, ignore_index=True)
-counts_wide.to_csv(os.path.join(CONFIGPATH, "chembl_processed", "activity_std_units_counts_unit_comment.csv"), index=False)
+out.to_csv(os.path.join(DATAPATH, "chembl_processed", "activity_std_units_curated_comments.csv"), index=False)
 
 print("Saving results...")
-activities_all_raw.to_csv(os.path.join(CONFIGPATH, 'chembl_processed', 'activities_preprocessed.csv'), index=False)
+activities_all_raw.to_csv(os.path.join(DATAPATH, 'chembl_processed', 'activities_preprocessed.csv'), index=False)
+
+print("Removing intermediate activity data")
+os.remove(os.path.join(DATAPATH, "chembl_processed", "activities_all_raw.csv"))

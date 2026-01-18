@@ -9,12 +9,13 @@ import os
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import CONFIGPATH
+from default import DATAPATH
 
+print("Step 03")
 print("Loading data...")
 
 # Load ChEMBL activities
-activities = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "activities.csv"), low_memory=False)
+activities = pd.read_csv(os.path.join(DATAPATH, "chembl_activities", "activities.csv"), low_memory=False)
 
 # Filter columns
 columns = ['activity_id', 'assay_id', 'molregno','standard_relation', 'standard_value', 'standard_units', 'standard_type', 'activity_comment',
@@ -22,13 +23,16 @@ columns = ['activity_id', 'assay_id', 'molregno','standard_relation', 'standard_
 activities = activities[columns]
 
 # Load assays
-assays = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "assays.csv"), low_memory=False)
+assays = pd.read_csv(os.path.join(DATAPATH, "chembl_activities", "assays.csv"), low_memory=False)
 
 # Load targets
-targets = pd.read_csv(os.path.join(CONFIGPATH, "chembl_activities", "target_dictionary.csv"), low_memory=True)
+targets = pd.read_csv(os.path.join(DATAPATH, "chembl_activities", "target_dictionary.csv"), low_memory=True)
 
 # Load compounds
-compounds = pd.read_csv(os.path.join(CONFIGPATH, "chembl_processed", "compound_info.csv"), low_memory=True)
+compounds = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "compound_info.csv"), low_memory=True)
+compounds_standardized = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "compound_info_standardized.csv"), low_memory=True)
+compounds['standardized_smiles'] = compounds_standardized['standardized_smiles']
+compounds['standardized_MW'] = compounds_standardized['standardized_MW']
 
 print("Merging data...")
 
@@ -41,7 +45,7 @@ NEW_ACTIVITIES = NEW_ACTIVITIES.merge(targets[['tid', 'target_type', "organism",
                                       rename(columns={'chembl_id': 'target_chembl_id', 'organism': 'target_organism', 'tax_id': 'target_tax_id'}), on='tid', how='left')
 
 # Merge with compounds
-NEW_ACTIVITIES = NEW_ACTIVITIES.merge(compounds[["molregno", 'chembl_id', 'MW', "canonical_smiles"]].rename(columns={'chembl_id': 'compound_chembl_id'}), on='molregno', how='left')
+NEW_ACTIVITIES = NEW_ACTIVITIES.merge(compounds[["molregno", 'chembl_id', 'MW', "canonical_smiles", "standardized_MW", "standardized_smiles"]].rename(columns={'chembl_id': 'compound_chembl_id'}), on='molregno', how='left')
 
 # Specify final columns
 FINAL_COLUMNS = [
@@ -59,7 +63,9 @@ FINAL_COLUMNS = [
     'target_tax_id',
     "compound_chembl_id",
     "canonical_smiles",
+    "standardized_smiles",
     "MW",
+    "standardized_MW",
     'standard_relation',
     'standard_value', 
     'standard_units', 
@@ -76,4 +82,4 @@ NEW_ACTIVITIES = NEW_ACTIVITIES[FINAL_COLUMNS]
 print("Saving results...")
 
 # Create file
-NEW_ACTIVITIES.to_csv(os.path.join(CONFIGPATH, "chembl_processed", "activities_all_raw.csv"), index=False)
+NEW_ACTIVITIES.to_csv(os.path.join(DATAPATH, "chembl_processed", "activities_all_raw.csv"), index=False)

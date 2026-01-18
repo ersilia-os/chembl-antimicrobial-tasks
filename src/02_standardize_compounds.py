@@ -50,8 +50,11 @@ def get_standardized_smiles(smiles):
     m = Chem.MolFromSmiles(smiles)
     if not m:
         return None
-    m = standardizer.standardize_mol(m)
-    m, _ = standardizer.get_parent_mol(m)
+    try:
+        m = standardizer.standardize_mol(m)
+        m, _ = standardizer.get_parent_mol(m)
+    except:
+        return None
     if not m:
         return None
     m = standardizer.standardize_mol(m)
@@ -65,6 +68,8 @@ def deal_with_nones(string):
     return string
 
 def calculate_mw(smiles):
+    if not smiles:
+        return None
     mol = Chem.MolFromSmiles(smiles)
     if not mol:
         return None
@@ -79,7 +84,7 @@ from default import DATAPATH
 print("Step 02")
 print("Loading compound SMILES")
 compounds = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "compound_info.csv"))
-SMILES = compounds['canonical_smiles']
+SMILES = compounds['canonical_smiles'][1800000:]
 
 OUTPUT = []
 
@@ -104,4 +109,4 @@ for smiles in tqdm(SMILES):
     OUTPUT.append([standardized_smiles, mw])
 
 OUTPUT = pd.DataFrame(OUTPUT, columns=["standardized_smiles", 'standardized_MW'])
-OUTPUT.to_csv(os.path.join(DATAPATH, "chembl_processed", "compound_info_standardized.csv"))
+OUTPUT.to_csv(os.path.join(DATAPATH, "chembl_processed", "compound_info_standardized.csv"), index=False)

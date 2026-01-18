@@ -29,7 +29,7 @@ The pipeline is divided into two main stages: (i) processing ChEMBL (steps X-X) 
 ## Repository architecture
 
 - `config`: ...
-- `data`: ChEMBL ...
+- `data`: ChEMBL raw and processed data.
 - `output`: Results associated to 
 - 
 

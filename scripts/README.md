@@ -4,18 +4,26 @@ Before running any script, create a **local copy of the ChEMBL Database** follow
 
 The `scripts` folder contains two scripts that are meant to be run sequentially. 
 
-The first one, named `process_chembl.sh` fetches tables from ChEMBL (step 00), organizes compound data (step 01), standardizes compounds following a well defined and reproducible protocol (step 02), merges heterogeneous data from multiple sources (step 03), converts units (step 04), harmonizes multiple fields (step 04) and creates a single, cleaned file for ChEMBL bioactivities including compound, assay and target information (step 05). This script is meant to be executed only once, and should take no longer than 1 hour on a desktop machine. 
+The first one, named `process_chembl.sh` fetches tables from ChEMBL (step 00), organizes compound data (step 01), standardizes compounds following a well defined and reproducible protocol (step 02), merges heterogeneous data from multiple sources (step 03), converts units (step 04), harmonizes multiple fields (step 04) and creates a single, cleaned file for ChEMBL bioactivities including compound, assay and target information (step 05). This script is meant to be executed only once, and should take no longer than 6-7 hours on a desktop machine. The main computational bottleneck is the standardization of all ChEMBL compounds.  
 
 Files to review before processing ChEMBL:
 
 - `config/activity_comments_manual_curation.csv`: generated in step 00 and needed in step XX
 - `config/standard_text_manual_curation.csv`: generated in step 00 and needed in step XX
+- `config/synonyms.csv`:
+- `config/ucum_GT.csv`:
+- `config/UnitStringValidations.csv`:
 
 
-To process ChEMBL:
+To process ChEMBL, simply run:
 
 ```
-...
+conda activate camt
+bash process_ChEMBL.sh
+```
+Optionally, the pipeline can generate Extended Connectivity Fingerprints for all ChEMBL compounds, to be used in subsequent analyses. 
+```
+bash process_ChEMBL.sh --calculate_ecfps
 ```
 
 To ...:
@@ -76,45 +84,45 @@ Outputs are saved in the folder: `data/chembl_processed/`, and include:
 
 ## Step 02. Saniziting and standardizing compounds
 
-(...)
+This step standardizes compound structures to ensure consistent molecular representations in downstream tasks. Starting from `data/chembl_processed/compound_info.csv`, the script canonicalizes SMILES, removes salts and solvents, and extracts the parent molecule using the ChEMBL structure pipeline. Molecular weight is then recalculated based on the standardized structure.
+
+Outputs are saved in the folder: `data/chembl_processed/`, and include:
+
+`compound_info_standardized.csv`: Table containing standardized parent SMILES (`standardized_smiles`) and recalculated molecular weight (`standardized_MW`).
+
+⏳ ETA: ~5 hours.
 
 
-<!-- ### Step 03. Calculating compound descriptors
+## Step 03. Merging activities, assays, compounds & targets
 
-The script `03_get_compound_descriptors.py` calculates ECFPs (radius 3, 2048 bits) for sanitized and standardized compounds (previous step) using RDKit, ommiting failed SMILES and storing results in H5 file format (`output/descriptors.h5`).
-
-⏳ ETA: ~10 minutes. -->
-
-## Step 04. Merging activities, assays, compounds & targets
-
-Running `04_merge_all.py` to merge `config/chembl_activities/activities.csv`, `config/chembl_activities/assays.csv`, `config/chembl_activities/target_dictionary.csv`, and `config/chembl_processed/compound_info.csv` into a single table. This script will produce the file `activities_all_raw.csv` in `config/chembl_processed` with a predefined set of columns.
+Running `03_merge_all.py` to merge `data/chembl_activities/activities.csv`, `data/chembl_activities/assays.csv`, `data/chembl_activities/target_dictionary.csv`, and `data/chembl_processed/compound_info.csv` into a single table. This script will produce the file `activities_all_raw.csv` in `data/chembl_processed` with a predefined set of columns.
 
 ⏳ ETA: ~10 minutes.
 
 
-## Step 05. Unit harmonization and conversion
+## Step 04. Unit harmonization and conversion
 
-The script `05_prepare_conversions.py` generates `unit_conversion.csv` inside `config/chembl_processed/`. This file standardizes measurement units found in ChEMBL activities by:
+The script `04_prepare_conversions.py` generates `unit_conversion.csv` inside `data/chembl_processed/`. This file standardizes measurement units found in ChEMBL activities by:
 
 1. Mapping original ChEMBL unit strings (standard_units) to validated UCUM units (e.g., uM to umol.L-1).
 2. Assigning a final standard unit per activity type used in downstream tasks (e.g., IC50 → umol.L-1)
 3. Defining a conversion formula (when necessary) to adjust numeric values accordingly (e.g., nmol.L-1 → value/1000 umol.L-1)
 
-Before running this script, make sure the file `UnitStringValidations.csv` mapping ChEMBL's original units to UCUM-compliant formats is available in `config/chembl_processed/`. This file was created externally using the [UCUM-LHC](https://ucum.org/) Online Validator and Converter under the _Validate all unit expressions in a CSV file_ section, uploading the file `standard_units.csv` (produced in Step 00 and found in `config/chembl_activities`) and indicating `standard_units` as the name of the column containing the expressions to be validated. These string validations are merged with a manual curation effort accounting for more than 290 units (found in `config/manual_curation/ucum_GT.csv`), not only mapping ChEMBL units to valid UCUM formats but also converting units from the same kind to a reference one. The file `unit_conversion.csv` is created in `config/chembl_processed` and includes all the information mentioned above. 
+Before running this script, make sure the file `UnitStringValidations.csv` mapping ChEMBL's original units to UCUM-compliant formats is available in `config/`. This file was created externally using the [UCUM-LHC](https://ucum.org/) Online Validator and Converter under the _Validate all unit expressions in a CSV file_ section, uploading the file `standard_units.csv` (produced in Step 00 and found in `data/chembl_activities`) and indicating `standard_units` as the name of the column containing the expressions to be validated. These string validations are merged with a manual curation effort accounting for more than 290 units (found in `config/ucum_GT.csv`), not only mapping ChEMBL units to valid UCUM formats but also converting units from the same kind to a reference one. The file `unit_conversion.csv` is created in `data/chembl_processed` and includes all the information mentioned above. 
 
 ⏳ ETA: ~0 minutes.
 
-## Step 06. Cleaning activities table
+## Step 05. Cleaning activities table
 
-The script `06_preprocess_activity_data.py` produces a curated and standardized version of the activity data, saved as `activities_preprocessed.csv` in `config/chembl_processed`. The file contains a final cleaned and normalized dataset with all compound-assay-target activity records. This step performs several cleaning and harmonization subtasks:
+The script `05_clean_activities.py` produces a curated and standardized version of the activity data, saved as `activities_preprocessed.csv` in `data/chembl_processed`. The file contains a final cleaned and normalized dataset with all compound-assay-target activity records. This step performs several cleaning and harmonization subtasks:
 
 1. **Filtering invalid entries**. Removing activities with missing canonical_smiles (226k). No other entries are removed during this cleaning process. 
 
-2. **Flagging activity comments**. Loading manual annotations from `activity_comments_manual_curation.csv` and flagging each activity comment as active (1), inactive (-1) or unknown (0).
+2. **Flagging activity comments**. Loading manual annotations from `config/activity_comments_manual_curation.csv` and flagging each activity comment as active (1), inactive (-1) or unknown (0).
 
-3. **Flagging standard text comments**. Loading manual annotations from `standard_text_manual_curation.csv` and flagging each standard text comment as active (1), inactive (-1) or unknown (0).
+3. **Flagging standard text comments**. Loading manual annotations from `config/standard_text_manual_curation.csv` and flagging each standard text comment as active (1), inactive (-1) or unknown (0).
 
-4. **Harmonizing and converting units**. Using `unit_conversion.csv` (from Step 05) to normalize unit strings and convert raw values using predefined conversion formulas. It produces `converted_units.csv` (frequencies of new units) and `converted_units_map.csv` (mappings from original to final units), both located in `config/chembl_processed`.
+4. **Harmonizing and converting units**. Using `unit_conversion.csv` (generated in Step 04) to normalize unit strings and convert raw values using predefined conversion formulas. It produces `converted_units.csv` (frequencies of new units) and `converted_units_map.csv` (mappings from original to final units), both located in `data/chembl_processed`.
 
 5. **Normalizing activity types**. Normalizing variations in the `standard_type` column (e.g., 'A ctivity', 'Activ ity', 'Activit y', 'Activity', 'activity'). Outputs `harmonized_types_map.csv` for reference.
 
@@ -122,22 +130,28 @@ The script `06_preprocess_activity_data.py` produces a curated and standardized 
 
 7. **Recalculating pChEMBL values**. Recalculating pChEMBL values when the unit is umol.L-1 and a numeric value is available.
 
-8. **Replacing Document ID**. Replacing `doc_id` with its corresponding `doc_chembl_id` using the `docs.csv` table from `config/chembl_activities`.
+8. **Replacing Document ID**. Replacing `doc_id` with its corresponding `doc_chembl_id` using the `docs.csv` table from `data/chembl_activities`.
 
 9. **Column renaming and cleanup**. Dropping original fields (e.g., `standard_value`, `standard_units`) and renaming columns for clarity (`value`, `unit`, `relation`, `activity_type`, `activity_comment`, `standard_text`, etc.)
 
-10. **Converting activity types to their corresponding synonyms**. Mapping activity types to their synonyms as defined in `config/manual_curation/synonyms.csv`. 
+10. **Converting activity types to their corresponding synonyms**. Mapping activity types to their synonyms as defined in `config/synonyms.csv`. 
 
-11. **Creating and manually annotating curated [activity type - unit] pairs**: Creating a frequency table of the previously curated column pairs `activity_type` & `unit` (e.g., 'POTENCY & umol·L-1') named `activity_std_units_curated.csv` and located in `config/chembl_processed`. Whenever this last step is done, the user is expected to manually annotate the biological direction of multiple `activity_type` & `unit` pairs (see examples below), and place the results in a file named `activity_std_units_curated_manual_curation.csv` under the `config/manual_curation` directory (column name: `manual_curation`). In brief, the curated label refers to the direction in which biological activity increases:
+11. **Creating and manually annotating curated [activity type - unit] pairs**: Creating a frequency table of the previously curated column pairs `activity_type` & `unit` (e.g., 'POTENCY & umol·L-1') named `activity_std_units_curated.csv` and located in `data/chembl_processed`. Whenever this last step is done, the user is expected to manually annotate the biological direction of multiple `activity_type` & `unit` pairs (see examples below), and place the results in a file named `activity_std_units_curated_manual_curation.csv` under the `config` directory (column name: `manual_curation_direction`). In brief, the curated label refers to the direction in which biological activity increases:
 
   - **-1** → lower value = more active (e.g. IC50)
   - **1** → higher value = more active (e.g. %INHIBITION)
   - **0** → unclear or inconclusive
 
-    Additionally, the script generates a summary table (`activity_std_units_counts_unit_comment.csv`, saved in `config/chembl_processed`) reporting, for each `activity_type`, the number of records with:
-    (i) unit + comment, (ii) no unit + comment, (iii) unit + no comment, and (iv) no unit + no comment. A comment is defined as present when either `activity_comment` or `standard_text` is non-zero The table is sorted by total record count per activity type and is intended for quick inspection of quantitative vs qualitative coverage.
+    Additionally, the script generates a summary table (`activity_std_units_curated_comments.csv`, saved in `data/chembl_processed`) reporting, for each `activity_type` and `unit` pair, the total number of counts as well as the number of records with a non-zero value (1 for active and -1 for inactive) in `activity_comment` or `standard_text`.
 
 ⏳ ETA: ~15 minutes.
+
+
+<!-- ### Step 03. Calculating compound descriptors
+
+The script `03_get_compound_descriptors.py` calculates ECFPs (radius 3, 2048 bits) for sanitized and standardized compounds (previous step) using RDKit, ommiting failed SMILES and storing results in H5 file format (`output/descriptors.h5`).
+
+⏳ ETA: ~10 minutes. -->
 
 ## Step 07. Splitting data by pathogen
 
@@ -255,5 +269,7 @@ Outputs are saved in the folder: **output/<pathogen_code>/**, and include:
 
 
 ETA values were dervied using an ASUS ... 16 CPUs and 32 GB RAM. 
+
+Storage space.
 
 

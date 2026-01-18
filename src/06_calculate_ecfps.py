@@ -8,8 +8,9 @@ import sys
 import os
 
 # Define root directory
-# root = os.path.dirname(os.path.abspath(__file__))
-root = "."
+root = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(root, "..", "src"))
+from default import DATAPATH, CONFIGPATH
 
 def clip_sparse(vect, nBits=2048):
     MAX_I8 = 127
@@ -36,20 +37,18 @@ def smiles_to_ecfp(SMILES, radius=3, nBits=2048):
     assert len(OUTPUT_SMILES) == len(X), "Row mismatch between X and OUTPUT_SMILES"   
     return OUTPUT_SMILES, np.array(X, dtype=np.int8)
 
-# Create output directory
-OUTPUT = os.path.join(root, "..", "output")
-CONFIG = os.path.join(root, "..", "config")
+print("Step 06")
 
 # Read compound_info
-compound_info = pd.read_csv(os.path.join(CONFIG, "chembl_processed", "compound_info.csv"))
-
-# Read compound_standardized
-compound_standardized = pd.read_csv(os.path.join(CONFIG, "chembl_processed", "compound_info.csv"))["canonical_smiles"]  # change this
-compound_info['standardized_smiles'] = compound_standardized
+print("Loading data")
+compound_info = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "compound_info.csv"))
+compounds_standardized = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "compound_info_standardized.csv"), low_memory=True)
+compound_info['standardized_smiles'] = compounds_standardized['standardized_smiles']
+compound_info['standardized_MW'] = compounds_standardized['standardized_MW']
 compound_info["molregno"] = compound_info["molregno"].astype(str)
 
 # Get only useful data
-SMILES = compound_info[["molregno", "standard_inchi", "standard_inchi_key", "chembl_id", "standardized_smiles"]].values.tolist()
+SMILES = compound_info[["molregno", "standard_inchi", "standard_inchi_key", "chembl_id", "canonical_smiles"]].values.tolist()
 
 # Calculate Morgan
 print("Calculating Morgan Fingerprints...")
@@ -59,7 +58,7 @@ print(f"Original number of compounds: {len(compound_info)}")
 print(f"Final number of compounds: {len(SMILES), X_Morgan.shape}")
 
 print("Saving results to H5 file...")
-with h5py.File(os.path.join(OUTPUT, "descriptors.h5"), "w") as f:
+with h5py.File(os.path.join(DATAPATH, "chembl_processed", "ChEMBL_ECFPs.h5"), "w") as f:
     smiles_dt = h5py.string_dtype(encoding="utf-8")
     f.create_dataset("SMILES", data=np.asarray(SMILES, dtype=object), dtype=smiles_dt, compression="gzip", chunks=True)
     f.create_dataset("X_morgan", data=X_Morgan.astype(np.int8), compression="gzip", chunks=True)

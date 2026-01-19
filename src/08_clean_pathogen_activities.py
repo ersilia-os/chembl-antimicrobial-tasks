@@ -14,7 +14,7 @@ from default import DATAPATH, CONFIGPATH
 
 # Load pathogen info
 pathogen_code = sys.argv[1]
-df = pd.read_csv(os.path.join(root, "..", "config", 'pathogens.csv'))
+df = pd.read_csv(os.path.join(CONFIGPATH, 'pathogens.csv'))
 row = df.loc[df["code"].eq(pathogen_code)]
 if row.empty: 
     raise SystemExit(f"Unknown code: {pathogen_code}")
@@ -22,44 +22,18 @@ pathogen = row.iloc[0]["pathogen"]
 
 print("Step 08")
 
-# Create output directory
+# Define output directory
 OUTPUT = os.path.join(root, "..", "output")
 
 def only_one(values, name):
-    # Helper function - is there only a single value?
     if len(values) != 1:
         raise ValueError(f"Expected exactly one {name}, found {values}")
     return values[0]
 
-def create_text_flag(ChEMBL_pathogen):
-
-    cond_nan = (ChEMBL_pathogen['activity_comment'] == 0) & (ChEMBL_pathogen['standard_text'] == 0)
-    cond_pos = (ChEMBL_pathogen['activity_comment'] == 1) | (ChEMBL_pathogen['standard_text'] == 1)
-    cond_neg = (ChEMBL_pathogen['activity_comment'] == -1) | (ChEMBL_pathogen['standard_text'] == -1)
-
-    # Detect row-level conflicts
-    conflict = cond_pos & cond_neg
-    if conflict.any():
-        raise ValueError(
-            "Conflicting labels (contains both 1 and -1):\n"
-            + ChEMBL_pathogen.loc[conflict, ["compound_chembl_id", "activity_comment", "standard_text"]].head(20).to_string())
-
-    # Assign row-level label
-    ChEMBL_pathogen["text_flag"] = np.nan
-    ChEMBL_pathogen.loc[cond_pos, "text_flag"] = 1
-    ChEMBL_pathogen.loc[cond_neg, "text_flag"] = -1
-    ChEMBL_pathogen.loc[cond_nan, "text_flag"] = 0
-
-    # Remove original fields
-    ChEMBL_pathogen = ChEMBL_pathogen.drop(columns=['activity_comment', 'standard_text'])
-
-    return ChEMBL_pathogen
-
-
 # Loading pathogen data
 print(f"Loading ChEMBL preprocessed data for {pathogen_code}...")
-ChEMBL_pathogen = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, f"{pathogen_code}_ChEMBL_raw_data.csv.gz"), low_memory=False)
-ASSAYS_RAW = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, 'assays_raw.csv'))
+ChEMBL_pathogen = pd.read_csv(os.path.join(OUTPUT, pathogen_code, f"{pathogen_code}_ChEMBL_raw_data.csv.gz"), low_memory=False)
+ASSAYS_RAW = pd.read_csv(os.path.join(OUTPUT, pathogen_code, 'assays_raw.csv'))
 print(f"Number of activities for {pathogen_code}: {len(ChEMBL_pathogen)}")
 print(f"Number of compounds for {pathogen_code}: {len(set(ChEMBL_pathogen['compound_chembl_id']))}")
 print(f"Original number of assays: {len(ASSAYS_RAW)} (unique: {len(set(ASSAYS_RAW['assay_id']))})")
@@ -75,14 +49,14 @@ print(f"Number of activities for {pathogen_code}: {len(ChEMBL_pathogen)}")
 print(f"Number of compounds for {pathogen_code}: {len(set(ChEMBL_pathogen['compound_chembl_id']))}")
 
 print(f"Keeping only those activities with consensus units")
-CONSENSUS_UNITS = set(pd.read_csv(os.path.join(root, "..", "config", 'chembl_processed', "unit_conversion.csv"))['final_unit'])
+CONSENSUS_UNITS = set(pd.read_csv(os.path.join(CONFIGPATH, 'chembl_processed', "unit_conversion.csv"))['final_unit'])
 ChEMBL_pathogen = ChEMBL_pathogen[(ChEMBL_pathogen['unit'].isin(CONSENSUS_UNITS) == True) |
                                     (ChEMBL_pathogen['unit'].isna() == True)].reset_index(drop=True)
 print(f"Number of activities for {pathogen_code}: {len(ChEMBL_pathogen)}")
 print(f"Number of compounds for {pathogen_code}: {len(set(ChEMBL_pathogen['compound_chembl_id']))}")
 
 # Get directions
-DIRECTIONS = pd.read_csv(os.path.join(root, "..", "config", 'manual_curation', 'activity_std_units_curated_manual_curation.csv'))
+DIRECTIONS = pd.read_csv(os.path.join(CONFIGPATH, 'manual_curation', 'activity_std_units_curated_manual_curation.csv'))
 DIRECTIONS = {(i,j): k for i,j,k in zip(DIRECTIONS['activity_type'], DIRECTIONS['unit'], DIRECTIONS['manual_curation']) if np.isnan(k) == False}
 ChEMBL_pathogen['direction'] = [DIRECTIONS[(i,j)] if (i,j) in DIRECTIONS else np.nan 
                                 for i,j in zip(ChEMBL_pathogen['activity_type'], ChEMBL_pathogen['unit'])]
@@ -153,13 +127,13 @@ counts_wide["total_count"] = counts_wide[cols].sum(axis=1)
 counts_wide = counts_wide.sort_values("total_count", ascending=False, ignore_index=True)
 
 # Save pair summary
-out.to_csv(os.path.join(root, "..", "output", pathogen_code, "activity_type_unit_pairs.csv"), index=False)
+out.to_csv(os.path.join(OUTPUT, pathogen_code, "activity_type_unit_pairs.csv"), index=False)
 
 # Save pair summary
-counts_wide.to_csv(os.path.join(root, "..", "output", pathogen_code, "activity_type_unit_comment.csv"), index=False)
+counts_wide.to_csv(os.path.join(OUTPUT, pathogen_code, "activity_type_unit_comment.csv"), index=False)
 
 # Save cleaned data
-ChEMBL_pathogen.to_csv(os.path.join(root, "..", "output", pathogen_code, f"{pathogen_code}_ChEMBL_cleaned_data.csv.gz"), index=False)
+ChEMBL_pathogen.to_csv(os.path.join(OUTPUT, pathogen_code, f"{pathogen_code}_ChEMBL_cleaned_data.csv.gz"), index=False)
 
 # Get unique assays
 assays = sorted(set(ChEMBL_pathogen['assay_chembl_id']))
@@ -231,8 +205,5 @@ ASSAYS_INFO = pd.DataFrame(ASSAYS_INFO, columns=["assay_id", "assay_type", "assa
                                                     "unit", "activities", 'nan_values', "cpds", "direction", "text_flag_counts"])
 ASSAYS_INFO = ASSAYS_INFO.sort_values('cpds', ascending=False).reset_index(drop=True)
 
-# Filter assays with too few compounds
-ASSAYS_INFO = ASSAYS_INFO[ASSAYS_INFO['cpds'] > MIN_ASSAY_SIZE].reset_index(drop=True)
-
 # Save assays info
-ASSAYS_INFO.to_csv(os.path.join(root, "..", "output", pathogen_code, 'assays_cleaned.csv'), index=False)
+ASSAYS_INFO.to_csv(os.path.join(OUTPUT, pathogen_code, 'assays_cleaned.csv'), index=False)

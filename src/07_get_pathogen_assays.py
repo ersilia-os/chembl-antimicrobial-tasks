@@ -13,7 +13,7 @@ from default import DATAPATH, CONFIGPATH
 
 # Load pathogen info
 pathogen_code = sys.argv[1]
-df = pd.read_csv(os.path.join(root, "..", "config", 'pathogens.csv'))
+df = pd.read_csv(os.path.join(CONFIGPATH, 'pathogens.csv'))
 row = df.loc[df["code"].eq(pathogen_code)]
 if row.empty: 
     raise SystemExit(f"Unknown code: {pathogen_code}")

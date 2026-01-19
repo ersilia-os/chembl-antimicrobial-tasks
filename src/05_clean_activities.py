@@ -74,14 +74,14 @@ def create_text_flag(df):
             + df.loc[conflict, ["compound_chembl_id", "activity_comment", "standard_text"]].head(20).to_string())
 
     # Assign row-level label
-    df["text_flag"] = np.nan
+    df["text_flag"] = pd.Series(pd.NA, index=df.index, dtype="Int64")
     df.loc[cond_pos, "text_flag"] = 1
     df.loc[cond_neg, "text_flag"] = -1
     df.loc[cond_nan, "text_flag"] = 0
 
     # Remove original fields
     df = df.drop(columns=['activity_comment', 'standard_text'])
-
+    
     return df
 
 # 1. Removing those activities having no canonical smiles
@@ -278,6 +278,7 @@ cols = ["activity_type", "unit", "text_flag"]
 df = activities_all_raw[cols]
 flagged = df["text_flag"].isin([1, -1])
 
+# Counting text flag
 out = (
     df.assign(flagged=flagged.to_numpy())
       .groupby(["activity_type", "unit"], dropna=False)

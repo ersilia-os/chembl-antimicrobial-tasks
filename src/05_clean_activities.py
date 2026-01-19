@@ -58,6 +58,32 @@ def calculate_pchembl(uM):
 docs = pd.read_csv(os.path.join(DATAPATH, "chembl_activities", "docs.csv"), low_memory=False)
 doc_id_to_doc_chembl_id = {i: j for i, j in zip(docs['doc_id'], docs["chembl_id"])}
 
+# 11. Creating text_flag
+
+def create_text_flag(df):
+
+    cond_nan = (df['activity_comment'] == 0) & (df['standard_text'] == 0)
+    cond_pos = (df['activity_comment'] == 1) | (df['standard_text'] == 1)
+    cond_neg = (df['activity_comment'] == -1) | (df['standard_text'] == -1)
+
+    # Detect row-level conflicts
+    conflict = cond_pos & cond_neg
+    if conflict.any():
+        raise ValueError(
+            "Conflicting labels (contains both 1 and -1):\n"
+            + df.loc[conflict, ["compound_chembl_id", "activity_comment", "standard_text"]].head(20).to_string())
+
+    # Assign row-level label
+    df["text_flag"] = np.nan
+    df.loc[cond_pos, "text_flag"] = 1
+    df.loc[cond_neg, "text_flag"] = -1
+    df.loc[cond_nan, "text_flag"] = 0
+
+    # Remove original fields
+    df = df.drop(columns=['activity_comment', 'standard_text'])
+
+    return df
+
 # 1. Removing those activities having no canonical smiles
 nans = len(activities_all_raw[activities_all_raw['canonical_smiles'].isna()])
 print(f"Removing activities having no associated canonical smiles ({nans}) ...")
@@ -246,26 +272,24 @@ out.to_csv(os.path.join(DATAPATH, "chembl_processed", "activity_std_units_curate
 print(f"Total number of unique activity type - standard unit pairs: {len(out)}")
 
 # More on step 11.
-cols = ["activity_type", "unit", "activity_comment", "standard_text"]
+# Creating text flag
+activities_all_raw = create_text_flag(activities_all_raw)
+cols = ["activity_type", "unit", "text_flag"]
 df = activities_all_raw[cols]
-
-c1 = pd.to_numeric(df["activity_comment"], errors="coerce")
-c2 = pd.to_numeric(df["standard_text"], errors="coerce")
-flag = c1.isin((1, -1)) | c2.isin((1, -1))
-
-tmp = df[["activity_type", "unit"]].copy()
-tmp["flagged"] = flag.to_numpy()  # small + avoids alignment overhead
+flagged = df["text_flag"].isin([1, -1])
 
 out = (
-    tmp.groupby(["activity_type", "unit"], dropna=False)
-       .agg(count=("flagged", "size"), comments=("flagged", "sum"))
-       .reset_index()
-       .sort_values("count", ascending=False, ignore_index=True))
+    df.assign(flagged=flagged.to_numpy())
+      .groupby(["activity_type", "unit"], dropna=False)
+      .agg(count=("flagged", "size"), comments=("flagged", "sum"))
+      .reset_index()
+      .sort_values("count", ascending=False, ignore_index=True)
+)
 
 out.to_csv(os.path.join(DATAPATH, "chembl_processed", "activity_std_units_curated_comments.csv"), index=False)
 
 print("Saving results...")
 activities_all_raw.to_csv(os.path.join(DATAPATH, 'chembl_processed', 'activities_preprocessed.csv'), index=False)
 
-print("Removing intermediate activity data")
-os.remove(os.path.join(DATAPATH, "chembl_processed", "activities_all_raw.csv"))
+# print("Removing intermediate activity data")
+# os.remove(os.path.join(DATAPATH, "chembl_processed", "activities_all_raw.csv"))

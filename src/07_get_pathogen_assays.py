@@ -9,11 +9,11 @@ import os
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import CONFIGPATH, MIN_ASSAY_SIZE
+from default import DATAPATH, MIN_ASSAY_SIZE
 
 # Loading ChEMBL preprocessed data
 print("Loading ChEMBL preprocessed data...")
-ChEMBL = pd.read_csv(os.path.join(root, "..", "config", "chembl_processed", "activities_preprocessed.csv"), low_memory=False)
+ChEMBL = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "activities_preprocessed.csv"), low_memory=False)
 print(f"Original size: {len(ChEMBL)}")
 
 # List of pathogens
@@ -21,6 +21,7 @@ pathogens = ["Acinetobacter baumannii", "Candida albicans", "Campylobacter", "Es
              "Helicobacter pylori", "Klebsiella pneumoniae", "Mycobacterium tuberculosis", "Neisseria gonorrhoeae", "Pseudomonas aeruginosa",
              "Plasmodium falciparum", "Staphylococcus aureus", "Schistosoma mansoni", "Streptococcus pneumoniae"]
 pathogens = ["Acinetobacter baumannii", "Mycobacterium tuberculosis", "Klebsiella pneumoniae"]
+pathogens = ["Schistosoma mansoni"]
 
 def get_pathogen_code(pathogen):
     return str(pathogen.split()[0][0] + pathogen.split()[1]).lower() if len(pathogen.split()) > 1 else pathogen.lower()
@@ -28,20 +29,28 @@ def get_pathogen_code(pathogen):
 # For each pathogen
 for pathogen in pathogens:
 
+
+    # Get data
     print(f"Filtering for pathogen: {pathogen}...")
     pathogen_code = get_pathogen_code(pathogen)
     PATH_TO_OUTPUT = os.path.join(root, "..", "output", pathogen_code)
     os.makedirs(PATH_TO_OUTPUT, exist_ok=True)
     ChEMBL_pathogen = ChEMBL[ChEMBL['target_organism'].str.contains(pathogen, case=False, na=False) | 
                              ChEMBL['assay_organism'].str.contains(pathogen, case=False, na=False)].reset_index(drop=True)
-
     print(f"Number of activities: {len(ChEMBL_pathogen)}")
-    print(f"Number of unique compounds: {len(set(ChEMBL_pathogen['compound_chembl_id']))}") 
+    print(f"Number of unique compounds: {len(set(ChEMBL_pathogen['compound_chembl_id']))}")
+
+    # Get organism metadata
     df = dict(Counter(ChEMBL_pathogen['target_organism']))
     df = pd.DataFrame([[i, df[i]] for i in sorted(df, key = lambda x: df[x], reverse=True)], columns=['organism', 'count'])
     df.to_csv(os.path.join(PATH_TO_OUTPUT, "target_organism_counts.csv"), index=False)
     ChEMBL_pathogen.to_csv(os.path.join(PATH_TO_OUTPUT, f"{pathogen_code}_ChEMBL_raw_data.csv.gz"), index=False)
+
+    # Get compound metadata and counts
     pair_counts = ChEMBL_pathogen[['compound_chembl_id', 'canonical_smiles']].value_counts().reset_index(name='count')
+    compound_info = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "compound_info.csv"), low_memory=False)
+    ik_dict = dict(zip(compound_info["chembl_id"], compound_info["standard_inchi_key"]))
+    pair_counts["InChIKey"] = pair_counts["compound_chembl_id"].map(ik_dict)
     pair_counts.to_csv(os.path.join(PATH_TO_OUTPUT, "compound_counts.csv.gz"), index=False)
 
     # Helper function - is there only a single value?
@@ -50,8 +59,10 @@ for pathogen in pathogens:
             raise ValueError(f"Expected exactly one {name}, found {values}")
         return values[0]
 
-    # Get unique assays
+    # Get unique assays filtered from ChEMBL
     assays = sorted(set(ChEMBL_pathogen['assay_chembl_id']))
+
+    # Get unique assays provided by the user
 
     # Get assay to index mapping
     assay_to_idx = defaultdict(list)

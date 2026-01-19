@@ -48,7 +48,7 @@ compound_info['standardized_MW'] = compounds_standardized['standardized_MW']
 compound_info["molregno"] = compound_info["molregno"].astype(str)
 
 # Get only useful data
-SMILES = compound_info[["molregno", "standard_inchi", "standard_inchi_key", "chembl_id", "canonical_smiles"]].values.tolist()
+SMILES = compound_info[["molregno", "standard_inchi", "standard_inchi_key", "chembl_id", "standardized_smiles"]].values.tolist()
 
 # Calculate Morgan
 print("Calculating Morgan Fingerprints...")

@@ -89,11 +89,6 @@ nans = len(activities_all_raw[activities_all_raw['canonical_smiles'].isna()])
 print(f"Removing activities having no associated canonical smiles ({nans}) ...")
 activities_all_raw = activities_all_raw[activities_all_raw['canonical_smiles'].isna() == False].reset_index(drop=True)
 
-# # 1. Removing those activities having no standardized smiles
-# nans = len(activities_all_raw[activities_all_raw['standardized_smiles'].isna()])
-# print(f"Removing activities having no associated standardized_smiles ({nans}) ...")
-# activities_all_raw = activities_all_raw[activities_all_raw['standardized_smiles'].isna() == False].reset_index(drop=True)
-
 # 2. Cleaning activity comments
 print("Cleaning activity comments...")
 NEW_ACTIVITY_COMMENT = []
@@ -133,7 +128,7 @@ print(f"New standard text: {dict(Counter(activities_all_raw['new_standard_text_v
 # 4. Standardizing units and values
 NEW_VALUES, NEW_UNITS = [], []
 print("Standardizing units and converting values")
-for mw, std_value, std_unit in tqdm(activities_all_raw[['MW', 'standard_value', 'standard_units']].values):
+for mw, std_value, std_unit in tqdm(activities_all_raw[['standardized_MW', 'standard_value', 'standard_units']].values):
 
     # Get conversion formula
     if std_unit in standard_unit_to_conversion_formula:

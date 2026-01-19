@@ -8,12 +8,11 @@ The first one, named `process_chembl.sh` fetches tables from ChEMBL (step 00), o
 
 Files to review before processing ChEMBL:
 
-- `config/activity_comments_manual_curation.csv`: Manual annotation of ... generated in step 00 and needed in step 05. 
-- `config/standard_text_manual_curation.csv`: generated in step 00 and needed in step 05.
-- `config/synonyms.csv`: generated before runnning the pipeline and needed in step 05.
-- `config/ucum_GT.csv`: generated before runnning the pipeline and needed in step 04.
-- `config/UnitStringValidations.csv`: generated before runnning the pipeline and needed in step 04.
-
+- `config/activity_comments_manual_curation.csv`: Manual annotation of activity comments generated in step 00 and needed in step 05. 
+- `config/standard_text_manual_curation.csv`: Manual annotation of activity standard texts generated in step 00 and needed in step 05.
+- `config/synonyms.csv`: Activity type mappings to their associated synonyms. Generated before runnning the pipeline and needed in step 05.
+- `config/ucum_GT.csv`: Manual annotation of unit conversions. Generated before runnning the pipeline and needed in step 04.
+- `config/UnitStringValidations.csv`: ChEMBL's original unit mappings to UCUM-compliant formats. Generated before runnning the pipeline and needed in step 04.
 
 To process ChEMBL, simply run:
 

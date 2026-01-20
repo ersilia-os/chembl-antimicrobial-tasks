@@ -146,22 +146,28 @@ The script `08_clean_pathogen_activities.py` cleans organism-specific ChEMBL act
 
 7. **Aggregating cleaned assay data**: Assays are split by `activity_type` and `unit`, summarized with metadata (compound counts, missing values, direction, text annotations).
 
-Outputs are written to **output/<pathogen_code>/** and include:
+Outputs are written to `output/<pathogen_code>/` and include:
+- `<pathogen_code>_ChEMBL_cleaned_data.csv.gz`: Cleaned activity-level data for the selected pathogen (based on fields `target_organism` and `assay_organism` and provided assay IDs).
+- `activity_type_unit_comments.csv`: Counts, direction and activity comments for activity type-unit combinations. 
+- `assays_cleaned.csv`: Cleaned and filtered assay-level metadata.
 
-- `<pathogen_code>_ChEMBL_cleaned_data.csv.gz`: cleaned activity-level data for the selected pathogen (based on fields `target_organism` and `assay_organism` and provided assay IDs).
-- `activity_type_unit_comments.csv`: counts, direction and activity comments for activity type-unit combinations. 
-- `assays_cleaned.csv`: cleaned and filtered assay-level metadata.
+⏳ ETA: ~5 minutes.
   
 ## Step 09. Calculating assay clusters
 
-The script `09_calculate_assay_clusters.py` needs to be executed with a conda environment having [bblean](https://github.com/mqcomplab/bblean) installed. For each individual assay ([`assay_id`, `activity_type`, `unit`] item), unique compounds are clustered based on their ECFP4 fingerprints (2048 bits) using the BitBirch algorithm. The number of clusters is computed at three distinct Tanimoto Coefficient cut-offs: 0.3, 0.6, and 0.85, providing a measure of chemical diversity within each assay.
+The script `09_calculate_assay_clusters.py` needs to be executed with a conda environment named `bblean` having [bblean](https://github.com/mqcomplab/bblean) installed. For each individual assay ([`assay_id`, `activity_type`, `unit`] item), unique compounds are clustered based on their ECFP4 fingerprints (2048 bits) using the BitBirch algorithm. The number of clusters is computed at three distinct Tanimoto Coefficient cut-offs: 0.3, 0.6, and 0.85, providing a measure of chemical diversity within each assay.
+
+Outputs are written to `output/<pathogen_code>/` and include:
+- `assays_clusters.csv`: Number of clusters associated to each [`assay_id`, `activity_type`, `unit`] item at distinct Tanimoto Coefficients. 
+
+⏳ ETA: ~10 minutes.
 
 ## Step 10. Assessing compound overlap among assays
 
-The script `10_get_assay_overlap.py` computes pairwise compound overlap between assays within each pathogen-specific cleaned dataset. Each assay is treated as an independent [`assay_id`, `activity_type`, `unit`] item. Only assays with 50 or more compounds are considered. For each assay pair, the number of shared compounds and a normalized overlap ratio are calculated.
+The script `10_get_assay_overlap.py` computes pairwise compound overlap between assays within the pathogen-specific cleaned dataset. Each assay is treated as an independent [`assay_id`, `activity_type`, `unit`] item. Only assays with 50 or more compounds are considered. For each assay pair, the number of shared compounds and a normalized overlap ratio are calculated.
 
 Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
-- assays_overlap.csv: Pairwise assay overlap table, including compound counts, shared compounds, and overlap ratios.
+- `assays_overlap.csv`: Pairwise assay overlap table, including compound counts, shared compounds, overlap ratios and document information.
 
 ⏳ ETA: [REVISE]
 

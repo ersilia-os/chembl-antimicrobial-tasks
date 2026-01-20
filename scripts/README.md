@@ -29,11 +29,13 @@ Once a processed version of ChEMBL is available locally, the user can create bin
 
 Files to review before generating binarized datasets for a given pathogen:
 
-- 
+- `config/activity_std_units_curated_manual_curation.csv`: Manual annotation of biological direction for activity type and unit pairs. Generated in step 05 and needed in step 07. 
 
 ```
-bash generate_datasets.sh
+bash generate_datasets.sh --<pathogen_code>
 ...
 ```
+
+Supported pathogen codes are listed in `config/pathogens.csv`
 
 

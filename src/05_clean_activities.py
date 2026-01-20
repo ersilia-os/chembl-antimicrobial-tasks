@@ -49,6 +49,7 @@ def convert_relation(i, RELATIONS):
 def calculate_pchembl(uM):
     try:
         value = uM * 1e-6
+        if value == 0: value = 1e-10
         pchembl_value = np.clip(-np.log10(value), 1, 9)
         return pchembl_value
     except:
@@ -128,7 +129,7 @@ print(f"New standard text: {dict(Counter(activities_all_raw['new_standard_text_v
 # 4. Standardizing units and values
 NEW_VALUES, NEW_UNITS = [], []
 print("Standardizing units and converting values")
-for mw, std_value, std_unit in tqdm(activities_all_raw[['standardized_MW', 'standard_value', 'standard_units']].values):
+for activity_id, mw, mw_standardized, std_value, std_unit in tqdm(activities_all_raw[["activity_id", 'MW', 'standardized_MW', 'standard_value', 'standard_units']].values):
 
     # Get conversion formula
     if std_unit in standard_unit_to_conversion_formula:
@@ -148,7 +149,7 @@ for mw, std_value, std_unit in tqdm(activities_all_raw[['standardized_MW', 'stan
     # Get new value
     if str(std_value) != 'nan':
         if str(conversion_formula) != 'nan':
-            data = {'standard_value': std_value, 'molecular_weight': mw}
+            data = {'standard_value': std_value, 'molecular_weight': mw_standardized}
             new_value = eval(conversion_formula, data)
             NEW_VALUES.append(new_value)
         else:

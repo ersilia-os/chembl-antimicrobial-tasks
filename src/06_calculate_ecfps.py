@@ -46,6 +46,7 @@ compounds_standardized = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", 
 compound_info['standardized_smiles'] = compounds_standardized['standardized_smiles']
 compound_info['standardized_MW'] = compounds_standardized['standardized_MW']
 compound_info["molregno"] = compound_info["molregno"].astype(str)
+compound_info = compound_info[compound_info['standardized_smiles'].isna() == False].reset_index(drop=True)
 
 # Get only useful data
 SMILES = compound_info[["molregno", "standard_inchi", "standard_inchi_key", "chembl_id", "standardized_smiles"]].values.tolist()

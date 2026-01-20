@@ -10,4 +10,4 @@ fi
 code="${1#--}"
 
 python "$SCRIPT_DIR/../src/07_get_pathogen_assays.py" "$code"
-python "$SCRIPT_DIR/../src/08_clean_pathogen_activities.py" "$code"
+# python "$SCRIPT_DIR/../src/08_clean_pathogen_activities.py" "$code"

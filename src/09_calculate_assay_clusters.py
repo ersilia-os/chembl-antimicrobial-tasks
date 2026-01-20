@@ -7,22 +7,13 @@ import bblean
 import sys
 import os
 
-# Define root directory
-root = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.join(root, "..", "src"))
-from default import CONFIGPATH, MIN_ASSAY_SIZE
 
-# List of pathogens to process
-pathogens = ["Acinetobacter baumannii", "Candida albicans", "Campylobacter", "Escherichia coli", "Enterococcus faecium", "Enterobacter",
-             "Helicobacter pylori", "Klebsiella pneumoniae", "Mycobacterium tuberculosis", "Neisseria gonorrhoeae", "Pseudomonas aeruginosa",
-             "Plasmodium falciparum", "Staphylococcus aureus", "Schistosoma mansoni", "Streptococcus pneumoniae"]
-pathogens = ["Acinetobacter baumannii", "Mycobacterium tuberculosis", "Klebsiella pneumoniae"]
 
 # Thresholds - Tanimoto Coefficient
 thrs = [0.3, 0.6, 0.85]
 
-def get_pathogen_code(pathogen):
-    return str(pathogen.split()[0][0] + pathogen.split()[1]).lower() if len(pathogen.split()) > 1 else pathogen.lower()
+print("Step 09")
+
 
 # For each pathogen
 for pathogen in pathogens:

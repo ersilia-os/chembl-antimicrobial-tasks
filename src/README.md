@@ -148,12 +148,10 @@ The script `08_clean_pathogen_activities.py` cleans organism-specific ChEMBL act
 
 Outputs are written to **output/<pathogen_code>/** and include:
 
-- `<pathogen_code>_ChEMBL_cleaned_data.csv.gz`: cleaned activity-level data for the selected pathogen (based on fields `target_organism` and `assay_organism`).
-- `activity_type_unit_pairs.csv`: counts and directions for activity type–unit combinations.
-- `activity_type_unit_comment.csv`: activity type summaries by unit availability and text annotations.
+- `<pathogen_code>_ChEMBL_cleaned_data.csv.gz`: cleaned activity-level data for the selected pathogen (based on fields `target_organism` and `assay_organism` and provided assay IDs).
+- `activity_type_unit_comments.csv`: counts, direction and activity comments for activity type-unit combinations. 
 - `assays_cleaned.csv`: cleaned and filtered assay-level metadata.
   
-
 ## Step 09. Calculating assay clusters
 
 The script `09_calculate_assay_clusters.py` needs to be executed with a conda environment having [bblean](https://github.com/mqcomplab/bblean) installed. For each individual assay ([`assay_id`, `activity_type`, `unit`] item), unique compounds are clustered based on their ECFP4 fingerprints (2048 bits) using the BitBirch algorithm. The number of clusters is computed at three distinct Tanimoto Coefficient cut-offs: 0.3, 0.6, and 0.85, providing a measure of chemical diversity within each assay.

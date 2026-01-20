@@ -108,7 +108,7 @@ for assay in tqdm(assays):
         df__ = df_[df_["activity_type"] == act_type]
         activity_type = list(set(df__['activity_type']))
         activity_type = only_one(activity_type, 'activity_type')
-        units = list(set(df__['unit']))
+        units = list(set(df__['unit']))  # may be more than one
 
         for u in units:
 

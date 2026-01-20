@@ -169,7 +169,7 @@ The script `10_get_assay_overlap.py` computes pairwise compound overlap between 
 Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
 - `assays_overlap.csv`: Pairwise assay overlap table, including compound counts, shared compounds, overlap ratios and document information.
 
-⏳ ETA: [REVISE]
+⏳ ETA: ~1 minute.
 
 ## Step 11. Curating assay parameters
 

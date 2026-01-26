@@ -181,6 +181,7 @@ for assay in tqdm(assays):
             inact_flag = text_flag[-1]
             inc_flag = text_flag[0]
             frac_cs = round(len(cpds.intersection(pathogen_chemical_space)) / len(pathogen_chemical_space), 5)
+            direction = DIRECTIONS[(act_type, unit)] if (act_type, unit) in DIRECTIONS else np.nan
 
             
             ASSAYS_INFO.append([assay, assay_type, assay_organism, doc_chembl_id, target_type, target_chembl_id, target_organism, 

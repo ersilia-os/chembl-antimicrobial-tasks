@@ -197,6 +197,10 @@ for idx, ASSAY in tqdm(ASSAYS.iterrows()):
             file.write("\n")
 
     with open(os.path.join(PATH_TO_OUTPUT, 'assays_parameters.csv'), "a") as file:
-            file.write(",".join([ASSAY.assay_id, ASSAY.activity_type, ASSAY.unit] + 
+            if type(ASSAY.unit) == str:
+                unit = ASSAY.unit
+            else:
+                unit = ""
+            file.write(",".join([ASSAY.assay_id, ASSAY.activity_type, unit] + 
                                 [js[i] if type(js[i]) == str else ";".join(js[i]) for i in COLS]))
             file.write("\n")

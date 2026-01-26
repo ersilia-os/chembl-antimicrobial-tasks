@@ -184,12 +184,12 @@ for assay in tqdm(assays):
             direction = DIRECTIONS[(act_type, unit)] if (act_type, unit) in DIRECTIONS else np.nan
 
             
-            ASSAYS_INFO.append([assay, assay_type, assay_organism, doc_chembl_id, target_type, target_chembl_id, target_organism, 
-                                bao_label, source_label, activity_type, unit, activities, nan_values, len(cpds), act_flag, inact_flag, frac_cs])
+            ASSAYS_INFO.append([assay, assay_type, assay_organism, doc_chembl_id, target_type, target_chembl_id, target_organism, bao_label, source_label, 
+                                activity_type, unit, activities, nan_values, len(cpds), act_flag, inact_flag, frac_cs, direction])
 
 
 ASSAYS_INFO = pd.DataFrame(ASSAYS_INFO, columns=["assay_id", "assay_type", "assay_organism", "doc_chembl_id", "target_type", "target_chembl_id", "target_organism", "bao_label", 
-                                                 "source_label", "activity_type", "unit", "activities", 'nan_values', "cpds", "act_flag", "inact_flag", "frac_cs"])
+                                                 "source_label", "activity_type", "unit", "activities", 'nan_values', "cpds", "act_flag", "inact_flag", "frac_cs", "direction"])
 
 # Sort assays by compound count
 ASSAYS_INFO = ASSAYS_INFO.sort_values('cpds', ascending=False).reset_index(drop=True)

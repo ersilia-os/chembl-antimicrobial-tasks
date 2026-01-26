@@ -20,6 +20,7 @@ activity_tables = [
     "docs",
     "assay_parameters",
     "bioassay_ontology",
+    "source",
 ]
 
 os.makedirs(output_dir, exist_ok=True)

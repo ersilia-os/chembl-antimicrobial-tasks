@@ -105,6 +105,19 @@ pathogen_chemical_space = set(pd.read_csv(os.path.join(OUTPUT, pathogen_code, "c
 # Get unique assays
 assays = sorted(set(ChEMBL_pathogen['assay_chembl_id']))
 
+# Get assay to source mapping
+assay_data = pd.read_csv(os.path.join(DATAPATH, "chembl_activities", "assays.csv"), low_memory=False)[['chembl_id', 'src_id', 'bao_format']]
+assay_to_src_id = {i: j for i,j in zip(assay_data['chembl_id'], assay_data['src_id'])}
+assay_to_bao_format = {i: j for i,j in zip(assay_data['chembl_id'], assay_data['bao_format'])}
+
+# Get source mappings
+source = pd.read_csv(os.path.join(DATAPATH, "chembl_activities", "source.csv"))
+src_id_to_src_short_name = {i: j for i,j in zip(source['src_id'], source['src_short_name'])}
+
+# Get bioassay ontology mappings
+BAO = pd.read_csv(os.path.join(DATAPATH, "chembl_activities", "bioassay_ontology.csv"))
+bao_id_to_label = {i: j for i,j in zip(BAO['bao_id'], BAO['label'])}
+
 # Get assay to index mapping
 assay_to_idx = defaultdict(list)
 for i, assay_id in enumerate(ChEMBL_pathogen["assay_chembl_id"].to_numpy()):
@@ -136,6 +149,10 @@ for assay in tqdm(assays):
     assay_organism = only_one(assay_organism, "assay_organism")
     doc_chembl_id = only_one(doc_chembl_id, "doc_chembl_id")
 
+    # Get metadata
+    bao_label = bao_id_to_label[assay_to_bao_format[assay]]
+    source_label = src_id_to_src_short_name[assay_to_src_id[assay]]
+
     # For each activity type
     for act_type in activity_types:
 
@@ -165,13 +182,13 @@ for assay in tqdm(assays):
             inc_flag = text_flag[0]
             frac_cs = round(len(cpds.intersection(pathogen_chemical_space)) / len(pathogen_chemical_space), 5)
 
+            
+            ASSAYS_INFO.append([assay, assay_type, assay_organism, doc_chembl_id, target_type, target_chembl_id, target_organism, 
+                                bao_label, source_label, activity_type, unit, activities, nan_values, len(cpds), act_flag, inact_flag, frac_cs])
 
-            ASSAYS_INFO.append([assay, assay_type, assay_organism, doc_chembl_id, target_type, target_chembl_id, target_organism, activity_type, unit, 
-                                activities, nan_values, len(cpds), act_flag, inact_flag, frac_cs])
 
-
-ASSAYS_INFO = pd.DataFrame(ASSAYS_INFO, columns=["assay_id", "assay_type", "assay_organism", "doc_chembl_id", "target_type", "target_chembl_id", "target_organism", 
-                                                "activity_type", "unit", "activities", 'nan_values', "cpds", "act_flag", "inact_flag", "frac_cs"])
+ASSAYS_INFO = pd.DataFrame(ASSAYS_INFO, columns=["assay_id", "assay_type", "assay_organism", "doc_chembl_id", "target_type", "target_chembl_id", "target_organism", "bao_label", 
+                                                 "source_label", "activity_type", "unit", "activities", 'nan_values', "cpds", "act_flag", "inact_flag", "frac_cs"])
 
 # Sort assays by compound count
 ASSAYS_INFO = ASSAYS_INFO.sort_values('cpds', ascending=False).reset_index(drop=True)

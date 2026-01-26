@@ -173,12 +173,12 @@ Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
 
 ## Step 11. Curating assay parameters
 
-The script `11_curate_assay_parameters.py` extracts and standardizes additional assay-level biological context for each pathogen, using a local LLM (via `ollama`) to parse existing ChEMBL assay annotations and associated publication metadata. For each pathogen, the script iterates over all cleaned assays (`assays_cleaned.csv`) and compiles a text block containing assay fields from ChEMBL (`config/chembl_activities/assays.csv`), document metadata (`config/chembl_activities/docs.csv`), and summary statistics from Step 08 (e.g., compound counts, activity type, unit, direction). This block is passed to an information-extraction prompt, requesting a strict JSON output with the following curated fields: [`organism`, `target_type_curated`, `strain`, `atcc_id`, `mutations`, `known_drug_resistances`, `media`]. One JSON file is generated per [`assay_id`, `activity_type`, `unit`] item and saved under `output/<pathogen_code>/assay_parameters/`. After processing all assays, the folder is compressed into `output/<pathogen_code>/assay_parameters.zip` and the temporary directory is removed.
+The script `11_curate_assay_parameters.py` extracts and standardizes additional assay-level biological context for the pathogen under study, using a local LLM (via `ollama`) to parse existing ChEMBL assay annotations and associated publication metadata. Importantly, this code must be run on a GPU-enabled machine. The script iterates over all cleaned assays (`assays_cleaned.csv`) and compiles a text block containing assay fields from ChEMBL (`data/chembl_activities/assays.csv`), document metadata (`data/chembl_activities/docs.csv`), and summary statistics from Step 08 (e.g., compound counts, activity type, unit, direction). This block is passed to an information-extraction prompt, requesting a strict JSON output with the following curated fields: [`organism_curated`, `target_type_curated`, `target_name_curated`, `target_chembl_id_curated`, `strain`, `atcc_id`, `mutations`, `known_drug_resistances`, `media`]. The extracted parameters are written as a single row per [`assay_id`, `activity_type`, `unit`] to a consolidated CSV file.
 
 Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
-- `assay_parameters.zip`: ZIP archive containing one *_parameters.json file per assay item with curated assay parameters.
+- `assay_parameters.csv`: consolidated table containing curated assay parameters for all assays.
 
-⏳ ETA: [REVISE]
+⏳ ETA: ~5 seconds per assay on a GPU-enabled machine. 
 
 
 ## Step 12: Preparing assay data

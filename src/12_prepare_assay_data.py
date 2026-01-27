@@ -590,6 +590,8 @@ if row.empty:
     raise SystemExit(f"Unknown code: {pathogen_code}")
 pathogen = row.iloc[0]["pathogen"]
 
+print("Step 12")
+
 # Create output directory
 OUTPUT = os.path.join(root, "..", "output")
 
@@ -622,7 +624,9 @@ for i, assay_id in enumerate(ChEMBL_pathogen["assay_chembl_id"].to_numpy()):
     assay_to_idx[assay_id].append(i)
 
 # Define data ranges
-DATA_RANGES = []
+DATASETS = []
+
+print("Preparing datasets for each assay")
 
 for assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra, activities, nan_values, cpds, direction, act_flag, inact_flag in tqdm(ASSAYS_CLEANED[['assay_id', 
                                     'activity_type', 'unit', 'target_type','target_type_curated_extra', 'activities', 'nan_values', 'cpds', 'direction', 
@@ -668,7 +672,7 @@ for assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra
             expert_cutoff = np.nan
 
             # Store data range
-            DATA_RANGES.append([assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra, activities, nan_values, cpds, direction, act_flag, 
+            DATASETS.append([assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra, activities, nan_values, cpds, direction, act_flag, 
                                 inact_flag, equal, higher, lower, dataset_type, expert_cutoff, positives_quantitative, ratio_quantitative, compounds_quantitative, 
                                 min_, p1, p25, p50, p75, p99, max_, positives_qualitative, ratio_qualitative, compounds_qualitative])
             
@@ -735,22 +739,25 @@ for assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra
                     ASSAY_DATA_QUALITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_ql.csv.gz"), index=False)
 
             # Store data range
-            DATA_RANGES.append([assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra, activities, nan_values, cpds, direction, act_flag, 
+            DATASETS.append([assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra, activities, nan_values, cpds, direction, act_flag, 
                                 inact_flag, equal, higher, lower, dataset_type, expert_cutoff, positives_quantitative, ratio_quantitative, compounds_quantitative, 
                                 min_, p1, p25, p50, p75, p99, max_, positives_qualitative, ratio_qualitative, compounds_qualitative])
         
 
 
 # Store data results
-DATA_RANGES = pd.DataFrame(DATA_RANGES, columns=["assay_id", "activity_type", "unit", "target_type", "target_type_curated_extra", "activities", "nan_values", "cpds", "direction", 
+DATASETS = pd.DataFrame(DATASETS, columns=["assay_id", "activity_type", "unit", "target_type", "target_type_curated_extra", "activities", "nan_values", "cpds", "direction", 
                                                     'act_flag', 'inact_flag', "equal", "higher", "lower", "dataset_type", "expert_cutoff", "pos_qt", 
                                                     "ratio_qt", "cpds_qt", "min_", "p1", "p25", "p50", "p75", "p99", "max_", "pos_ql", "ratio_ql", "cpds_ql"])
-DATA_RANGES.to_csv(os.path.join(OUTPUT, pathogen_code, 'assays_datasets.csv'), index=False)
+DATASETS.to_csv(os.path.join(OUTPUT, pathogen_code, 'assays_datasets.csv'), index=False)
 
 # Zip and remove datasets
 datasets_dir = os.path.join(OUTPUT, pathogen_code, "datasets")
 qt, ql = zip_and_remove(datasets_dir)
 
-# # Check consstency - only valid if 3 cutoffs are defined per activity type - unit
-# counter = Counter(DATA_RANGES['dataset_type'])
+# Check consstency - only valid if 3 cutoffs are defined per activity type - unit
+counter = dict(Counter(DATASETS['dataset_type']))
 # assert len(ASSAYS_CLEANED) == int(counter['quantitative'] / 3 + counter['qualitative'] + counter['none'] + counter['mixed'] / 3)
+
+print(f"Total number of datasets: {len(DATASETS)}")
+print(f"Types of datasets: {counter}")

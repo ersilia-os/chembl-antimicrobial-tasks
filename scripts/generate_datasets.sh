@@ -11,5 +11,5 @@ code="${1#--}"
 
 python "$SCRIPT_DIR/../src/07_get_pathogen_assays.py" "$code"
 python "$SCRIPT_DIR/../src/08_clean_pathogen_activities.py" "$code"
-# conda run --no-capture-output -n bblean python "$SCRIPT_DIR/../src/09_calculate_assay_clusters.py" "$code"
-# python "$SCRIPT_DIR/../src/10_get_assay_overlap.py" "$code"
+conda run --no-capture-output -n bblean python "$SCRIPT_DIR/../src/09_calculate_assay_clusters.py" "$code"
+python "$SCRIPT_DIR/../src/10_get_assay_overlap.py" "$code"

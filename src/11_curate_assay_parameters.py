@@ -34,6 +34,8 @@ if row.empty:
     raise SystemExit(f"Unknown code: {pathogen_code}")
 pathogen = row.iloc[0]["pathogen"]
 
+print("Step 11 - Needs to run on a GPU-enabled machine.")
+
 # Set path to output
 PATH_TO_OUTPUT = os.path.join(root, "..", "output", pathogen_code)
 
@@ -131,7 +133,7 @@ for idx, ASSAY in tqdm(ASSAYS.iterrows()):
     2. If a field is missing or not stated, use "" for strings and [] for arrays. Do not use null.
     3. Use double quotes. Output must be valid JSON. Do not include any other keys or any extra text before or after the JSON. Do not use markdown fences.
     4. Do not output placeholders such as "unknown", "not stated", "not specified", or "N/A". Use "" or [] as specified.
-    5. Do not include ANY COMMA in the generated strings. Instead, use SEMICOLONS.
+    5. Do not include any comma characters (",") inside string values. If the source text contains commas, replace them with semicolons (";").
 
     Field definitions:
 

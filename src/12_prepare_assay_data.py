@@ -1,9 +1,25 @@
+from sklearn.model_selection import StratifiedKFold
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import SGDClassifier
+from sklearn.metrics import roc_auc_score
+from IPython.display import display, HTML
+from scipy.stats import spearmanr
+from collections import Counter
+import pandas as pd
+import numpy as np
+import joblib
+import h5py
+import os
+import zipfile
+
+from collections import defaultdict
 from collections import Counter
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
 import zipfile
 import json
+import sys
 import os
 
 def adjust_relation(ASSAY_DATA: pd.DataFrame, DIRECTION: int, CUT: float) -> pd.DataFrame:
@@ -97,69 +113,81 @@ def disambiguate_compounds(ASSAY_DATA: pd.DataFrame, DIRECTION: int) -> pd.DataF
 
     return df_best.reset_index(drop=True)
 
-def get_pathogen_code(pathogen):
-    return str(pathogen.split()[0][0] + pathogen.split()[1]).lower() if len(pathogen.split()) > 1 else pathogen.lower()
-
-def add_target_type_curated(ASSAYS_CLEANED, PATH_TO_PARAMETERS):
+def add_target_type_curated(ASSAYS_CLEANED, PARAMETERS):
     """
-    Add a `target_type_curated` column to ASSAYS_CLEANED by reading parameter JSON files
-    from a ZIP archive.
+    Add a `target_type_curated` column to ASSAYS_CLEANED using curated assay parameters.
 
-    For each row in ASSAYS_CLEANED, a JSON file is opened using the pattern:
-        "{assay_id}_{activity_type}_{unit}_parameters.json"
+    For each row in ASSAYS_CLEANED, the function matches on:
+        [`assay_id`, `activity_type`, `unit`]
 
-    The value stored under the key `"target_type_curated"` is extracted and appended
-    to a list, which is then assigned as a new column in the dataframe.
+    and pulls the corresponding value from the `target_type_curated` column in PARAMETERS.
+
+    The function enforces that:
+      - all keys in PARAMETERS exist in ASSAYS_CLEANED
+      - all keys in ASSAYS_CLEANED exist in PARAMETERS
 
     Parameters
     ----------
     ASSAYS_CLEANED : pandas.DataFrame
-        DataFrame containing at least the columns: `assay_id`, `activity_type`, `unit`.
-    PATH_TO_PARAMETERS : str
-        Path to the ZIP archive containing the JSON parameter files.
+        DataFrame containing at least the columns:
+        `assay_id`, `activity_type`, `unit`.
+    PARAMETERS : pandas.DataFrame
+        DataFrame containing curated assay parameters, including
+        `assay_id`, `activity_type`, `unit`, and `target_type_curated`.
 
     Returns
     -------
     pandas.DataFrame
-        The same dataframe with an added `target_type_curated` column.
+        ASSAYS_CLEANED with an added `target_type_curated` column.
     """
-    TARGET_TYPE_CURATED = []
+    # Load only the columns we need from the parameters table
+    PARAMETERS = PARAMETERS[["assay_id", "activity_type", "unit", "target_type_curated"]].copy()
 
-    # Inside zip file
-    with zipfile.ZipFile(PATH_TO_PARAMETERS) as z:
+    # Match writer behavior from Step 11: missing units are stored as empty strings
+    ASSAYS_CLEANED = ASSAYS_CLEANED.copy()
+    ASSAYS_CLEANED["unit"] = ASSAYS_CLEANED["unit"].fillna("")
+    PARAMETERS["unit"] = PARAMETERS["unit"].fillna("")
 
-        # Iterating over assays
-        for assay_id, activity_type, unit in ASSAYS_CLEANED[['assay_id', 'activity_type', 'unit']].values:
+    # Check that everything in PARAMETERS actually maps to ASSAYS_CLEANED
+    if not PARAMETERS[["assay_id","activity_type","unit"]].merge(
+        ASSAYS_CLEANED[["assay_id","activity_type","unit"]],
+        on=["assay_id","activity_type","unit"],
+        how="left",
+        indicator=True
+    )["_merge"].eq("both").all():
+        raise ValueError("PARAMETERS contains keys not present in ASSAYS_CLEANED")
+    
+    # Check that everything in ASSAYS_CLEANED actually maps to PARAMETERS
+    if not ASSAYS_CLEANED[["assay_id","activity_type","unit"]].merge(
+        PARAMETERS[["assay_id","activity_type","unit"]],
+        on=["assay_id","activity_type","unit"],
+        how="left",
+        indicator=True
+    )["_merge"].eq("both").all():
+        raise ValueError("ASSAYS_CLEANED contains keys not present in PARAMETERS")
 
-            # Prepare filename
-            filename = "_".join([str(assay_id), str(activity_type), str(unit), 'parameters']) + ".json"
+    # Merge curated target type onto the cleaned assays table
+    ASSAYS_CLEANED = ASSAYS_CLEANED.merge(PARAMETERS, on=["assay_id", "activity_type", "unit"], how="left", validate="1:1")
 
-            # Read JSON file inside zip
-            with z.open(filename) as file:
-                par = json.load(file)
-
-            # Store results
-            TARGET_TYPE_CURATED.append(par['target_type_curated'])
-
-    # Complete table
-    ASSAYS_CLEANED['target_type_curated'] = TARGET_TYPE_CURATED
+    # Unit "" back to nans
+    ASSAYS_CLEANED["unit"] = ASSAYS_CLEANED["unit"].replace("", np.nan)
 
     return ASSAYS_CLEANED
 
-def load_expert_cutoffs(root):
+def load_expert_cutoffs(CONFIGPATH):
     """
     Load expert cutoffs from the manual curation CSV and return them as a dictionary.
 
     The CSV is expected at:
-        {root}/../config/manual_curation/expert_cutoffs.csv
+        {CONFIGPATH}/manual_curation/expert_cutoffs.csv
 
     The returned dictionary maps:
         (activity_type, unit, target_type, pathogen_code) -> expert_cutoff
 
     Parameters
     ----------
-    root : str
-        Base path used to locate the config folder.
+    CONFIGPATH : str
+        Path to the config folder.
 
     Returns
     -------
@@ -168,12 +196,10 @@ def load_expert_cutoffs(root):
         (activity_type, unit, target_type, pathogen_code).
     """
     # Load expert cut-offs
-    EXPERT_CUTOFFS = pd.read_csv(
-        os.path.join(root, "..", "config", "manual_curation", "expert_cutoffs.csv")
-    )
+    EXPERT_CUTOFFS = pd.read_csv(os.path.join(CONFIGPATH, "expert_cutoffs.csv"))
 
     EXPERT_CUTOFFS = {
-        (a, b, c, d): e
+        (a, b, c, d): [float(k) for k in e.split(";")]
         for a, b, c, d, e in EXPERT_CUTOFFS[
             ["activity_type", "unit", "target_type", "pathogen_code", "expert_cutoff"]
         ].values
@@ -294,55 +320,32 @@ def get_assay_data_quantitative(ASSAY_DATA):
         Filtered dataframe containing only rows with non-null `value`.
     """
     ASSAY_DATA_QUANTITATIVE = ASSAY_DATA[ASSAY_DATA['value'].isna() == False].reset_index(drop=True)
+    ASSAY_DATA_QUANTITATIVE = ASSAY_DATA_QUANTITATIVE.drop(columns=['text_flag'])
     return ASSAY_DATA_QUANTITATIVE
 
 def get_assay_data_qualitative(ASSAY_DATA):
     """
-    Generate qualitative labels for assay data based on `activity_comment` and `standard_text`.
+    Build a compound-level qualitative dataset from assay text flags.
 
-    This function:
-    - Detects row-level conflicts where a row is simultaneously positive (1) and negative (-1).
-    - Assigns a row-level qualitative label (1, -1, or 0).
-    - Aggregates labels at the compound level to ensure each compound has a single consistent label.
-    - Detects compound-level conflicts where the same compound is labeled both 1 and -1 across rows.
-    - Assigns a final compound-level label to all rows.
-    - Keeps only one row per compound.
-    - Removes compounds with final label 0.
+    Aggregates `text_flag` values per compound, checks for conflicting
+    qualitative labels, assigns a final compound-level label, and
+    returns one row per compound with a binary activity label.
 
     Parameters
     ----------
     ASSAY_DATA : pandas.DataFrame
-        DataFrame containing at least:
-        - compound_chembl_id
-        - activity_comment
-        - standard_text
+        DataFrame containing at least `compound_chembl_id` and `text_flag`.
 
     Returns
     -------
     pandas.DataFrame
-        Filtered dataframe with one row per compound and `qualitative_label` in {1, -1}.
+        Qualitative dataset with one row per compound and a binary label.
     """
-    # Qualitative view
+
     ASSAY_DATA_QUALITATIVE = ASSAY_DATA.copy()
-    cond_nan = (ASSAY_DATA_QUALITATIVE['activity_comment'] == 0) & (ASSAY_DATA_QUALITATIVE['standard_text'] == 0)
-    cond_pos = (ASSAY_DATA_QUALITATIVE['activity_comment'] == 1) | (ASSAY_DATA_QUALITATIVE['standard_text'] == 1)
-    cond_neg = (ASSAY_DATA_QUALITATIVE['activity_comment'] == -1) | (ASSAY_DATA_QUALITATIVE['standard_text'] == -1)
-
-    # Detect row-level conflicts
-    conflict = cond_pos & cond_neg
-    if conflict.any():
-        raise ValueError(
-            "Conflicting labels (contains both 1 and -1):\n"
-            + ASSAY_DATA_QUALITATIVE.loc[conflict, ["compound_chembl_id", "activity_comment", "standard_text"]].head(20).to_string())
-
-    # Assign row-level label
-    ASSAY_DATA_QUALITATIVE["qualitative_label_row"] = np.nan
-    ASSAY_DATA_QUALITATIVE.loc[cond_pos, "qualitative_label_row"] = 1
-    ASSAY_DATA_QUALITATIVE.loc[cond_neg, "qualitative_label_row"] = -1
-    ASSAY_DATA_QUALITATIVE.loc[cond_nan, "qualitative_label_row"] = 0
 
     # Aggregate to compound-level label
-    compound_labels = ASSAY_DATA_QUALITATIVE.groupby("compound_chembl_id")["qualitative_label_row"].apply(set)
+    compound_labels = ASSAY_DATA_QUALITATIVE.groupby("compound_chembl_id")["text_flag"].apply(set)
 
     # Detect compound-level conflicts (same compound has 1 and -1)
     compound_ids = compound_labels.index.tolist()
@@ -371,101 +374,80 @@ def get_assay_data_qualitative(ASSAY_DATA):
     ASSAY_DATA_QUALITATIVE["bin"] = [0 if x == -1 else 1 for x in ASSAY_DATA_QUALITATIVE["qualitative_label"].tolist()]
 
     # Take only interesting columns
-    cols = ["compound_chembl_id", "canonical_smiles", "activity_type", "unit", "activity_comment", "standard_text", "qualitative_label", 'bin'] 
+    cols = ["compound_chembl_id", "canonical_smiles", "activity_type", "unit", "text_flag", "qualitative_label", 'bin'] 
     ASSAY_DATA_QUALITATIVE = ASSAY_DATA_QUALITATIVE[cols]
 
     return ASSAY_DATA_QUALITATIVE
-
+    
 def set_variables_quantitative(ASSAY_DATA_QUANTITATIVE):
     """
-    Compute summary variables for quantitative assay data.
-
-    Returns number of positives, positive ratio, and number of compounds (rows).
-    If the dataframe is empty, returns np.nan for all values.
+    Compute basic statistics for a quantitative, binarized assay dataset.
 
     Parameters
     ----------
     ASSAY_DATA_QUANTITATIVE : pandas.DataFrame
-        DataFrame containing a 'bin' column (0/1).
+        Quantitative assay data containing one row per compound and a
+        binary `bin` column.
 
     Returns
     -------
     tuple
-        (positives_quantitative, ratio_quantitative, compounds_quantitative)
+        (positives_quantitative, ratio_quantitative,
+         compounds_quantitative, activities_quantitative)
     """
-    if len(ASSAY_DATA_QUANTITATIVE) > 0 and ASSAY_DATA_QUANTITATIVE['bin'].isna().any() == False:
-            positives_quantitative = (ASSAY_DATA_QUANTITATIVE["bin"] == 1).sum()
-            ratio_quantitative = round(positives_quantitative / len(ASSAY_DATA_QUANTITATIVE), 3)
-            compounds_quantitative = len(ASSAY_DATA_QUANTITATIVE)
-            activities_quantitative = ASSAY_DATA_QUANTITATIVE['value'].tolist()
-    else:
-        positives_quantitative = np.nan
-        ratio_quantitative = np.nan
-        compounds_quantitative = np.nan
-        activities_quantitative = [np.nan]
+    positives_quantitative = (ASSAY_DATA_QUANTITATIVE["bin"] == 1).sum()
+    ratio_quantitative = round(positives_quantitative / len(ASSAY_DATA_QUANTITATIVE), 3)
+    compounds_quantitative = len(set(ASSAY_DATA_QUANTITATIVE['compound_chembl_id']))
+    activities_quantitative = ASSAY_DATA_QUANTITATIVE['value'].tolist()
+    assert compounds_quantitative == len(activities_quantitative)
 
     return positives_quantitative, ratio_quantitative, compounds_quantitative, activities_quantitative
 
 def set_variables_qualitative(ASSAY_DATA_QUALITATIVE):
     """
-    Compute summary variables for qualitative assay data.
-
-    Returns number of positives, positive ratio, and number of compounds (rows).
-    If the dataframe is empty, returns np.nan for all values.
+    Compute basic statistics for a qualitative assay dataset.
 
     Parameters
     ----------
     ASSAY_DATA_QUALITATIVE : pandas.DataFrame
-        DataFrame containing a 'bin' column (0/1).
+        Qualitative assay data containing one row per compound and a
+        binary `bin` column.
 
     Returns
     -------
     tuple
         (positives_qualitative, ratio_qualitative, compounds_qualitative)
     """
-    if len(ASSAY_DATA_QUALITATIVE) > 0:
-        positives_qualitative = (ASSAY_DATA_QUALITATIVE["bin"] == 1).sum()
-        ratio_qualitative = round(positives_qualitative / len(ASSAY_DATA_QUALITATIVE), 3)
-        compounds_qualitative = len(ASSAY_DATA_QUALITATIVE)
-    else:
-        positives_qualitative = np.nan
-        ratio_qualitative = np.nan
-        compounds_qualitative = np.nan
+    positives_qualitative = (ASSAY_DATA_QUALITATIVE["bin"] == 1).sum()
+    ratio_qualitative = round(positives_qualitative / len(ASSAY_DATA_QUALITATIVE), 3)
+    compounds_qualitative = len(set(ASSAY_DATA_QUALITATIVE['compound_chembl_id']))
+    assert compounds_qualitative == len(ASSAY_DATA_QUALITATIVE)
 
     return positives_qualitative, ratio_qualitative, compounds_qualitative
 
 def binarize_with_expert_cutoff(ASSAY_DATA_QUANTITATIVE, expert_cutoff, direction):
     """
-    Binarize quantitative assay values using an expert cutoff.
-
-    If `expert_cutoff` is not NaN:
-      - direction == +1 -> bin = 1 if value >= expert_cutoff else 0
-      - direction != +1 -> bin = 1 if value <= expert_cutoff else 0
-
-    If `expert_cutoff` is NaN:
-      - bin is set to NaN for all rows.
+    Binarize quantitative assay values using an expert-defined cutoff.
 
     Parameters
     ----------
     ASSAY_DATA_QUANTITATIVE : pandas.DataFrame
-        DataFrame containing a numeric 'value' column.
+        Quantitative assay data containing a numeric `value` column.
     expert_cutoff : float
-        Expert-defined cutoff value (may be NaN).
+        Expert-defined activity threshold.
     direction : int
-        Direction of binarization (+1 or -1).
+        +1 → higher values are more active
+        -1 → lower values are more active
 
     Returns
     -------
     pandas.DataFrame
-        The same dataframe with a new column 'bin'.
+        Input dataframe with an added binary `bin` column.
     """
-    if np.isnan(expert_cutoff) == False:
-        if direction == +1:
-            ASSAY_DATA_QUANTITATIVE["bin"] = (ASSAY_DATA_QUANTITATIVE["value"] >= expert_cutoff).astype(int)
-        else:
-            ASSAY_DATA_QUANTITATIVE["bin"] = (ASSAY_DATA_QUANTITATIVE["value"] <= expert_cutoff).astype(int)
+    if direction == +1:
+        ASSAY_DATA_QUANTITATIVE["bin"] = (ASSAY_DATA_QUANTITATIVE["value"] >= expert_cutoff).astype(int)
     else:
-        ASSAY_DATA_QUANTITATIVE["bin"] = [np.nan] * len(ASSAY_DATA_QUANTITATIVE)
+        ASSAY_DATA_QUANTITATIVE["bin"] = (ASSAY_DATA_QUANTITATIVE["value"] <= expert_cutoff).astype(int)
 
     return ASSAY_DATA_QUANTITATIVE
 
@@ -496,133 +478,279 @@ def get_activity_stats_quantitative(activities_quantitative):
 
     return min_, p1, p25, p50, p75, p99, max_
 
+def extra_curation_target_type(target_type, target_type_curated):
+    """
+    Post-process and enforce simple curation rules for ChEMBL assay target types.
+
+    This function normalizes `target_type` and `target_type_curated` (strip + uppercase)
+    and returns a constrained/standardized `target_type_curated` according to rules:
+
+    - If target_type == "UNCHECKED": allow only {"ORGANISM", "SINGLE PROTEIN", "DISCARDED"};
+      otherwise force "DISCARDED".
+    - If target_type == "NOT-MOLECULAR": allow only {"ORGANISM", "DISCARDED"};
+      otherwise force "DISCARDED".
+    - If target_type is protein-related ({"SINGLE PROTEIN","PROTEIN COMPLEX","PROTEIN FAMILY"}):
+      collapse to "SINGLE PROTEIN".
+    - If target_type == "ORGANISM": return "ORGANISM".
+    - All other target types are mapped to "DISCARDED".
+
+    Parameters
+    ----------
+    target_type : str
+        Raw ChEMBL "Target type" value.
+    target_type_curated : str
+        LLM- or human-proposed curated target type.
+
+    Returns
+    -------
+    str
+        The finalized curated target type: "SINGLE PROTEIN", "ORGANISM", or "DISCARDED".
+    """
+
+    if type(target_type_curated) != str:
+        return 'DISCARDED'
+
+    target_type = target_type.strip().upper()
+    target_type_curated = target_type_curated.strip().upper()
+
+    if target_type == 'UNCHECKED':
+        if target_type_curated in ['ORGANISM', 'SINGLE PROTEIN', 'DISCARDED']:
+            return target_type_curated
+        else:
+            return 'DISCARDED'
+        
+    elif target_type == 'NOT-MOLECULAR':
+        if target_type_curated in ['ORGANISM', 'DISCARDED']:
+            return target_type_curated
+        else:
+            return 'DISCARDED'
+        
+    elif target_type in ['SINGLE PROTEIN', 'PROTEIN COMPLEX', 'PROTEIN FAMILY']:
+        return 'SINGLE PROTEIN'
+
+    elif target_type in ['ORGANISM']:
+        return 'ORGANISM'
+    
+    else:
+        return 'DISCARDED'
+
+def zip_and_remove(datasets_dir):
+    """
+    Create two zip archives in `datasets_dir`:
+      - datasets_qt.zip containing all files ending with "_qt.csv.gz"
+      - datasets_ql.zip containing all files ending with "_ql.csv.gz"
+
+    After zipping, remove the original *_qt.csv.gz and *_ql.csv.gz files.
+
+    Parameters
+    ----------
+    datasets_dir : str
+        Directory containing the dataset files.
+
+    Returns
+    -------
+    tuple[str, str, int, int]
+        (qt_zip_path, ql_zip_path, n_qt_files, n_ql_files)
+    """
+    qt_zip = os.path.join(datasets_dir, "datasets_qt.zip")
+    ql_zip = os.path.join(datasets_dir, "datasets_ql.zip")
+
+    if os.path.exists(qt_zip):
+        os.remove(qt_zip)
+    if os.path.exists(ql_zip):
+        os.remove(ql_zip)
+
+    qt_files = [os.path.join(datasets_dir, i) for i in os.listdir(datasets_dir) if "_qt_" in i]  # cutoff specified in file name
+    ql_files = [os.path.join(datasets_dir, i) for i in os.listdir(datasets_dir) if i.endswith("_ql.csv.gz")]
+
+    with zipfile.ZipFile(qt_zip, mode="w", compression=zipfile.ZIP_DEFLATED) as z:
+        for fp in qt_files:
+            z.write(fp, arcname=os.path.basename(fp))
+
+    with zipfile.ZipFile(ql_zip, mode="w", compression=zipfile.ZIP_DEFLATED) as z:
+        for fp in ql_files:
+            z.write(fp, arcname=os.path.basename(fp))
+
+    for fp in qt_files + ql_files:
+        os.remove(fp)
+
+    return len(qt_files), len(ql_files)
+
+
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(root, "..", "src"))
+from default import DATAPATH, CONFIGPATH
 
-# List of pathogens to process
-pathogens = ["Acinetobacter baumannii", "Candida albicans", "Campylobacter", "Escherichia coli", "Enterococcus faecium", "Enterobacter",
-             "Helicobacter pylori", "Klebsiella pneumoniae", "Mycobacterium tuberculosis", "Neisseria gonorrhoeae", "Pseudomonas aeruginosa",
-             "Plasmodium falciparum", "Staphylococcus aureus", "Schistosoma mansoni", "Streptococcus pneumoniae"]
-pathogens = ["Acinetobacter baumannii", "Mycobacterium tuberculosis", "Klebsiella pneumoniae"]
+# Load pathogen info
+pathogen_code = sys.argv[1]
+df = pd.read_csv(os.path.join(CONFIGPATH, 'pathogens.csv'))
+row = df.loc[df["code"].eq(pathogen_code)]
+if row.empty: 
+    raise SystemExit(f"Unknown code: {pathogen_code}")
+pathogen = row.iloc[0]["pathogen"]
 
 # Create output directory
 OUTPUT = os.path.join(root, "..", "output")
 
-# For each pathogen
-for pathogen in pathogens[1:2]:
+# Load cleaned assays
+ASSAYS_CLEANED = pd.read_csv(os.path.join(OUTPUT, pathogen_code, "assays_cleaned.csv"))
 
-    # Get pathogen code
-    pathogen_code = get_pathogen_code(pathogen)
+# Define PATH to parameters
+PARAMETERS = pd.read_csv(os.path.join(OUTPUT, pathogen_code, 'assays_parameters.csv'))
 
-    # Load cleaned assays
-    ASSAYS_CLEANED = pd.read_csv(os.path.join(root, "..", "output", pathogen_code, "assays_cleaned.csv"))
+# Get curated target type
+ASSAYS_CLEANED = add_target_type_curated(ASSAYS_CLEANED, PARAMETERS)
 
-    # Define PATH to parameters
-    PATH_TO_PARAMETERS = os.path.join(root, "..", "output", pathogen_code, 'assay_parameters.zip')
+# Extra curation
+ASSAYS_CLEANED['target_type_curated_extra'] = [extra_curation_target_type(i,j) for i,j in zip(ASSAYS_CLEANED['target_type'], ASSAYS_CLEANED['target_type_curated'])]
 
-    # Get curated target type
-    ASSAYS_CLEANED = add_target_type_curated(ASSAYS_CLEANED, PATH_TO_PARAMETERS)
+# Loading pathogen data
+os.makedirs(os.path.join(OUTPUT, pathogen_code, 'datasets'), exist_ok=True)
+print(f"Loading ChEMBL cleaned data for {pathogen_code}...")
+ChEMBL_pathogen = pd.read_csv(os.path.join(OUTPUT, pathogen_code, f"{pathogen_code}_ChEMBL_cleaned_data.csv.gz"), low_memory=False)
+print(f"Number of activities for {pathogen_code}: {len(ChEMBL_pathogen)}")
+print(f"Number of compounds for {pathogen_code}: {len(set(ChEMBL_pathogen['compound_chembl_id']))}")
+print(f"Number of cleaned assays: {len(ASSAYS_CLEANED)}")
 
-    # Loading pathogen data
-    os.makedirs(os.path.join(OUTPUT, pathogen_code, 'datasets'), exist_ok=True)
-    print(f"Loading ChEMBL cleaned data for {pathogen_code}...")
-    ChEMBL_pathogen = pd.read_csv(os.path.join(OUTPUT, pathogen_code, f"{pathogen_code}_ChEMBL_cleaned_data.csv.gz"), low_memory=False)
-    print(f"Number of activities for {pathogen_code}: {len(ChEMBL_pathogen)}")
-    print(f"Number of compounds for {pathogen_code}: {len(set(ChEMBL_pathogen['compound_chembl_id']))}")
-    print(f"Number of cleaned assays: {len(ASSAYS_CLEANED)}")
+# Load expert cut-offs
+EXPERT_CUTOFFS = load_expert_cutoffs(CONFIGPATH)
 
-    # Load expert cut-offs
-    EXPERT_CUTOFFS = load_expert_cutoffs(root)
+# Get assay to index mapping
+assay_to_idx = defaultdict(list)
+for i, assay_id in enumerate(ChEMBL_pathogen["assay_chembl_id"].to_numpy()):
+    assay_to_idx[assay_id].append(i)
 
-    # Define data ranges
-    DATA_RANGES = []
+# Define data ranges
+DATA_RANGES = []
 
-    for assay_chembl_id, activity_type, unit, target_type, target_type_curated, activities, nan_values, cpds, direction, acc, stdtc in tqdm(ASSAYS_CLEANED[['assay_id', 
-                                        'activity_type', 'unit', 'target_type','target_type_curated', 'activities', 'nan_values', 'cpds', 'direction', 
-                                        'activity_comment_counts', 'standard_text_count']].values[:]):
+for assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra, activities, nan_values, cpds, direction, act_flag, inact_flag in tqdm(ASSAYS_CLEANED[['assay_id', 
+                                    'activity_type', 'unit', 'target_type','target_type_curated_extra', 'activities', 'nan_values', 'cpds', 'direction', 
+                                    'act_flag', 'inact_flag']].values[:]):
 
-        # Filtering [assay, activity_type, unit] data
-        cols = ['compound_chembl_id', 'canonical_smiles', 'activity_type', 'value', 'relation', 'unit', 'activity_comment', 'standard_text']
-        ASSAY_DATA = get_assay_data(ChEMBL_pathogen, assay_chembl_id, activity_type, unit, cols)
-        
-        # Count relations
-        equal, lower, higher = count_relations(ASSAY_DATA)
+    # Filtering [assay, activity_type, unit] data
+    cols = ['compound_chembl_id', 'canonical_smiles', 'activity_type', 'value', 'relation', 'unit', 'text_flag']
+    tmp_df = ChEMBL_pathogen.iloc[assay_to_idx[assay_chembl_id]]    
+    ASSAY_DATA = get_assay_data(tmp_df, assay_chembl_id, activity_type, unit, cols)
 
-        # Get expert cut-off if it exists
-        key = (activity_type, unit, target_type_curated, pathogen_code)
-        expert_cutoff = EXPERT_CUTOFFS[key] if key in EXPERT_CUTOFFS else np.nan
+    # Get dataset name
+    dataset_name = f"{assay_chembl_id}_{activity_type}_{str(unit).replace('/', 'FwdS')}"
+    
+    # Count relations
+    equal, lower, higher = count_relations(ASSAY_DATA)
 
-        # Quantitative view
-        ASSAY_DATA_QUANTITATIVE = get_assay_data_quantitative(ASSAY_DATA)
+    # Qualitative view
+    ASSAY_DATA_QUALITATIVE = get_assay_data_qualitative(ASSAY_DATA)
 
-        # Qualitative view
-        ASSAY_DATA_QUALITATIVE = get_assay_data_qualitative(ASSAY_DATA)
-
-        # Setting up some variables
+    # Setting up some variables
+    if len(ASSAY_DATA_QUALITATIVE) > 0:
         positives_qualitative, ratio_qualitative, compounds_qualitative = set_variables_qualitative(ASSAY_DATA_QUALITATIVE)
+    else:
+        positives_qualitative, ratio_qualitative, compounds_qualitative = [np.nan] * 3
 
-        # If direction is 1 or -1
-        if direction in [+1, -1] and len(ASSAY_DATA_QUANTITATIVE) > 0:
+    # Quantitative view
+    ASSAY_DATA_QUANTITATIVE = get_assay_data_quantitative(ASSAY_DATA)
 
-            # Get value to adjust relations
-            CUT = get_cut_value(ASSAY_DATA, direction)
+    # Get expert cut-offs if existing
+    key = (activity_type, unit, target_type_curated_extra, pathogen_code)
+    expert_cutoffs = EXPERT_CUTOFFS[key] if key in EXPERT_CUTOFFS else [np.nan]
 
-            # Adjust relation
-            ASSAY_DATA_QUANTITATIVE = adjust_relation(ASSAY_DATA_QUANTITATIVE, direction, CUT)
+    if len(ASSAY_DATA_QUANTITATIVE) == 0:
 
-            # Disambiguate duplicated compounds and returns 'sorted' data (depending on direction)
-            ASSAY_DATA_QUANTITATIVE = disambiguate_compounds(ASSAY_DATA_QUANTITATIVE, direction)
+        if np.isnan(compounds_qualitative):
+            raise ValueError("Dataset does not have numerical values nor activity flags. By definition, this is not possible at this stage. Please revise.")
+        else:
+            dataset_type = 'qualitative'
 
-            # Binarization with expert cut-off
-            ASSAY_DATA_QUANTITATIVE = binarize_with_expert_cutoff(ASSAY_DATA_QUANTITATIVE, expert_cutoff, direction)
+            # Quantitative binarization is not possible
+            positives_quantitative, ratio_quantitative, compounds_quantitative, activities_quantitative = [np.nan] * 4
+            min_, p1, p25, p50, p75, p99, max_ = [np.nan] * 7
+            expert_cutoff = np.nan
 
-            # Setting up some variables
-            positives_quantitative, ratio_quantitative, compounds_quantitative, activities_quantitative = set_variables_quantitative(ASSAY_DATA_QUANTITATIVE)
+            # Store data range
+            DATA_RANGES.append([assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra, activities, nan_values, cpds, direction, act_flag, 
+                                inact_flag, equal, higher, lower, dataset_type, expert_cutoff, positives_quantitative, ratio_quantitative, compounds_quantitative, 
+                                min_, p1, p25, p50, p75, p99, max_, positives_qualitative, ratio_qualitative, compounds_qualitative])
+            
+            # Store dataset
+            ASSAY_DATA_QUALITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_ql.csv.gz"), index=False)
 
-            # Set the dataset type
-            if np.isnan(expert_cutoff):
+    else:
+
+        # For each expert_cutoff
+        for expert_cutoff in expert_cutoffs:
+
+            # If expert cutoff is nan
+            if np.isnan(expert_cutoff) == True or direction not in [-1, +1]:
+
+                # Quantitative binarization is not possible
+                positives_quantitative = np.nan
+                ratio_quantitative = np.nan
+                compounds_quantitative = len(set(ASSAY_DATA_QUANTITATIVE['compound_chembl_id']))
+                activities_quantitative = ASSAY_DATA_QUANTITATIVE['value'].tolist()
+                min_, p1, p25, p50, p75, p99, max_ = get_activity_stats_quantitative(activities_quantitative)
+
+                # Assess qualitative compounds
                 if np.isnan(compounds_qualitative):
                     dataset_type = 'none'
                 else:
                     dataset_type = 'qualitative'
+                    
+                    # Store dataset
+                    ASSAY_DATA_QUALITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_ql.csv.gz"), index=False)
+
             else:
+
+                # Get value to adjust relations
+                CUT = get_cut_value(ASSAY_DATA, direction)
+
+                # Adjust relation
+                ASSAY_DATA_QUANTITATIVE = adjust_relation(ASSAY_DATA_QUANTITATIVE, direction, CUT)
+
+                # Disambiguate duplicated compounds and returns 'sorted' data (depending on direction)
+                ASSAY_DATA_QUANTITATIVE = disambiguate_compounds(ASSAY_DATA_QUANTITATIVE, direction)
+
+                # Binarization with expert cut-off
+                ASSAY_DATA_QUANTITATIVE = binarize_with_expert_cutoff(ASSAY_DATA_QUANTITATIVE, expert_cutoff, direction)
+
+                # Setting up some variables
+                positives_quantitative, ratio_quantitative, compounds_quantitative, activities_quantitative = set_variables_quantitative(ASSAY_DATA_QUANTITATIVE)
+
+                # Get activity stats
+                min_, p1, p25, p50, p75, p99, max_ = get_activity_stats_quantitative(activities_quantitative)
+
                 if np.isnan(compounds_qualitative):
                     dataset_type = 'quantitative'
+
+                    # Store dataset
+                    ASSAY_DATA_QUANTITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_qt_{expert_cutoff}.csv.gz"), index=False)
+
                 else:
                     dataset_type = 'mixed'
-        else:
 
-            # Qualitative assay
-            dataset_type = 'qualitative'    
+                    # Store dataset
+                    ASSAY_DATA_QUANTITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_qt_{expert_cutoff}.csv.gz"), index=False)
 
-            # Setting up some variables
-            positives_quantitative = np.nan
-            ratio_quantitative = np.nan
-            compounds_quantitative = np.nan
-            activities_quantitative = np.nan
+                    # Store dataset
+                    ASSAY_DATA_QUALITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_ql.csv.gz"), index=False)
 
-        # Get activity stats
-        min_, p1, p25, p50, p75, p99, max_ = get_activity_stats_quantitative(activities_quantitative)
-
-        # Store data range
-        DATA_RANGES.append([assay_chembl_id, activity_type, unit, target_type, target_type_curated, activities, nan_values, cpds, direction, acc, stdtc, equal, higher, lower, dataset_type, 
-                            expert_cutoff, positives_quantitative, ratio_quantitative, compounds_quantitative, min_, p1, p25, p50, p75, p99, max_, positives_qualitative, 
-                            ratio_qualitative, compounds_qualitative])
-
-        # Save data only if number of compounds is >= 100
-        dataset_name = f"{assay_chembl_id}_{activity_type}_{str(unit).replace('/', 'FwdS')}"
-        if compounds_quantitative >= 1 and np.isnan(expert_cutoff) == False:
-            ASSAY_DATA_QUANTITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_qt.csv.gz"), index=False)
-        if compounds_qualitative >= 1:
-            ASSAY_DATA_QUALITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_ql.csv.gz"), index=False)
-        # if compounds_quantitative >= 100 and np.isnan(expert_cutoff) == False:
-        #     ASSAY_DATA_QUANTITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_qt.csv.gz"), index=False)
-        # if compounds_qualitative >= 100:
-        #     ASSAY_DATA_QUALITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_ql.csv.gz"), index=False)
+            # Store data range
+            DATA_RANGES.append([assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra, activities, nan_values, cpds, direction, act_flag, 
+                                inact_flag, equal, higher, lower, dataset_type, expert_cutoff, positives_quantitative, ratio_quantitative, compounds_quantitative, 
+                                min_, p1, p25, p50, p75, p99, max_, positives_qualitative, ratio_qualitative, compounds_qualitative])
+        
 
 
-    DATA_RANGES = pd.DataFrame(DATA_RANGES, columns=["assay_id", "activity_type", "unit", "target_type", "target_type_curated", "activities", "nan_values", "cpds", "direction", 
-                                                     'activity_comment_counts', 'standard_text_count', "equal", "higher", "lower", "dataset_type", "expert_cutoff", "pos_qt", 
-                                                     "ratio_qt", "cpds_qt", "min_", "p1", "p25", "p50", "p75", "p99", "max_", "pos_ql", "ratio_ql", "cpds_ql"])
-    DATA_RANGES.to_csv(os.path.join(OUTPUT, pathogen_code, 'assays_data.csv'), index=False)
-    print("\n\n\n")
+# Store data results
+DATA_RANGES = pd.DataFrame(DATA_RANGES, columns=["assay_id", "activity_type", "unit", "target_type", "target_type_curated_extra", "activities", "nan_values", "cpds", "direction", 
+                                                    'act_flag', 'inact_flag', "equal", "higher", "lower", "dataset_type", "expert_cutoff", "pos_qt", 
+                                                    "ratio_qt", "cpds_qt", "min_", "p1", "p25", "p50", "p75", "p99", "max_", "pos_ql", "ratio_ql", "cpds_ql"])
+DATA_RANGES.to_csv(os.path.join(OUTPUT, pathogen_code, 'assays_datasets.csv'), index=False)
+
+# Zip and remove datasets
+datasets_dir = os.path.join(OUTPUT, pathogen_code, "datasets")
+qt, ql = zip_and_remove(datasets_dir)
+
+# # Check consstency - only valid if 3 cutoffs are defined per activity type - unit
+# counter = Counter(DATA_RANGES['dataset_type'])
+# assert len(ASSAYS_CLEANED) == int(counter['quantitative'] / 3 + counter['qualitative'] + counter['none'] + counter['mixed'] / 3)

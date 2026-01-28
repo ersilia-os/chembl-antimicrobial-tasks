@@ -396,7 +396,7 @@ def set_variables_quantitative(ASSAY_DATA_QUANTITATIVE):
          compounds_quantitative, activities_quantitative)
     """
     positives_quantitative = (ASSAY_DATA_QUANTITATIVE["bin"] == 1).sum()
-    ratio_quantitative = round(positives_quantitative / len(ASSAY_DATA_QUANTITATIVE), 3)
+    ratio_quantitative = round(positives_quantitative / len(ASSAY_DATA_QUANTITATIVE), 5)
     compounds_quantitative = len(set(ASSAY_DATA_QUANTITATIVE['compound_chembl_id']))
     activities_quantitative = ASSAY_DATA_QUANTITATIVE['value'].tolist()
     assert compounds_quantitative == len(activities_quantitative)
@@ -419,7 +419,7 @@ def set_variables_qualitative(ASSAY_DATA_QUALITATIVE):
         (positives_qualitative, ratio_qualitative, compounds_qualitative)
     """
     positives_qualitative = (ASSAY_DATA_QUALITATIVE["bin"] == 1).sum()
-    ratio_qualitative = round(positives_qualitative / len(ASSAY_DATA_QUALITATIVE), 3)
+    ratio_qualitative = round(positives_qualitative / len(ASSAY_DATA_QUALITATIVE), 5)
     compounds_qualitative = len(set(ASSAY_DATA_QUALITATIVE['compound_chembl_id']))
     assert compounds_qualitative == len(ASSAY_DATA_QUALITATIVE)
 

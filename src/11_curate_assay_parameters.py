@@ -20,14 +20,12 @@ except Exception as e:
     print(f"nvidia-smi failed: {e}\n\n")
 
 # Define root directory
-# root = os.path.dirname(os.path.abspath(__file__))
-root = "."
+root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import DATAPATH, CONFIGPATH
 
 # Load pathogen info
-# pathogen_code = sys.argv[1]
-pathogen_code = 'mtuberculosis'
+pathogen_code = sys.argv[1]
 df = pd.read_csv(os.path.join(CONFIGPATH, 'pathogens.csv'))
 row = df.loc[df["code"].eq(pathogen_code)]
 if row.empty: 

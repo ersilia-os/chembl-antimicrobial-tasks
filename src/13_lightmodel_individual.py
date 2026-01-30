@@ -216,10 +216,12 @@ os.makedirs(PATH_TO_CORRELATIONS, exist_ok=True)
 # Load assay datasets
 COLS = ["assay_id", "activity_type", "unit", "target_type", "target_type_curated_extra", "cpds", 
         "direction", "dataset_type", "expert_cutoff", "pos_qt", "ratio_qt", "cpds_qt", "pos_ql", "ratio_ql", "cpds_ql"]
+print("Collecting datasets")
 ASSAYS_DATASETS = pd.read_csv(os.path.join(OUTPUT, pathogen_code, "assays_datasets.csv"))[COLS]
 
 # Create reference set of compounds per pathogen
 compounds = pd.read_csv(os.path.join(OUTPUT, pathogen_code, "compound_counts.csv.gz"))
+print(f"Generating a reference set of compounds for {pathogen_code}")
 REFERENCE_SET = get_reference_set_compounds(compounds)
 pd.DataFrame(REFERENCE_SET, columns=['reference_compounds']).to_csv(os.path.join(OUTPUT, pathogen_code, "reference_set.csv.gz"), index=False)
 
@@ -280,21 +282,22 @@ for LABEL in LABELS:
             # Prepare matrices
             X = np.array(df['compound_chembl_id'].map(ecfps).to_list())
             Y = np.array(df['bin'].tolist())
+            positives = sum(Y)
 
             print(f"Assay ID: {assay_id}, Activity type: {activity_type}, Unit: {unit}, Cutoff: {expert_cutoff}")
-            print(f"\tCompounds: {len(X)}", f"Positives: {sum(Y)} ({100 * round(sum(Y) / len(Y),3)}%)")
+            print(f"\tCompounds: {len(X)}", f"Positives: {positives} ({round(100 * positives / len(Y),3)}%)")
 
             if LABEL in ['C', 'D']:  # with decoys
 
                 print(f"\tAdding random compounds from ChEMBL as decoys")
-                DECOYS = int(sum(Y) / RATIO - (len(Y) - 1))
+                DECOYS = int(positives / RATIO - (len(Y) - 1))
                 print(f"\t{DECOYS} added decoys")
                 rng = random.Random(42)
                 DECOYS = rng.sample(list(DECOYS_CHEMBL), DECOYS)
                 X_decoys = np.array([ecfps[i] for i in DECOYS])
                 X = np.vstack([X, X_decoys])
                 Y = np.concatenate([Y, np.zeros(len(X_decoys), dtype=Y.dtype)])
-                print(f"\tCompounds: {len(X)}", f"Positives: {sum(Y)} ({round(100 * sum(Y) / len(Y),3)}%)")
+                print(f"\tCompounds: {len(X)}", f"Positives: {positives} ({round(100 * positives / len(Y),3)}%)")
 
             # 4Fold Cros Validation
             average_auroc, stds = KFoldTrain(X, Y, n_splits=4, n_estimators=100)

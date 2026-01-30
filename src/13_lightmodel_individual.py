@@ -297,7 +297,7 @@ for LABEL in LABELS:
                 print(f"\tCompounds: {len(X)}", f"Positives: {sum(Y)} ({round(100 * sum(Y) / len(Y),3)}%)")
 
             # 4Fold Cros Validation
-            average_auroc, stds = KFoldTrain(X, Y, n_splits=5, n_estimators=100)
+            average_auroc, stds = KFoldTrain(X, Y, n_splits=4, n_estimators=100)
             print(f"\tMean AUROC: {average_auroc} ± {stds}")
             AVG[LABEL].append(average_auroc)
             STD[LABEL].append(stds)

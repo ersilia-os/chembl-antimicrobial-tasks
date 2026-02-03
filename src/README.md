@@ -206,17 +206,48 @@ Outputs are saved in the folder: **output/<pathogen_code>/**, and include:
 - `*_ql.csv.gz`: binarized qualitative dataset (only if qualitative labels exist).
 - `assays_datasets.csv`: assay-level summary table including dataset type, expert cutoff, relation counts, basic activity statistics, and label ratios.
 
-⏳ ETA: [REVISE]
+⏳ ETA: ~5 minutes.
 
 ## Step 13: Individual light modeling
 
+The script `13_lightmodel_individual.py` evaluates the modelability of individual assay datasets generated in Step 12 by training lightweight ligand-based models using molecular fingerprints. Each [`assay_id`, `activity_type`, `unit`] dataset is treated independently. Main operations include:
 
+1. **Dataset selection**: Assay datasets are filtered into four conditions (A–D) based on dataset type (quantitative, qualitative, or mixed), number of compounds, number of actives, and class balance.
+
+2. **Molecular representation**: Morgan (ECFP) fingerprints are loaded from `data/chembl_processed/ChEMBL_ECFPs.h5` (optionally created in step 06). A pathogen-specific reference compound set is generated and saved as `reference_set.csv.gz`, consisting of all compounds when < 10k are available, or otherwise the first and last 5k. 
+
+3. **Model training and evaluation**: For each selected dataset, a Random Forest classifier is trained and evaluated using 4-fold stratified cross-validation (AUROC). For highly imbalanced datasets (C and D), random ChEMBL compounds are added as decoys to enforce a minimum positive ratio.
+
+4. **Reference set prediction and dataset export**: For datasets with average AUROC >0.7, a final model is trained on all data and used to predict activity probabilities for the reference compound set, to be used in further correlation analyses. The corresponding dataset (including decoys when used) is saved under `output/<pathogen_code>/datasets/<LABEL>/` for downstream use, where label is here A, B, C or D.
+
+Outputs are saved in `output/<pathogen_code>/ `and include:
+- `reference_set.csv.gz`: reference compound list.
+- `correlations/`: predicted activity probabilities for well-performing assays.
+- `individual_LM.csv`: assay-level table with model performance statistics.
+- `datasets/<LABEL>/`: datasets associated with accepted models (one folder per condition: A, B, C and D).
+
+⏳ ETA: ~30 minutes.
 
 ## Step 14: Merged light modeling
 
+The script `14_lightmodel_merge.py` identifies groups of related assays that were not accepted in Step 13, merges their compound-level datasets, and evaluates the modelability of the merged datasets using lightweight ligand-based models. Merging is performed separately for `ORGANISM` and `SINGLE PROTEIN` assays. Main operations include:
 
+1. **Merging assay metadata**: Combines `assays_cleaned.csv`, `assays_parameters.csv`, `assays_datasets.csv`, and `individual_LM.csv` into a single master table, annotating which assays were `Considered` and `Accepted` in Step 13.
 
-## Step 13. Preparing assay master table
+2. **Selecting merge candidates**: Assays not accepted in Step 13 are grouped by shared metadata and retained only if (i) they contain >1 assay and (ii) the union of compounds exceeds 1,000. 
+- `ORGANISM` groups: [`activity_type`, `unit`, `direction`, `assay_type`, `target_type_curated_extra`, `bao_label`, `strain`].
+- `SINGLE PROTEIN` groups: same fields plus `target_chembl_id`.
+
+3. **Merged dataset preparation and modeling**: For each group, datasets are concatenated across assays and collapsed to one value per compound (most active according to direction). Random Forest models are trained and evaluated by 4Fold cross-validation (AUROC). When the positive ratio is too high, random ChEMBL compounds not tested against the pathogen are added as decoys.
+
+4. **Reference set prediction**: For merged datasets with average AUROC >0.7, a final model is trained on all data and used to predict activity probabilities for the reference compound set, saved for downstream correlation analyses.
+
+Outputs are saved in `output/<pathogen_code>/` and include:
+correlations/M/: predicted activity probabilities for well-performing merged models.
+
+⏳ ETA: ~minutes per pathogen.
+
+<!-- ## Step 15. Preparing assay master table
 
 The script `13_merge_assay_tables.py` merges all assay-level tables generated in previous steps into a single master table per pathogen. Assays are treated as independent [`assay_id`, `activity_type`, `unit`] items. For each pathogen, the script loads: `assays_cleaned.csv` (Step 08), `assays_clusters.csv` (Step 09), `assay_parameters.zip` (Step 11) and `assays_data.csv` (Step 12). It first checks that each table is unique on the keys [`assay_id`, `activity_type`, `unit`]. Then, curated assay parameters are extracted from `assay_parameters.zip` and appended to `assays_cleaned.csv`. Finally, the cluster metrics and dataset summaries are merged into the same table.
 
@@ -233,5 +264,5 @@ Outputs are saved in the folder: **output/<pathogen_code>/**, and include:
 ETA values were dervied using an ASUS ... 16 CPUs and 32 GB RAM. Case study mtb.
 
 Storage space.
-
+ -->
 

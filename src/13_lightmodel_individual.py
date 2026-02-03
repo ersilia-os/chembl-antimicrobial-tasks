@@ -137,6 +137,7 @@ def TrainRF(X, Y, n_estimators=100):
         min_samples_leaf=1,
         max_features="sqrt",
         n_jobs=8,
+        random_state=42
     )
     rf.fit(X, Y)
     return rf
@@ -298,6 +299,8 @@ for LABEL in LABELS:
                 X = np.vstack([X, X_decoys])
                 Y = np.concatenate([Y, np.zeros(len(X_decoys), dtype=Y.dtype)])
                 print(f"\tCompounds: {len(X)}", f"Positives: {positives} ({round(100 * positives / len(Y),3)}%)")
+                decoy_df = pd.DataFrame({"compound_chembl_id": DECOYS, "bin": 0})
+                df = pd.concat([df, decoy_df], ignore_index=True)
 
             # 4Fold Cros Validation
             average_auroc, stds = KFoldTrain(X, Y, n_splits=4, n_estimators=100)
@@ -311,6 +314,10 @@ for LABEL in LABELS:
                 y_prob_ref = RF.predict_proba(X_REF)[:, 1]
                 os.makedirs(os.path.join(PATH_TO_CORRELATIONS, LABEL), exist_ok=True)
                 np.savez_compressed(os.path.join(PATH_TO_CORRELATIONS, LABEL, filename.replace(".csv.gz", "_ref_probs.npz")), y_prob_ref=y_prob_ref)
+                # Save dataset
+                outdir = os.path.join(OUTPUT, pathogen_code, "datasets", LABEL)
+                os.makedirs(outdir, exist_ok=True)
+                df.to_csv(os.path.join(outdir, os.path.basename(filename)), index=False, compression="gzip")
 
     ASSAYS_DATASETS[f'{LABEL}_AVG'] = AVG[LABEL]
     ASSAYS_DATASETS[f'{LABEL}_STD'] = STD[LABEL]

@@ -173,7 +173,7 @@ Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
 
 ## Step 11. Curating assay parameters
 
-The script `11_curate_assay_parameters.py` extracts and standardizes additional assay-level biological context for the pathogen under study, using a local LLM (via `ollama`) to parse existing ChEMBL assay annotations and associated publication metadata. Importantly, this code must be run on a GPU-enabled machine. The script iterates over all cleaned assays (`assays_cleaned.csv`) and compiles a text block containing assay fields from ChEMBL (`data/chembl_activities/assays.csv`), document metadata (`data/chembl_activities/docs.csv`), and summary statistics from Step 08 (e.g., compound counts, activity type, unit, direction). This block is passed to an information-extraction prompt, requesting a strict JSON output with the following curated fields: [`organism_curated`, `target_type_curated`, `target_name_curated`, `target_chembl_id_curated`, `strain`, `atcc_id`, `mutations`, `known_drug_resistances`, `media`]. The extracted parameters are written as a single row per [`assay_id`, `activity_type`, `unit`] to a consolidated CSV file.
+The script `11_curate_assay_parameters.py` extracts and standardizes additional assay-level biological context for the pathogen under study, using a local LLM (via `ollama`) to parse existing ChEMBL assay annotations and associated publication metadata. Importantly, this code must be run on a GPU-enabled machine, otherwise the exercise becomes computationally unfeasible. The script iterates over all cleaned assays (`assays_cleaned.csv`) and compiles a text block containing assay fields from ChEMBL (`data/chembl_activities/assays.csv`), document metadata (`data/chembl_activities/docs.csv`), and summary statistics from Step 08 (e.g., compound counts, activity type, unit, direction). This block is passed to an information-extraction prompt, requesting a strict JSON output with the following curated fields: [`organism_curated`, `target_type_curated`, `target_name_curated`, `target_chembl_id_curated`, `strain`, `atcc_id`, `mutations`, `known_drug_resistances`, `media`]. The extracted parameters are written as a single row per [`assay_id`, `activity_type`, `unit`] to a consolidated CSV file.
 
 Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
 - `assay_parameters.csv`: consolidated table containing curated assay parameters for all assays.
@@ -181,34 +181,42 @@ Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
 ⏳ ETA: ~5 seconds per assay on a GPU-enabled machine. 
 
 
-## Step 12: Preparing assay data
+## Step 12: Preparing assay datasets
 
 The script `12_prepare_assay_data.py` prepares assay-level datasets for each pathogen by combining cleaned activity data (Step 08), curated assay parameters (Step 11), and expert-defined cutoffs. For each [`assay_id`, `activity_type`, `unit`] item in `assays_cleaned.csv`, the script generates binarized quantitative and/or qualitative datasets at the compound level. Main operations include:
 
-1. **Loading curated target type**. Reading `target_type_curated` for each assay item from `output/<pathogen_code>/assay_parameters.zip`.
+1. **Loading curated target type**. Reading `target_type_curated` for each assay item from `output/<pathogen_code>/assay_parameters.csv`, followed by a post-curation step that produces a constrained `target_type_curated_extra` field, limited to `SINGLE PROTEIN`, `ORGANISM` or `DISCARDED`. 
 
-2. **Loading expert cutoffs**. Reading expert thresholds from `config/manual_curation/expert_cutoffs.csv` (keyed by [`activity_type`, `unit`, `target_type_curated`, `pathogen_code`]).
+2. **Loading expert cutoffs**. Reading expert thresholds from `config/manual_curation/expert_cutoffs.csv` (keyed by [`activity_type`, `unit`, `target_type`, `pathogen_code`]).
 ⚠️ Important: `expert_cutoffs.csv` is manually created using the notebook `expert_cutoffs.ipynb` and can be modified or updated at will.
 
-3. **Quantitative dataset preparation** (when possible). For assays with a valid direction and quantitative values:
+3. **Quantitative dataset preparation** (when possible). For assays with numerical values, a valid direction of biological activity (1 or -1) and an available expert cut-off:
 
 - Adjusting censored relations (</>) according to the activity direction.
 - Selecting a single measurement per compound (most active value).
-- Binarizing values using the expert cutoff (if available).
+- Binarizing values using the expert cutoff (one dataset per cutoff).
 
-4. **Qualitative dataset preparation** (when possible). Building compound-level binary labels from `activity_comment` and `standard_text`, enforcing consistency and removing conflicts.
+4. **Qualitative dataset preparation** (when possible). Building compound-level binary labels from text-based activity flags (`text_flag`), enforcing consistency and removing conflicts. Compound-level conflicts raise an error.
 
-5. **Dataset typing and summary**. Assigning each assay a `dataset_type` (quantitative, qualitative, mixed, or none) and storing summary statistics and label distributions (number of positives, ratio, etc).
+5. **Dataset typing and summary**. Assigning each assay a `dataset_type` (quantitative, qualitative, mixed, or none) and storing summary statistics and label distributions (number of positives, ratio, relation counts, activity statistics, etc).
 
 Outputs are saved in the folder: **output/<pathogen_code>/**, and include:
 - `datasets/`: per-assay datasets saved as compressed CSV files. 
-- `*_qt.csv.gz`: binarized quantitative dataset (only if an expert cutoff is available).
+- `*_qt.csv.gz`: binarized quantitative dataset (only when an expert cutoff exists and a direction is valid).
 - `*_ql.csv.gz`: binarized qualitative dataset (only if qualitative labels exist).
-- `assays_data.csv`: assay-level summary table including dataset type, expert cutoff, relation counts, basic activity statistics, and label ratios.
+- `assays_datasets.csv`: assay-level summary table including dataset type, expert cutoff, relation counts, basic activity statistics, and label ratios.
 
 ⏳ ETA: [REVISE]
 
-## Step 13. Merging assay tables
+## Step 13: Individual light modeling
+
+
+
+## Step 14: Merged light modeling
+
+
+
+## Step 13. Preparing assay master table
 
 The script `13_merge_assay_tables.py` merges all assay-level tables generated in previous steps into a single master table per pathogen. Assays are treated as independent [`assay_id`, `activity_type`, `unit`] items. For each pathogen, the script loads: `assays_cleaned.csv` (Step 08), `assays_clusters.csv` (Step 09), `assay_parameters.zip` (Step 11) and `assays_data.csv` (Step 12). It first checks that each table is unique on the keys [`assay_id`, `activity_type`, `unit`]. Then, curated assay parameters are extracted from `assay_parameters.zip` and appended to `assays_cleaned.csv`. Finally, the cluster metrics and dataset summaries are merged into the same table.
 

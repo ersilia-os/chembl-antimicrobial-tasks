@@ -755,7 +755,7 @@ DATASETS.to_csv(os.path.join(OUTPUT, pathogen_code, 'assays_datasets.csv'), inde
 datasets_dir = os.path.join(OUTPUT, pathogen_code, "datasets")
 qt, ql = zip_and_remove(datasets_dir)
 
-# Check consstency - only valid if 3 cutoffs are defined per activity type - unit
+# Check consistency - only valid if 3 cutoffs are defined per activity type - unit
 counter = dict(Counter(DATASETS['dataset_type']))
 # assert len(ASSAYS_CLEANED) == int(counter['quantitative'] / 3 + counter['qualitative'] + counter['none'] + counter['mixed'] / 3)
 

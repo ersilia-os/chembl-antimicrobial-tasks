@@ -473,7 +473,6 @@ TO_MERGE_SINGLE_PROTEIN = TO_MERGE_SINGLE_PROTEIN[(TO_MERGE_SINGLE_PROTEIN['n_cp
 TO_MERGE_ORGANISM['name'] = [f"M_O{r}" for r in range(len(TO_MERGE_ORGANISM))]
 TO_MERGE_SINGLE_PROTEIN['name'] = [f"M_SP{r}" for r in range(len(TO_MERGE_SINGLE_PROTEIN))]
 
-MERGED_COMPOUNDS = []
 MERGED_LM = []
 DATA = {"ORGANISM": TO_MERGE_ORGANISM, "SINGLE PROTEIN": TO_MERGE_SINGLE_PROTEIN}
 
@@ -550,7 +549,7 @@ for target_type in DATA:
                         Y = np.concatenate([Y, np.zeros(len(X_decoys), dtype=Y.dtype)])
                         positives = sum(Y)
                         print(f"\tCompounds: {len(X)}", f"Positives: {positives} ({round(100 * positives / len(Y),3)}%)")
-                        decoy_df = pd.DataFrame({"compound_chembl_id": DECOYS, "bin": 0})
+                        decoy_df = pd.DataFrame({"compound_chembl_id": DECOYS, "bin": 0, "canonical_smiles": "decoy"})
                         data = pd.concat([data, decoy_df], ignore_index=True)
 
                     # 4Fold Cros Validation
@@ -558,16 +557,16 @@ for target_type in DATA:
                     print(f"\tMean AUROC: {average_auroc} ± {stds}")
                     MERGED_LM.append([name, activity_type, unit, expert_cutoff, direction, assay_type, target_type_curated_extra, bao_label, strain, 
                                       target_chembl_id, n_assays, n_cpds_union, positives, round(positives/len(Y), 3), average_auroc, stds, assay_keys])
-                    if average_auroc > 0.7:
-                        MERGED_COMPOUNDS.extend(data['compound_chembl_id'].tolist())
-                        RF = TrainRF(X, Y, n_estimators=100)
-                        y_prob_ref = RF.predict_proba(X_REF)[:, 1]
-                        filename = f'{name}_ref_probs.npz' 
-                        np.savez_compressed(os.path.join(PATH_TO_CORRELATIONS, "M", filename), y_prob_ref=y_prob_ref)
-                        # Save dataset
-                        outdir = os.path.join(OUTPUT, pathogen_code, "datasets", "M")
-                        os.makedirs(outdir, exist_ok=True)
-                        data.to_csv(os.path.join(outdir, filename.replace("_ref_probs.npz", ".csv.gz")), index=False, compression="gzip")
+                    
+                    # Train on full data and predict on reference set
+                    RF = TrainRF(X, Y, n_estimators=100)
+                    y_prob_ref = RF.predict_proba(X_REF)[:, 1]
+                    filename = f'{name}_ref_probs.npz' 
+                    np.savez_compressed(os.path.join(PATH_TO_CORRELATIONS, "M", filename), y_prob_ref=y_prob_ref)
+                    # Save dataset
+                    outdir = os.path.join(OUTPUT, pathogen_code, "datasets", "M")
+                    os.makedirs(outdir, exist_ok=True)
+                    data.to_csv(os.path.join(outdir, filename.replace("_ref_probs.npz", ".csv.gz")), index=False, compression="gzip")
 
                 else:
                     print(f"Too few positive compounds for {activity_type}_{unit}_qt_{expert_cutoff}.. {strain} ... ({positives})")
@@ -608,7 +607,7 @@ for target_type in DATA:
                     Y = np.concatenate([Y, np.zeros(len(X_decoys), dtype=Y.dtype)])
                     positives = sum(Y)
                     print(f"\tCompounds: {len(X)}", f"Positives: {positives} ({round(100 * positives / len(Y),3)}%)")
-                    decoy_df = pd.DataFrame({"compound_chembl_id": DECOYS, "bin": 0})
+                    decoy_df = pd.DataFrame({"compound_chembl_id": DECOYS, "bin": 0, "canonical_smiles": "decoy"})
                     data = pd.concat([data, decoy_df], ignore_index=True)
 
                 # 4Fold Cros Validation
@@ -617,17 +616,17 @@ for target_type in DATA:
                 # In qualitative datasets, expert cutoff is nan
                 MERGED_LM.append([name, activity_type, unit, np.nan, direction, assay_type, target_type_curated_extra, bao_label, strain, 
                                       target_chembl_id, n_assays, n_cpds_union, positives, round(positives/len(Y), 3), average_auroc, stds, assay_keys])
-                if average_auroc > 0.7:
-                    MERGED_COMPOUNDS.extend(data['compound_chembl_id'].tolist())
-                    RF = TrainRF(X, Y, n_estimators=100)
-                    y_prob_ref = RF.predict_proba(X_REF)[:, 1]
-                    os.makedirs(os.path.join(PATH_TO_CORRELATIONS, "M"), exist_ok=True)
-                    filename = f'{name}_ref_probs.npz' 
-                    np.savez_compressed(os.path.join(PATH_TO_CORRELATIONS, "M", filename), y_prob_ref=y_prob_ref)
-                    # Save dataset
-                    outdir = os.path.join(OUTPUT, pathogen_code, "datasets", "M")
-                    os.makedirs(outdir, exist_ok=True)
-                    data.to_csv(os.path.join(outdir, filename.replace("_ref_probs.npz", ".csv.gz")), index=False, compression="gzip")
+                
+                # Train on full data and predict on reference set
+                RF = TrainRF(X, Y, n_estimators=100)
+                y_prob_ref = RF.predict_proba(X_REF)[:, 1]
+                os.makedirs(os.path.join(PATH_TO_CORRELATIONS, "M"), exist_ok=True)
+                filename = f'{name}_ref_probs.npz' 
+                np.savez_compressed(os.path.join(PATH_TO_CORRELATIONS, "M", filename), y_prob_ref=y_prob_ref)
+                # Save dataset
+                outdir = os.path.join(OUTPUT, pathogen_code, "datasets", "M")
+                os.makedirs(outdir, exist_ok=True)
+                data.to_csv(os.path.join(outdir, filename.replace("_ref_probs.npz", ".csv.gz")), index=False, compression="gzip")
 
             else:
                 print(f"Too few positive compounds for {activity_type}_{unit}_ql .. {strain} ... ({positives})")

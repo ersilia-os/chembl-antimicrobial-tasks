@@ -299,13 +299,13 @@ for LABEL in LABELS:
             print(f"\tCompounds: {len(X)}", f"Positives: {positives} ({round(100 * positives / len(Y),3)}%)")
 
         # 4Fold Cros Validation
-        average_auroc, stds = KFoldTrain(X, Y, n_splits=4, n_estimators=10)
+        average_auroc, stds = KFoldTrain(X, Y, n_splits=4, n_estimators=100)
         print(f"\tMean AUROC: {average_auroc} ± {stds}")
         AUROC_AVG.append(average_auroc)
         AUROC_STD.append(stds)
 
         # Train on full data and predict on reference set
-        RF = TrainRF(X, Y, n_estimators=10)
+        RF = TrainRF(X, Y, n_estimators=100)
         y_prob_ref = RF.predict_proba(X_REF)[:, 1]
         os.makedirs(os.path.join(PATH_TO_CORRELATIONS, LABEL), exist_ok=True)
         np.savez_compressed(os.path.join(PATH_TO_CORRELATIONS, LABEL, filename.replace(".csv.gz", "_ref_probs.npz")), y_prob_ref=y_prob_ref)
@@ -327,4 +327,4 @@ INDIVIDUAL_LM = pd.concat(INDIVIDUAL_LM, ignore_index=True)
 INDIVIDUAL_LM.to_csv(os.path.join(OUTPUT, pathogen_code, 'individual_LM.csv'), index=False)
 
 all_cpds = set([cpd for lab in LABEL_COMPOUNDS for cpd in LABEL_COMPOUNDS[lab]])
-print(f"Chemical space coverage (ABCD): {round(100 * len(all_cpds) / len(compounds), 1)}%")
+print(f"Chemical space coverage (AB): {round(100 * len(all_cpds) / len(compounds), 1)}%")

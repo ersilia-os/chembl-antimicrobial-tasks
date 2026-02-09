@@ -1,17 +1,3 @@
-from sklearn.model_selection import StratifiedKFold
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import SGDClassifier
-from sklearn.metrics import roc_auc_score
-from IPython.display import display, HTML
-from scipy.stats import spearmanr
-from collections import Counter
-import pandas as pd
-import numpy as np
-import joblib
-import h5py
-import os
-import zipfile
-
 from collections import defaultdict
 from collections import Counter
 from tqdm import tqdm
@@ -21,6 +7,11 @@ import zipfile
 import json
 import sys
 import os
+
+# pd.set_option("display.max_columns", None)
+# pd.set_option("display.max_rows", 50)
+# pd.set_option("display.max_colwidth", None)
+# pd.set_option("display.width", None)
 
 def adjust_relation(ASSAY_DATA: pd.DataFrame, DIRECTION: int, CUT: float) -> pd.DataFrame:
     """
@@ -536,11 +527,12 @@ def extra_curation_target_type(target_type, target_type_curated):
 
 def zip_and_remove(datasets_dir):
     """
-    Create two zip archives in `datasets_dir`:
+    Create three zip archives in `datasets_dir`:
       - datasets_qt.zip containing all files ending with "_qt.csv.gz"
       - datasets_ql.zip containing all files ending with "_ql.csv.gz"
+      - datasets_mx.zip containing all files ending with "_mx.csv.gz"
 
-    After zipping, remove the original *_qt.csv.gz and *_ql.csv.gz files.
+    After zipping, remove the original *_qt.csv.gz, *_ql.csv.gz, and *_mx.csv.gz files.
 
     Parameters
     ----------
@@ -549,19 +541,23 @@ def zip_and_remove(datasets_dir):
 
     Returns
     -------
-    tuple[str, str, int, int]
-        (qt_zip_path, ql_zip_path, n_qt_files, n_ql_files)
+    tuple[int, int, int]
+        (n_qt_files, n_ql_files, n_mx_files)
     """
     qt_zip = os.path.join(datasets_dir, "datasets_qt.zip")
     ql_zip = os.path.join(datasets_dir, "datasets_ql.zip")
+    mx_zip = os.path.join(datasets_dir, "datasets_mx.zip")
 
     if os.path.exists(qt_zip):
         os.remove(qt_zip)
     if os.path.exists(ql_zip):
         os.remove(ql_zip)
+    if os.path.exists(mx_zip):
+        os.remove(mx_zip)
 
     qt_files = [os.path.join(datasets_dir, i) for i in os.listdir(datasets_dir) if "_qt_" in i]  # cutoff specified in file name
     ql_files = [os.path.join(datasets_dir, i) for i in os.listdir(datasets_dir) if i.endswith("_ql.csv.gz")]
+    mx_files = [os.path.join(datasets_dir, i) for i in os.listdir(datasets_dir) if "_mx_" in i]  # cutoff specified in file name
 
     with zipfile.ZipFile(qt_zip, mode="w", compression=zipfile.ZIP_DEFLATED) as z:
         for fp in qt_files:
@@ -571,19 +567,25 @@ def zip_and_remove(datasets_dir):
         for fp in ql_files:
             z.write(fp, arcname=os.path.basename(fp))
 
-    for fp in qt_files + ql_files:
+    with zipfile.ZipFile(mx_zip, mode="w", compression=zipfile.ZIP_DEFLATED) as z:
+        for fp in mx_files:
+            z.write(fp, arcname=os.path.basename(fp))
+
+    for fp in qt_files + ql_files + mx_files:
         os.remove(fp)
 
-    return len(qt_files), len(ql_files)
+    return len(qt_files), len(ql_files), len(mx_files)
 
 
 # Define root directory
-root = os.path.dirname(os.path.abspath(__file__))
+# root = os.path.dirname(os.path.abspath(__file__))
+root = '.'
 sys.path.append(os.path.join(root, "..", "src"))
 from default import DATAPATH, CONFIGPATH
 
 # Load pathogen info
-pathogen_code = sys.argv[1]
+# pathogen_code = sys.argv[1]
+pathogen_code = 'mtuberculosis'
 df = pd.read_csv(os.path.join(CONFIGPATH, 'pathogens.csv'))
 row = df.loc[df["code"].eq(pathogen_code)]
 if row.empty: 
@@ -592,7 +594,7 @@ pathogen = row.iloc[0]["pathogen"]
 
 print("Step 12")
 
-# Create output directory
+# Define output directory
 OUTPUT = os.path.join(root, "..", "output")
 
 # Load cleaned assays
@@ -623,8 +625,9 @@ assay_to_idx = defaultdict(list)
 for i, assay_id in enumerate(ChEMBL_pathogen["assay_chembl_id"].to_numpy()):
     assay_to_idx[assay_id].append(i)
 
+
 # Define data ranges
-DATASETS = []
+DATASETS, ASSAY_DATA_INFO = [], []
 
 print("Preparing datasets for each assay")
 
@@ -642,6 +645,9 @@ for assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra
     
     # Count relations
     equal, lower, higher = count_relations(ASSAY_DATA)
+
+    # Mixed data, nan by default
+    positives_mixed, ratio_mixed, compounds_mixed, overlap_mixed = [np.nan] * 4
 
     # Qualitative view
     ASSAY_DATA_QUALITATIVE = get_assay_data_qualitative(ASSAY_DATA)
@@ -673,8 +679,8 @@ for assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra
 
             # Store data range
             DATASETS.append([assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra, activities, nan_values, cpds, direction, act_flag, 
-                                inact_flag, equal, higher, lower, dataset_type, expert_cutoff, positives_quantitative, ratio_quantitative, compounds_quantitative, 
-                                min_, p1, p25, p50, p75, p99, max_, positives_qualitative, ratio_qualitative, compounds_qualitative])
+                                inact_flag, dataset_type, expert_cutoff, positives_quantitative, ratio_quantitative, compounds_quantitative, positives_qualitative, 
+                                ratio_qualitative, compounds_qualitative, overlap_mixed, positives_mixed, ratio_mixed, compounds_mixed])
             
             # Store dataset
             ASSAY_DATA_QUALITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_ql.csv.gz"), index=False)
@@ -704,7 +710,7 @@ for assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra
                     ASSAY_DATA_QUALITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_ql.csv.gz"), index=False)
 
             else:
-
+                
                 # Get value to adjust relations
                 CUT = get_cut_value(ASSAY_DATA, direction)
 
@@ -732,32 +738,63 @@ for assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra
                 else:
                     dataset_type = 'mixed'
 
-                    # Store dataset
-                    ASSAY_DATA_QUANTITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_qt_{expert_cutoff}.csv.gz"), index=False)
+                    # Get overlap mixed
+                    overlap_mixed = set(ASSAY_DATA_QUANTITATIVE['compound_chembl_id']).intersection(set(ASSAY_DATA_QUALITATIVE['compound_chembl_id']))
+                    overlap_mixed = round(len(overlap_mixed) / min(len(ASSAY_DATA_QUANTITATIVE), len(ASSAY_DATA_QUALITATIVE)), 3)
+
+                    # Get compounds in quantitative
+                    qt_compounds = set(ASSAY_DATA_QUANTITATIVE['compound_chembl_id'])
+
+                    # Prepare qualitative inactives
+                    ASSAY_DATA_QUALITATIVE_MIXED = ASSAY_DATA_QUALITATIVE[(ASSAY_DATA_QUALITATIVE['compound_chembl_id'].isin(qt_compounds) == False) & 
+                                                (ASSAY_DATA_QUALITATIVE['bin'] == 0)].reset_index(drop=True).copy()
+                    ASSAY_DATA_QUALITATIVE_MIXED['value'] = np.nan
+                    ASSAY_DATA_QUALITATIVE_MIXED['relation'] = np.nan
+
+                    # Prepare quantitative compounds
+                    ASSAY_DATA_QUANTITATIVE_MIXED = ASSAY_DATA_QUANTITATIVE.copy()
+                    ASSAY_DATA_QUANTITATIVE_MIXED['text_flag'] = np.nan
+                    ASSAY_DATA_QUANTITATIVE_MIXED['qualitative_label'] = np.nan
+
+                    # Append inactive qualitatives to quantitative dataset [mixed dataset]
+                    ASSAY_DATA_MIXED = pd.concat([ASSAY_DATA_QUANTITATIVE_MIXED, ASSAY_DATA_QUALITATIVE_MIXED], axis=0).reset_index(drop=True)
+
+                    # Get metadata
+                    positives_mixed, ratio_mixed, compounds_mixed, activities_mixed = set_variables_quantitative(ASSAY_DATA_MIXED)
 
                     # Store dataset
-                    ASSAY_DATA_QUALITATIVE.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_ql.csv.gz"), index=False)
+                    ASSAY_DATA_MIXED.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets', f"{dataset_name}_mx_{expert_cutoff}.csv.gz"), index=False)
 
             # Store data range
             DATASETS.append([assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra, activities, nan_values, cpds, direction, act_flag, 
-                                inact_flag, equal, higher, lower, dataset_type, expert_cutoff, positives_quantitative, ratio_quantitative, compounds_quantitative, 
-                                min_, p1, p25, p50, p75, p99, max_, positives_qualitative, ratio_qualitative, compounds_qualitative])
-        
-
-
+                                inact_flag, dataset_type, expert_cutoff, positives_quantitative, ratio_quantitative, compounds_quantitative, positives_qualitative, 
+                                ratio_qualitative, compounds_qualitative, overlap_mixed, positives_mixed, ratio_mixed, compounds_mixed])
+            
+    # Store assay data type and range
+    ASSAY_DATA_INFO.append([assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra, activities, cpds, dataset_type, equal, higher, lower, min_, p1, p25, p50, p75, p99, max_])
+            
+       
 # Store data results
 DATASETS = pd.DataFrame(DATASETS, columns=["assay_id", "activity_type", "unit", "target_type", "target_type_curated_extra", "activities", "nan_values", "cpds", "direction", 
-                                                    'act_flag', 'inact_flag', "equal", "higher", "lower", "dataset_type", "expert_cutoff", "pos_qt", 
-                                                    "ratio_qt", "cpds_qt", "min_", "p1", "p25", "p50", "p75", "p99", "max_", "pos_ql", "ratio_ql", "cpds_ql"])
-DATASETS.to_csv(os.path.join(OUTPUT, pathogen_code, 'assays_datasets.csv'), index=False)
+                                                    'act_flag', 'inact_flag', "dataset_type", "expert_cutoff", "pos_qt", "ratio_qt", "cpds_qt", "pos_ql", "ratio_ql", "cpds_ql", 
+                                                    "overlap_mx", "pos_mx", "ratio_mx", "cpds_mx"])
+
+ASSAY_DATA_INFO = pd.DataFrame(ASSAY_DATA_INFO, columns=["assay_id", "activity_type", "unit", "target_type", "target_type_curated_extra", "activities", "cpds", "dataset_type", 
+                                                         "equal", "higher", "lower", "min_", "p1", "p25", "p50", "p75", "p99", "max_"])
+
+DATASETS.to_csv(os.path.join(OUTPUT, pathogen_code, 'datasets.csv'), index=False)
+ASSAY_DATA_INFO.to_csv(os.path.join(OUTPUT, pathogen_code, 'assay_data_info.csv'), index=False)
 
 # Zip and remove datasets
 datasets_dir = os.path.join(OUTPUT, pathogen_code, "datasets")
-qt, ql = zip_and_remove(datasets_dir)
+qt, ql, mx = zip_and_remove(datasets_dir)
 
-# Check consistency - only valid if 3 cutoffs are defined per activity type - unit
-counter = dict(Counter(DATASETS['dataset_type']))
+# Counting datasets and assays data types
+counter_datasets = dict(Counter(DATASETS['dataset_type']))
+counter_assays = dict(Counter(ASSAY_DATA_INFO['dataset_type']))
 # assert len(ASSAYS_CLEANED) == int(counter['quantitative'] / 3 + counter['qualitative'] + counter['none'] + counter['mixed'] / 3)
 
+print(f"Total number of assays: {len(ASSAY_DATA_INFO)}")
+print(f"Types of assays: {counter_assays}")
 print(f"Total number of datasets: {len(DATASETS)}")
-print(f"Types of datasets: {counter}")
+print(f"Types of datasets: {counter_datasets}")

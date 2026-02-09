@@ -188,24 +188,24 @@ def condition_A(df):
         & (df["pos_qt"] >= 50)
         & (df["ratio_qt"].between(0.001, 0.5, inclusive="both")))
 
-def condition_B(df):
-    return (
-        df["dataset_type"].isin(["qualitative", "mixed"])
-        & (df["cpds_ql"] >= 1000)
-        & (df["pos_ql"] >= 50)
-        & (df["ratio_ql"].between(0.001, 0.5, inclusive="both")))
+# def condition_B(df):
+#     return (
+#         df["dataset_type"].isin(["qualitative", "mixed"])
+#         & (df["cpds_ql"] >= 1000)
+#         & (df["pos_ql"] >= 50)
+#         & (df["ratio_ql"].between(0.001, 0.5, inclusive="both")))
 
-def condition_C(df):
+def condition_B(df):
     return (
         df["dataset_type"].isin(["quantitative", "mixed"])
         & (df["pos_qt"] >= 100)
         & (df["ratio_qt"] >= 0.5))
 
-def condition_D(df):
-    return (
-        df["dataset_type"].isin(["qualitative", "mixed"])
-        & (df["pos_ql"] >= 100)
-        & (df["ratio_ql"] >= 0.5))
+# def condition_D(df):
+#     return (
+#         df["dataset_type"].isin(["qualitative", "mixed"])
+#         & (df["pos_ql"] >= 100)
+#         & (df["ratio_ql"] >= 0.5))
 
 RATIO = 0.1
 
@@ -214,10 +214,10 @@ PATH_TO_CORRELATIONS = os.path.join(OUTPUT, pathogen_code, "correlations")
 os.makedirs(PATH_TO_CORRELATIONS, exist_ok=True)
 
 # Load assay datasets
-COLS = ["assay_id", "activity_type", "unit", "target_type", "target_type_curated_extra", "cpds", 
-        "direction", "dataset_type", "expert_cutoff", "pos_qt", "ratio_qt", "cpds_qt", "pos_ql", "ratio_ql", "cpds_ql"]
+COLS = ["assay_id", "activity_type", "unit", "target_type", "target_type_curated_extra", "cpds", "direction", "dataset_type", "expert_cutoff", 
+        "pos_qt", "ratio_qt", "cpds_qt", "pos_ql", "ratio_ql", "cpds_ql", "overlap_mx", "pos_mx", "ratio_mx", "cpds_mx"]
 print("Collecting datasets")
-ASSAYS_DATASETS = pd.read_csv(os.path.join(OUTPUT, pathogen_code, "assays_datasets.csv"))[COLS]
+ASSAYS_DATASETS = pd.read_csv(os.path.join(OUTPUT, pathogen_code, "datasets.csv"))[COLS]
 
 # Create reference set of compounds per pathogen
 compounds = pd.read_csv(os.path.join(OUTPUT, pathogen_code, "compound_counts.csv.gz"))
@@ -240,9 +240,7 @@ DECOYS_CHEMBL = set([i for i in ecfps if i not in compounds])
 X_REF = np.array([ecfps[cid] for cid in REFERENCE_SET if cid in ecfps])
 
 CONDITIONS = {"A": condition_A, 
-              "B": condition_B, 
-              "C": condition_C, 
-              "D": condition_D}
+              "B": condition_B}
 
 LABELS = sorted(CONDITIONS)
 LABEL_COMPOUNDS = {lab: set() for lab in LABELS}
@@ -257,13 +255,6 @@ for LABEL in LABELS:
     CONDITION_DATASETS = ASSAYS_DATASETS[CONDITIONS[LABEL](ASSAYS_DATASETS)].copy().reset_index(drop=True)
     CONDITION_DATASETS['label'] = LABEL
 
-    # Remove qt metadata if condition is B or D
-    if LABEL in ['B', 'D']:
-        CONDITION_DATASETS['expert_cutoff'] = np.nan
-        CONDITION_DATASETS['pos_qt'] = np.nan
-        CONDITION_DATASETS['ratio_qt'] = np.nan
-        CONDITION_DATASETS = CONDITION_DATASETS.drop_duplicates().reset_index(drop=True)
-
     # Get AUROC INFO
     AUROC_AVG, AUROC_STD = [], []
 
@@ -272,14 +263,15 @@ for LABEL in LABELS:
 
         # Load varibles
         assay_id, activity_type, unit, expert_cutoff = assay.assay_id, assay.activity_type, assay.unit, assay.expert_cutoff
+        dataset_type = assay.dataset_type
 
         # Load data
-        if LABEL in ['A', 'C']:  # quantitative
+        if dataset_type == 'quantitative':
             zip_path = os.path.join(OUTPUT, pathogen_code, "datasets", "datasets_qt.zip")
             filename = "_".join([str(assay_id), str(activity_type), str(unit), "qt", f"{expert_cutoff}.csv.gz"])
-        elif LABEL in ['B', 'D']:  # qualitative
-            zip_path = os.path.join(OUTPUT, pathogen_code, "datasets", "datasets_ql.zip")
-            filename = "_".join([str(assay_id), str(activity_type), str(unit), "ql.csv.gz"])
+        elif dataset_type == 'mixed':
+            zip_path = os.path.join(OUTPUT, pathogen_code, "datasets", "datasets_mx.zip")
+            filename = "_".join([str(assay_id), str(activity_type), str(unit), "mx", f"{expert_cutoff}.csv.gz"])
         df = load_data_from_zip(zip_path, filename)
 
         # Add compounds
@@ -294,7 +286,7 @@ for LABEL in LABELS:
         print(f"Assay ID: {assay_id}, Activity type: {activity_type}, Unit: {unit}, Cutoff: {expert_cutoff}")
         print(f"\tCompounds: {len(X)}", f"Positives: {positives} ({round(100 * positives / len(Y),3)}%)")
 
-        if LABEL in ['C', 'D']:  # with decoys
+        if LABEL == 'B':  # with decoys
 
             print(f"\tAdding random compounds from ChEMBL as decoys")
             DECOYS = int(positives / RATIO - (len(Y) - 1))
@@ -307,13 +299,13 @@ for LABEL in LABELS:
             print(f"\tCompounds: {len(X)}", f"Positives: {positives} ({round(100 * positives / len(Y),3)}%)")
 
         # 4Fold Cros Validation
-        average_auroc, stds = KFoldTrain(X, Y, n_splits=4, n_estimators=100)
+        average_auroc, stds = KFoldTrain(X, Y, n_splits=4, n_estimators=10)
         print(f"\tMean AUROC: {average_auroc} ± {stds}")
         AUROC_AVG.append(average_auroc)
         AUROC_STD.append(stds)
 
         # Train on full data and predict on reference set
-        RF = TrainRF(X, Y, n_estimators=100)
+        RF = TrainRF(X, Y, n_estimators=10)
         y_prob_ref = RF.predict_proba(X_REF)[:, 1]
         os.makedirs(os.path.join(PATH_TO_CORRELATIONS, LABEL), exist_ok=True)
         np.savez_compressed(os.path.join(PATH_TO_CORRELATIONS, LABEL, filename.replace(".csv.gz", "_ref_probs.npz")), y_prob_ref=y_prob_ref)
@@ -329,7 +321,6 @@ for LABEL in LABELS:
     print(f"Number of considered datasets: {considered_datasets}")
     print(f"Number of considered assays: {considered_assays}")
     print(f"Chemical space coverage: {round(100 * len(LABEL_COMPOUNDS[LABEL]) / len(compounds), 1)}%")
-
 
 # Save results
 INDIVIDUAL_LM = pd.concat(INDIVIDUAL_LM, ignore_index=True)

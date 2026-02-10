@@ -14,6 +14,11 @@ import sys
 import h5py
 import os
 
+pd.set_option("display.max_columns", None)
+pd.set_option("display.max_rows", 50)
+pd.set_option("display.max_colwidth", 50)
+pd.set_option("display.width", None)
+
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
@@ -27,7 +32,7 @@ if row.empty:
     raise SystemExit(f"Unknown code: {pathogen_code}")
 pathogen = row.iloc[0]["pathogen"]
 
-print("Step 14")
+print("Step 15")
 
 # Define output directory
 OUTPUT = os.path.join(root, "..", "output")
@@ -35,8 +40,8 @@ OUTPUT = os.path.join(root, "..", "output")
 # Shared columns
 KEYS = ["assay_id", "activity_type", "unit"]
 
-# Columns to take from datasets table
-COLUMNS_DATASETS = ["equal", 'higher', 'lower', "target_type_curated_extra", "dataset_type", "cpds_qt", "min_", "p1", "p25", "p50", "p75", "p99", "max_", "pos_ql", "ratio_ql", "cpds_ql"]
+# Columns to take from assay data info table
+COLUMNS_DATA_INFO = ["target_type_curated_extra", "dataset_type", "equal", 'higher', 'lower', "min_", "p1", "p25", "p50", "p75", "p99", "max_"]
 
 def load_all_gz_csvs_from_zip(zip_path):
     """Read all ``*.csv.gz`` members from a ZIP into DataFrames.
@@ -108,7 +113,7 @@ def where_accepted(key, LABELS, ACCEPTED_ASSAYS):
     else:
         return np.nan
 
-def get_filtered_assay_master_organism(assay_df, activity_type, unit, direction, assay_type, target_type_curated_extra, bao_label, strain):
+def get_filtered_assays_organism(assay_df, activity_type, unit, direction, assay_type, target_type_curated_extra, bao_label, strain):
     """Filter `assay_df` by metadata fields, treating non-string `unit` as missing (NaN)."""
     if type(unit) == str:
         if type(strain) == str:
@@ -146,7 +151,7 @@ def get_filtered_assay_master_organism(assay_df, activity_type, unit, direction,
                         (assay_df['strain'].isna())]
     return df
 
-def get_filtered_assay_master_single_protein(assay_df, activity_type, unit, direction, assay_type, target_type_curated_extra, bao_label, strain, target_chembl_id):
+def get_filtered_assays_single_protein(assay_df, activity_type, unit, direction, assay_type, target_type_curated_extra, bao_label, strain, target_chembl_id):
     """Filter `assay_df` by metadata fields, treating non-string `unit` as missing (NaN)."""
     if type(unit) == str:
         if type(strain) == str:
@@ -361,33 +366,22 @@ PATH_TO_CORRELATIONS = os.path.join(OUTPUT, pathogen_code, "correlations")
 os.makedirs(os.path.join(PATH_TO_CORRELATIONS, "M"), exist_ok=True)
 
 # Load assays info
-print("Merging assay metadata")
+print("Getting individual LM results")
 ASSAYS_CLEANED = pd.read_csv(os.path.join(OUTPUT, pathogen_code, "assays_cleaned.csv"))
 ASSAYS_PARAMETERS = pd.read_csv(os.path.join(OUTPUT, pathogen_code, "assays_parameters.csv"))
-ASSAYS_DATASETS_ = pd.read_csv(os.path.join(OUTPUT, pathogen_code, "assays_datasets.csv"))
-INDIVIDUAL_LM = pd.read_csv(os.path.join(OUTPUT, pathogen_code, "individual_LM.csv"))
+ASSAY_DATA_INFO = pd.read_csv(os.path.join(OUTPUT, pathogen_code, "assay_data_info.csv"))
+DATASETS = pd.read_csv(os.path.join(OUTPUT, pathogen_code, "datasets.csv"))
+INDIVIDUAL_SELECTED_LM = pd.read_csv(os.path.join(OUTPUT, pathogen_code, "individual_selected_LM.csv"))
 
-# Get assay to quantitative data info to collapse ASSAY_DATASETS_ (1 row per assay)
-assay_to_qt_info = defaultdict(list)
-for assay_id, activity_type, unit, expert_cutoff, ratio_qt in ASSAYS_DATASETS_[['assay_id', 'activity_type', 'unit', 'expert_cutoff', 'ratio_qt']].values:
-    assay_to_qt_info[tuple([assay_id, activity_type, unit])].append([expert_cutoff, ratio_qt])
+# Get assays accepted in individual LM
+ACCEPTED_ASSAYS = set([tuple(i) for i in INDIVIDUAL_SELECTED_LM[KEYS].values])
 
-# Unique row per assay
-ASSAYS_DATASETS = ASSAYS_DATASETS_[KEYS + COLUMNS_DATASETS].drop_duplicates().reset_index(drop=True)
+# Merge assay data
+ASSAYS_MERGED = ASSAYS_CLEANED.merge(ASSAYS_PARAMETERS, on=KEYS, how="left", validate="1:1")
+ASSAYS_MERGED = ASSAYS_MERGED.merge(ASSAY_DATA_INFO[KEYS + COLUMNS_DATA_INFO], on=KEYS, how="left", validate="1:1")
 
-# Get cutoffs and ratios
-cutoffs = [";".join([str(j[0]) for j in assay_to_qt_info[tuple(i)]]) for i in ASSAYS_DATASETS[['assay_id', 'activity_type', 'unit']].values]
-ratios = [";".join([str(j[1]) for j in assay_to_qt_info[tuple(i)]]) for i in ASSAYS_DATASETS[['assay_id', 'activity_type', 'unit']].values]
-cutoffs = [i if i != 'nan' else np.nan for i in cutoffs]
-ratios = [i if i != 'nan' else np.nan for i in ratios]
-
-# Store results
-ASSAYS_DATASETS.insert(8, 'cutoffs', cutoffs)
-ASSAYS_DATASETS.insert(9, 'ratios', ratios)
-
-# Merge everything
-ASSAYS_MASTER = ASSAYS_CLEANED.merge(ASSAYS_PARAMETERS,on=KEYS, how="left", validate="1:1")
-ASSAYS_MASTER = ASSAYS_MASTER.merge(ASSAYS_DATASETS,on=KEYS, how="left", validate="1:1")
+# Identify datasets from accepted assays
+ASSAYS_MERGED['accepted_in_individual_LM'] = [tuple(i) in ACCEPTED_ASSAYS for i in ASSAYS_MERGED[KEYS].values]
 
 # Dict mapping assay_id, activity_type and unit to a set of compound ChEMBL IDs
 print("Mapping assays to compounds")
@@ -396,39 +390,6 @@ ASSAY_TO_COMPOUNDS = defaultdict(set)
 for assay_id, activity_type, unit, compound_chembl_id in ChEMBL[["assay_chembl_id", "activity_type", "unit", "compound_chembl_id"]].values:
     ASSAY_TO_COMPOUNDS[(assay_id, activity_type, unit)].add(compound_chembl_id)
 del ChEMBL
-
-# Loading quantitative and qualitative datasets
-print("Loading individual datasets")
-qt_zip = os.path.join(OUTPUT, pathogen_code, "datasets", "datasets_qt.zip")
-ql_zip = os.path.join(OUTPUT, pathogen_code, "datasets", "datasets_ql.zip")
-dfs_qt = load_all_gz_csvs_from_zip(qt_zip)
-dfs_ql = load_all_gz_csvs_from_zip(ql_zip)
-print("Loaded quantitative:", len(dfs_qt), "datasets")
-print("Loaded qualitative:", len(dfs_ql), "datasets")
-
-# Get results from individual modeling ABCD
-LABELS = ['A', 'B', 'C', 'D']
-ACCEPTED_ASSAYS, CONSIDERED_ASSAYS = get_all_results_from_individual_modeling(INDIVIDUAL_LM, LABELS)
-
-col_accepted, col_considered = [], []
-for assay_id, activity_type, unit in ASSAYS_MASTER[["assay_id", "activity_type", "unit"]].values:
-    # Get strategies in which this assay is considered and accepted
-    key = tuple([assay_id, activity_type, unit])
-    col_considered.append(where_considered(key, LABELS, CONSIDERED_ASSAYS))
-    col_accepted.append(where_accepted(key, LABELS, ACCEPTED_ASSAYS))
-ASSAYS_MASTER['Accepted'] = col_accepted
-ASSAYS_MASTER['Considered'] = col_considered
-
-# Reorder columns
-ALL_COLS = ["assay_id", "assay_type", "assay_organism", "target_organism", "organism_curated", "doc_chembl_id", "target_type", "target_type_curated", "target_type_curated_extra", 
-          "target_chembl_id", "target_chembl_id_curated", "target_name_curated", "bao_label", "source_label", "strain", "atcc_id", "mutations", "known_drug_resistances", "media",
-          "activity_type", "unit", "activities", "nan_values", "cpds", "frac_cs", "direction", "act_flag", 'inact_flag', "equal", "higher", "lower", "dataset_type", "cutoffs", "ratios", 
-          "cpds_qt", "pos_ql", "ratio_ql", "cpds_ql", "min_", "p1", "p25", "p50", "p75", "p99", "max_", 'Accepted', 'Considered']
-ASSAYS_MASTER = ASSAYS_MASTER[ALL_COLS]
-
-# Get accepted assays and accepted compounds in ABCD
-accepted_assays = ASSAYS_MASTER[(ASSAYS_MASTER['Accepted'].isna() == False)][['assay_id', 'activity_type', 'unit']].values
-accepted_compounds = set([j for i in accepted_assays for j in ASSAY_TO_COMPOUNDS[tuple(i)]])
 
 # Loading Morgan fingerprints
 print("Loading ECFPs...")
@@ -453,16 +414,25 @@ DECOYS_CHEMBL = set([i for i in ecfps if i not in compounds])
 # Load expert cut-offs
 EXPERT_CUTOFFS = load_expert_cutoffs(CONFIGPATH)
 
+# Loading quantitative and mixed datasets
+print("Loading individual datasets")
+qt_zip = os.path.join(OUTPUT, pathogen_code, "datasets", "datasets_qt.zip")
+mx_zip = os.path.join(OUTPUT, pathogen_code, "datasets", "datasets_mx.zip")
+dfs_qt = load_all_gz_csvs_from_zip(qt_zip)
+dfs_mx = load_all_gz_csvs_from_zip(mx_zip)
+print("Loaded quantitative:", len(dfs_qt), "datasets")
+print("Loaded mixed:", len(dfs_mx), "datasets")
+
 # Filtering assays
 print("Identifying potential assays to merge")
 print("Organisms...")
 keys_organism = ["activity_type", "unit", "direction", "assay_type", "target_type_curated_extra", "bao_label", "strain"]
-FILTERED_ASSAYS_ORGANISM = ASSAYS_MASTER[(ASSAYS_MASTER['Accepted'].isna()) & (ASSAYS_MASTER['target_type_curated_extra'] == 'ORGANISM')].copy()
+FILTERED_ASSAYS_ORGANISM = ASSAYS_MERGED[(ASSAYS_MERGED['accepted_in_individual_LM'] == False) & (ASSAYS_MERGED['target_type_curated_extra'] == 'ORGANISM')].copy()
 TO_MERGE_ORGANISM = to_merge_unique_cpds(FILTERED_ASSAYS_ORGANISM, keys_organism, ASSAY_TO_COMPOUNDS)
 
 print("Single proteins...")
 keys_single_protein = ["activity_type", "unit", "direction", "assay_type", "target_type_curated_extra", "bao_label", "strain", 'target_chembl_id']
-FILTERED_ASSAYS_SINGLE_PROTEIN = ASSAYS_MASTER[(ASSAYS_MASTER['Accepted'].isna()) & (ASSAYS_MASTER['target_type_curated_extra'] == 'SINGLE PROTEIN')].copy()
+FILTERED_ASSAYS_SINGLE_PROTEIN = ASSAYS_MERGED[(ASSAYS_MERGED['accepted_in_individual_LM'] == False) & (ASSAYS_MERGED['target_type_curated_extra'] == 'SINGLE PROTEIN')].copy()
 TO_MERGE_SINGLE_PROTEIN = to_merge_unique_cpds(FILTERED_ASSAYS_SINGLE_PROTEIN, keys_single_protein, ASSAY_TO_COMPOUNDS)
 
 # Filtering only activity type - unit pairs relevant for merging
@@ -470,7 +440,7 @@ TO_MERGE_ORGANISM = TO_MERGE_ORGANISM[(TO_MERGE_ORGANISM['n_cpds_union'] > 1000)
 TO_MERGE_SINGLE_PROTEIN = TO_MERGE_SINGLE_PROTEIN[(TO_MERGE_SINGLE_PROTEIN['n_cpds_union'] > 1000) & 
                                                   (TO_MERGE_SINGLE_PROTEIN['n_assays'] > 1) &
                                                   (TO_MERGE_SINGLE_PROTEIN['target_chembl_id'].isna() == False)].reset_index(drop=True)
-TO_MERGE_ORGANISM['name'] = [f"M_O{r}" for r in range(len(TO_MERGE_ORGANISM))]
+TO_MERGE_ORGANISM['name'] = [f"M_ORG{r}" for r in range(len(TO_MERGE_ORGANISM))]
 TO_MERGE_SINGLE_PROTEIN['name'] = [f"M_SP{r}" for r in range(len(TO_MERGE_SINGLE_PROTEIN))]
 
 MERGED_LM = []
@@ -502,29 +472,65 @@ for target_type in DATA:
 
         # Filter master table
         if target_type == 'ORGANISM':
-            df = get_filtered_assay_master_organism(FILTERED_ASSAYS_ORGANISM, activity_type, unit, direction, assay_type, target_type_curated_extra, bao_label, strain)
+            df = get_filtered_assays_organism(FILTERED_ASSAYS_ORGANISM, activity_type, unit, direction, assay_type, target_type_curated_extra, bao_label, strain)
         elif target_type == 'SINGLE PROTEIN':
-            df = get_filtered_assay_master_single_protein(FILTERED_ASSAYS_SINGLE_PROTEIN, activity_type, unit, direction, assay_type, target_type_curated_extra, bao_label, strain, target_chembl_id)
+            df = get_filtered_assays_single_protein(FILTERED_ASSAYS_SINGLE_PROTEIN, activity_type, unit, direction, assay_type, target_type_curated_extra, bao_label, strain, target_chembl_id)
 
-        # Get quantitative and qualitative
-        df_quant = df[(df['dataset_type'] == 'quantitative') | (df['dataset_type'] == 'mixed')].reset_index(drop=True)
-        df_qual = df[(df['dataset_type'] == 'qualitative') | (df['dataset_type'] == 'mixed')].reset_index(drop=True)
+        # Get only quantitative and mixed datasets
+        df = df[(df['dataset_type'] == 'quantitative') | (df['dataset_type'] == 'mixed')].reset_index(drop=True)
 
-        if len(df_quant) > 0:
+        if len(df) > 0:
 
-            # QUANTITATIVE
+            # Split in qt and mx
+            df_quant = df[df['dataset_type'] == 'quantitative'].reset_index(drop=True)
+            df_mixed = df[df['dataset_type'] == 'mixed'].reset_index(drop=True)
+
             # For each expert cut-off
             for expert_cutoff in EXPERT_CUTOFFS[(activity_type, unit, target_type_curated_extra, pathogen_code)]:
+
+                # Redefine name
+                name_ = name + f"_{expert_cutoff}"
                 
-                # Concatenate all files/data together
-                assays = df_quant['assay_id'].tolist()
-                files = [f"{i}_{activity_type}_{unit}_qt_{expert_cutoff}.csv.gz" for i in assays]
-                data = [dfs_qt[f].assign(assay_id=a) for a, f in zip(assays, files)]
-                data = pd.concat(data, ignore_index=True)
+                # Concatenate all qt files/data together
+                assays_quant = df_quant['assay_id'].tolist()
+                files_quant = [f"{i}_{activity_type}_{unit}_qt_{expert_cutoff}.csv.gz" for i in assays_quant]
+                data_quant = [dfs_qt[f].assign(assay_id=a) for a, f in zip(assays_quant, files_quant)]
+                if len(data_quant) > 0: 
+                    data_quant = pd.concat(data_quant, ignore_index=True)
+                else:
+                    data_quant = pd.DataFrame()
+                
+                # Concatenate all mx files/data together
+                assays_mixed = df_mixed['assay_id'].tolist()
+                files_mixed = [f"{i}_{activity_type}_{unit}_mx_{expert_cutoff}.csv.gz" for i in assays_mixed]
+                data_mixed = [dfs_mx[f].assign(assay_id=a) for a, f in zip(assays_mixed, files_mixed)]
+                if len(data_mixed) > 0:
+                    data_mixed = pd.concat(data_mixed, ignore_index=True)
+                    data_mixed_quant = data_mixed[data_mixed['value'].isna() == False].reset_index(drop=True)
+                    data_mixed_qual = data_mixed[data_mixed['value'].isna() == True].reset_index(drop=True)
+                else:
+                    data_mixed_quant, data_mixed_qual = pd.DataFrame(), pd.DataFrame()
+
+                # Merge qt and mx-qt data (if any)
+                if len(data_quant) > 0 and len(data_mixed_quant) > 0:
+                    data = pd.concat([data_quant, data_mixed_quant], ignore_index=True)
+                elif len(data_quant) > 0:
+                    data = data_quant
+                elif len(data_mixed_quant) > 0:
+                    data = data_mixed_quant
+                else:
+                    raise ValueError(f"No quantitative data available for merging... Please revise")
+
+                # Sort data based on direction and drop duplicates prioritizing activeness
                 if direction == -1:
                     data = data.sort_values("value", ascending=True).drop_duplicates("compound_chembl_id", keep="first").reset_index(drop=True)
                 else:
                     data = data.sort_values("value", ascending=False).drop_duplicates("compound_chembl_id", keep="first").reset_index(drop=True)
+
+                # Add ql inactives at the bottom and drop duplicates again prioritizing activeness
+                if len(data_mixed_qual) > 0:
+                    data = pd.concat([data, data_mixed_qual], ignore_index=True)
+                    data = data.drop_duplicates("compound_chembl_id", keep='first').reset_index(drop=True)
                 
                 # Prepare matrices for training
                 X = np.array(data['compound_chembl_id'].map(ecfps).to_list())
@@ -555,13 +561,13 @@ for target_type in DATA:
                     # 4Fold Cros Validation
                     average_auroc, stds = KFoldTrain(X, Y, n_splits=4, n_estimators=100)
                     print(f"\tMean AUROC: {average_auroc} ± {stds}")
-                    MERGED_LM.append([name, activity_type, unit, expert_cutoff, direction, assay_type, target_type_curated_extra, bao_label, strain, 
+                    MERGED_LM.append([name_, activity_type, unit, expert_cutoff, direction, assay_type, target_type_curated_extra, bao_label, strain, 
                                       target_chembl_id, n_assays, n_cpds_union, positives, round(positives/len(Y), 3), average_auroc, stds, assay_keys])
                     
                     # Train on full data and predict on reference set
                     RF = TrainRF(X, Y, n_estimators=100)
                     y_prob_ref = RF.predict_proba(X_REF)[:, 1]
-                    filename = f'{name}_ref_probs.npz' 
+                    filename = f'{name_}_ref_probs.npz' 
                     np.savez_compressed(os.path.join(PATH_TO_CORRELATIONS, "M", filename), y_prob_ref=y_prob_ref)
                     # Save dataset
                     outdir = os.path.join(OUTPUT, pathogen_code, "datasets", "M")
@@ -571,71 +577,26 @@ for target_type in DATA:
                 else:
                     print(f"Too few positive compounds for {activity_type}_{unit}_qt_{expert_cutoff}.. {strain} ... ({positives})")
 
-        elif len(df_qual) > 0:
-
-            # QUALITATIVE
-            # Concatenate all files/data together
-            assays = df_qual['assay_id'].tolist()
-            files = [f"{i}_{activity_type}_{unit}_ql.csv.gz" for i in assays]
-            data = [dfs_ql[f].assign(assay_id=a) for a, f in zip(assays, files)]
-            data = pd.concat(data, ignore_index=True)
-            if direction == -1:
-                data = data.sort_values("value", ascending=True).drop_duplicates("compound_chembl_id", keep="first").reset_index(drop=True)
-            else:
-                data = data.sort_values("value", ascending=False).drop_duplicates("compound_chembl_id", keep="first").reset_index(drop=True)
-            
-            # Prepare matrices for training
-            X = np.array(data['compound_chembl_id'].map(ecfps).to_list())
-            Y = np.array(data['bin'].tolist())
-            positives = sum(Y)
-
-            if positives > 50:
-
-                print(f"Merging ... Activity type: {activity_type}, Unit: {unit}, Cutoff: {expert_cutoff}, Strain {strain}, Target ChEMBL ID ({target_chembl_id})")
-                print(f"\tTarget ChEMBL ID for ORGANISM assays is set to nan for simplicity")
-                print(f"\tCompounds: {len(X)}", f"Positives: {positives} ({round(100 * positives / len(Y), 1)}%)")
-
-                if positives / len(Y) > 0.5:
-
-                    print(f"\tRatio too high: Adding random compounds from ChEMBL as decoys")
-                    DECOYS = int(positives / RATIO - (len(Y) - 1))
-                    print(f"\t{DECOYS} added decoys")
-                    rng = random.Random(42)
-                    DECOYS = rng.sample(list(DECOYS_CHEMBL), DECOYS)
-                    X_decoys = np.array([ecfps[i] for i in DECOYS])
-                    X = np.vstack([X, X_decoys])
-                    Y = np.concatenate([Y, np.zeros(len(X_decoys), dtype=Y.dtype)])
-                    positives = sum(Y)
-                    print(f"\tCompounds: {len(X)}", f"Positives: {positives} ({round(100 * positives / len(Y),3)}%)")
-                    decoy_df = pd.DataFrame({"compound_chembl_id": DECOYS, "bin": 0, "canonical_smiles": "decoy"})
-                    data = pd.concat([data, decoy_df], ignore_index=True)
-
-                # 4Fold Cros Validation
-                average_auroc, stds = KFoldTrain(X, Y, n_splits=4, n_estimators=100)
-                print(f"\tMean AUROC: {average_auroc} ± {stds}")
-                # In qualitative datasets, expert cutoff is nan
-                MERGED_LM.append([name, activity_type, unit, np.nan, direction, assay_type, target_type_curated_extra, bao_label, strain, 
-                                      target_chembl_id, n_assays, n_cpds_union, positives, round(positives/len(Y), 3), average_auroc, stds, assay_keys])
-                
-                # Train on full data and predict on reference set
-                RF = TrainRF(X, Y, n_estimators=100)
-                y_prob_ref = RF.predict_proba(X_REF)[:, 1]
-                os.makedirs(os.path.join(PATH_TO_CORRELATIONS, "M"), exist_ok=True)
-                filename = f'{name}_ref_probs.npz' 
-                np.savez_compressed(os.path.join(PATH_TO_CORRELATIONS, "M", filename), y_prob_ref=y_prob_ref)
-                # Save dataset
-                outdir = os.path.join(OUTPUT, pathogen_code, "datasets", "M")
-                os.makedirs(outdir, exist_ok=True)
-                data.to_csv(os.path.join(outdir, filename.replace("_ref_probs.npz", ".csv.gz")), index=False, compression="gzip")
-
-            else:
-                print(f"Too few positive compounds for {activity_type}_{unit}_ql .. {strain} ... ({positives})")
-
-
-        else:
-            raise TypeError("Please revise. df_quant and df_qual are empty...")
-        
 
 MERGED_LM = pd.DataFrame(MERGED_LM, columns=["name", "activity_type", "unit", "expert_cutoff", "direction", "assay_type", "target_type_curated_extra", "bao_label", 
-                                             "strain", "target_chembl_id", "n_assays", "n_cpds_union", "positives", "ratio", "average_auroc", "stds", "assay_keys"])
+                                             "strain", "target_chembl_id", "n_assays", "n_cpds_union", "positives", "ratio", "avg", "std", "assay_keys"])
 MERGED_LM.to_csv(os.path.join(OUTPUT, pathogen_code, "merged_LM.csv"), index=False)
+
+considered_datasets_ORG = len(MERGED_LM[MERGED_LM['target_type_curated_extra'] == 'ORGANISM'])
+considered_assays_ORG = set([j for i in MERGED_LM[MERGED_LM['target_type_curated_extra'] == 'ORGANISM']['assay_keys'] for j in i.split(";")])
+considered_datasets_SP = len(MERGED_LM[MERGED_LM['target_type_curated_extra'] == 'SINGLE PROTEIN'])
+considered_assays_SP = set([j for i in MERGED_LM[MERGED_LM['target_type_curated_extra'] == 'SINGLE PROTEIN']['assay_keys'] for j in i.split(";")])
+
+considered_compounds_ORG = set([cpd for assay in considered_assays_ORG for cpd in ASSAY_TO_COMPOUNDS[eval(assay)]])
+considered_compounds_SP = set([cpd for assay in considered_assays_SP for cpd in ASSAY_TO_COMPOUNDS[eval(assay)]])
+
+
+print(f"Total number of ORG merged datasets: {considered_datasets_ORG}")
+print(f"Total number of ORG considered for merging assays: {len(considered_assays_ORG)}")
+print(f"Chemical Space coverage ORG: {round(100 * len(considered_compounds_ORG) / len(compounds), 1)}%")
+print(f"Total number of SP merged datasets: {considered_datasets_SP}")
+print(f"Total number of SP considered for merging assays: {len(considered_assays_SP)}")
+print(f"Chemical Space coverage SP: {round(100 * len(considered_compounds_SP) / len(compounds), 1)}%")
+print(f"Overall Chemical Space coverage: {round(100 * len(considered_compounds_ORG.union(considered_compounds_SP)) / len(compounds), 1)}%")
+
+        

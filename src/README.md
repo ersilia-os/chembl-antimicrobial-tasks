@@ -228,7 +228,11 @@ Outputs are saved in `output/<pathogen_code>/ `and include:
 
 ⏳ ETA: ~30 minutes.
 
-## Step 14: Merged light modeling
+## Step 14: Selecting datasets from individual light modeling
+
+
+
+## Step 15: Merged light modeling
 
 The script `14_lightmodel_merge.py` identifies groups of related assays that were not accepted in Step 13, merges their compound-level datasets, and evaluates the modelability of the merged datasets using lightweight ligand-based models. Merging is performed separately for `ORGANISM` and `SINGLE PROTEIN` assays. Main operations include:
 
@@ -247,14 +251,8 @@ correlations/M/: predicted activity probabilities for well-performing merged mod
 
 ⏳ ETA: ~minutes per pathogen.
 
-<!-- ## Step 15. Preparing assay master table
 
-The script `13_merge_assay_tables.py` merges all assay-level tables generated in previous steps into a single master table per pathogen. Assays are treated as independent [`assay_id`, `activity_type`, `unit`] items. For each pathogen, the script loads: `assays_cleaned.csv` (Step 08), `assays_clusters.csv` (Step 09), `assay_parameters.zip` (Step 11) and `assays_data.csv` (Step 12). It first checks that each table is unique on the keys [`assay_id`, `activity_type`, `unit`]. Then, curated assay parameters are extracted from `assay_parameters.zip` and appended to `assays_cleaned.csv`. Finally, the cluster metrics and dataset summaries are merged into the same table.
-
-Outputs are saved in the folder: **output/<pathogen_code>/**, and include:
-- `assays_master.csv`: Master assay table combining cleaned assay metadata, curated parameters, clustering statistics, and dataset summaries.
-
-⏳ ETA: ~0 minutes.
+## Step 16: Selecting datasets from merged light modeling
 
 
 

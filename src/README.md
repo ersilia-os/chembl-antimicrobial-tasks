@@ -185,26 +185,37 @@ Outputs are saved in the folder: `output/<pathogen_code>/`, and include:
 
 The script `12_prepare_assay_data.py` prepares assay-level datasets for each pathogen by combining cleaned activity data (Step 08), curated assay parameters (Step 11), and expert-defined cutoffs. For each [`assay_id`, `activity_type`, `unit`] item in `assays_cleaned.csv`, the script generates binarized quantitative and/or qualitative datasets at the compound level. Main operations include:
 
-1. **Loading curated target type**. Reading `target_type_curated` for each assay item from `output/<pathogen_code>/assay_parameters.csv`, followed by a post-curation step that produces a constrained `target_type_curated_extra` field, limited to `SINGLE PROTEIN`, `ORGANISM` or `DISCARDED`. 
+1. **Loading curated target type**. Reading `target_type_curated` for each assay item from `output/<pathogen_code>/assays_parameters.csv`, followed by a post-curation step that produces a constrained `target_type_curated_extra` field, limited to `SINGLE PROTEIN`, `ORGANISM` or `DISCARDED`. This normalized target type is used for expert cutoff retrieval.
 
-2. **Loading expert cutoffs**. Reading expert thresholds from `config/manual_curation/expert_cutoffs.csv` (keyed by [`activity_type`, `unit`, `target_type`, `pathogen_code`]).
+2. **Loading expert cutoffs**. Reading expert thresholds from `config/expert_cutoffs.csv` (keyed by [`activity_type`, `unit`, `target_type`, `pathogen_code`]). The `expert_cutoff` field may contain one or multiple values separated by `;`, and each cutoff generates a separate quantitative (or mixed) dataset.
 ⚠️ Important: `expert_cutoffs.csv` is manually created using the notebook `expert_cutoffs.ipynb` and can be modified or updated at will.
 
 3. **Quantitative dataset preparation** (when possible). For assays with numerical values, a valid direction of biological activity (1 or -1) and an available expert cut-off:
 
-- Adjusting censored relations (</>) according to the activity direction.
-- Selecting a single measurement per compound (most active value).
-- Binarizing values using the expert cutoff (one dataset per cutoff).
+- Adjusting censored relations (<, >) according to the activity direction and replacing values on the wrong side with an extreme (min/max) assay value.
+- Selecting a single measurement per compound (most active value depending on direction).
+- Binarizing values using each expert cutoff (one dataset per cutoff).
+- Computing activity distribution statistics (min, percentiles, max).
 
-4. **Qualitative dataset preparation** (when possible). Building compound-level binary labels from text-based activity flags (`text_flag`), enforcing consistency and removing conflicts. Compound-level conflicts raise an error.
+4. **Qualitative dataset preparation** (when possible). Building compound-level binary labels from text-based activity flags (`text_flag`), enforcing consistency and removing conflicts. Compound-level conflicts (same compound labeled active and inactive) raise an error. Compounds labeled as neutral (0) are removed.
 
-5. **Dataset typing and summary**. Assigning each assay a `dataset_type` (quantitative, qualitative, mixed, or none) and storing summary statistics and label distributions (number of positives, ratio, relation counts, activity statistics, etc).
+5. **Mixed dataset preparation** (when applicable.) When both quantitative and qualitative data exist and a valid cutoff is available, generating a mixed dataset per cutoff by combining the binarized quantitative dataset with qualitative inactive compounds not present in the quantitative set. An overlap ratio between quantitative and qualitative compounds is computed and stored.
+
+6. **Dataset typing and summary**. Assigning each assay a `dataset_type` (`quantitative`, `qualitative`, `mixed`, or `none`) and storing summary statistics and label distributions (number of positives, ratio, relation counts, activity statistics, etc). Note that multiple datasets may exist per assay due to multiple cutoffs.
 
 Outputs are saved in the folder: **output/<pathogen_code>/**, and include:
 - `datasets/`: per-assay datasets saved as compressed CSV files. 
-- `*_qt.csv.gz`: binarized quantitative dataset (only when an expert cutoff exists and a direction is valid).
+- `*_qt_<cutoff>.csv.gz`: binarized quantitative dataset (only when an expert cutoff exists and a direction is valid).
 - `*_ql.csv.gz`: binarized qualitative dataset (only if qualitative labels exist).
-- `assays_datasets.csv`: assay-level summary table including dataset type, expert cutoff, relation counts, basic activity statistics, and label ratios.
+- `*_mx_<cutoff>.csv.gz`: mixed dataset (one per expert cutoff when applicable).
+- `datasets.csv`: dataset-level summary table (one row per generated dataset).
+- `assay_data_info.csv`: assay-level summary table including dataset type, relation counts, and basic activity statistics.
+
+After generation, individual dataset files are compressed into:
+
+- `datasets_qt.zip`
+- `datasets_ql.zip`
+- `datasets_mx.zip`
 
 ⏳ ETA: ~5 minutes.
 
@@ -212,19 +223,28 @@ Outputs are saved in the folder: **output/<pathogen_code>/**, and include:
 
 The script `13_lightmodel_individual.py` evaluates the modelability of individual assay datasets generated in Step 12 by training lightweight ligand-based models using molecular fingerprints. Each [`assay_id`, `activity_type`, `unit`] dataset is treated independently. Main operations include:
 
-1. **Dataset selection**: Assay datasets are filtered into four conditions (A–D) based on dataset type (quantitative, qualitative, or mixed), number of compounds, number of actives, and class balance.
+1. **Dataset selection**: Assay datasets are filtered into two conditions (A and B) based on dataset type, number of compounds, number of actives, and class balance. These conditions define which datasets are considered suitable for individual modeling.
 
-2. **Molecular representation**: Morgan (ECFP) fingerprints are loaded from `data/chembl_processed/ChEMBL_ECFPs.h5` (optionally created in step 06). A pathogen-specific reference compound set is generated and saved as `reference_set.csv.gz`, consisting of all compounds when < 10k are available, or otherwise the first and last 5k. 
+  - **Condition A**: quantitative or mixed datasets with ≥ 1000 quantitative compounds, ≥ 50 actives and a positive ratio between 0.001 and 0.5.
 
-3. **Model training and evaluation**: For each selected dataset, a Random Forest classifier is trained and evaluated using 4-fold stratified cross-validation (AUROC). For highly imbalanced datasets (C and D), random ChEMBL compounds are added as decoys to enforce a minimum positive ratio.
+  - **Condition B**: quantitative or mixed datasets with ≥ 100 actives and a positive ratio ≥ 0.5.
 
-4. **Reference set prediction and dataset export**: For datasets with average AUROC >0.7, a final model is trained on all data and used to predict activity probabilities for the reference compound set, to be used in further correlation analyses. The corresponding dataset (including decoys when used) is saved under `output/<pathogen_code>/datasets/<LABEL>/` for downstream use, where label is here A, B, C or D.
+2. **Molecular representation**: Morgan (ECFP) fingerprints are loaded from `data/chembl_processed/ChEMBL_ECFPs.h5` (optionally created in step 06). A pathogen-specific reference compound set is generated and saved as `reference_set.csv.gz`. If more than 10,000 compounds exist, the reference set consists of the first 5,000 and last 5,000 compounds; otherwise, all compounds are used. 
+
+3. **Model training and evaluation**: For each selected dataset, a Random Forest classifier (100 trees) is trained using Morgan fingerprints and evaluated using 4-fold stratified cross-validation. Performance is measured using AUROC (mean ± standard deviation across folds).
+
+  - For Condition B, random ChEMBL compounds not tested against the pathogen are added as decoys to enforce a minimum active ratio (RATIO = 0.1).
+
+  - Cross-validation is performed on the full augmented dataset when decoys are used.
+
+4. **Reference set prediction and dataset export**: For each modeled dataset (independently of AUROC threshold), a final Random Forest model is trained on the full dataset and used to predict activity probabilities for the pathogen-specific reference compound set. Predicted probabilities are saved as compressed NumPy files (`.npz`) under: `output/<pathogen_code>/correlations/<LABEL>/`. These predictions are used for downstream correlation analyses across assays.
+
+5. **Coverage statistics and summary**: The script tracks the number of modeled datasets, number of unique assays considered, and chemical space coverage (fraction of pathogen-tested compounds represented across modeled datasets). Final results are stored in an assay-level summary table.
 
 Outputs are saved in `output/<pathogen_code>/ `and include:
-- `reference_set.csv.gz`: reference compound list.
-- `correlations/`: predicted activity probabilities for well-performing assays.
-- `individual_LM.csv`: assay-level table with model performance statistics.
-- `datasets/<LABEL>/`: datasets associated with accepted models (one folder per condition: A, B, C and D).
+- `reference_set.csv.gz`: pathogen-specific reference compound list.
+- `correlations/`: predicted activity probabilities on the reference set (organized by condition A and B).
+- `individual_LM.csv`: dataset-level table including assay metadata, dataset type, expert cutoff, modeling condition (A or B), avg and std AUROC values. 
 
 ⏳ ETA: ~30 minutes.
 

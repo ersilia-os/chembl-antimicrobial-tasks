@@ -6,11 +6,6 @@ import gzip
 import sys
 import os
 
-# pd.set_option("display.max_columns", None)
-# pd.set_option("display.max_rows", 50)
-# pd.set_option("display.max_colwidth", None)
-# pd.set_option("display.width", None)
-
 def load_expert_cutoffs(CONFIGPATH):
     """
     Load expert cutoffs from the manual curation CSV and return them as a dictionary.

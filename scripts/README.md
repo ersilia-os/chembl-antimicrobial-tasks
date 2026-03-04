@@ -25,7 +25,7 @@ Optionally, the pipeline can generate Extended Connectivity Fingerprints for all
 bash process_ChEMBL.sh --calculate_ecfps
 ```
 
-Once a processed version of ChEMBL is available locally, the user can create binarized activity datasets for a given pathogen of interest with `create_datasets.sh`. In brief, the script selects ChEMBL bioactivities associated the the specified pathogen (step 07, )
+Once a processed version of ChEMBL is available locally, the user can create binarized activity datasets for a given pathogen of interest with `create_datasets.sh`. In brief, the script selects ChEMBL bioactivities associated the the specified pathogen (step 07-18)
 
 Files to review before generating binarized datasets for a given pathogen:
 

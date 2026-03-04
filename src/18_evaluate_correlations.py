@@ -6,11 +6,6 @@ import pandas as pd
 import sys
 import os
 
-# pd.set_option("display.max_columns", None)
-# pd.set_option("display.max_rows", 50)
-# pd.set_option("display.max_colwidth", 50)
-# pd.set_option("display.width", None)
-
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))

@@ -2,7 +2,6 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import roc_auc_score
-from IPython.display import display, HTML
 from scipy.stats import spearmanr
 from collections import Counter, defaultdict
 import pandas as pd

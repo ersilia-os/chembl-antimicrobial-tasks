@@ -8,11 +8,6 @@ import json
 import sys
 import os
 
-# pd.set_option("display.max_columns", None)
-# pd.set_option("display.max_rows", 50)
-# pd.set_option("display.max_colwidth", None)
-# pd.set_option("display.width", None)
-
 def adjust_relation(ASSAY_DATA: pd.DataFrame, DIRECTION: int, CUT: float) -> pd.DataFrame:
     """
     Adjust relations in an assay DataFrame according to the biological direction.

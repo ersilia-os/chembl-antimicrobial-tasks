@@ -3,7 +3,6 @@ from collections import Counter
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
-import pickle
 import sys
 import os
 

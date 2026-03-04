@@ -21,17 +21,23 @@ conda activate camt
 pip install -r requirements.txt
 ```
 
+### Data download
+Data is stored with the [eosvc](https://github.com/ersilia-os/eosvc) tool. Please install it in your environment and run both commands to download all data. If you only want access to the cleaned outputs, download only this folder to prevent incurring storage and internet traffic costs:
+```sh
+eosvc download --path data
+eosvc download --path output
+```
+
 ## Pipeline overview
 
-The pipeline is divided into two main stages: (i) processing ChEMBL (steps X-X) and (ii) creating binarized bioactivity datasets and training ML models for a given pathogen of interest (steps X-X). 
+The pipeline is divided into two main stages: (i) processing ChEMBL (steps 00-06) and (ii) creating binarized bioactivity datasets and training ML models for a given pathogen of interest (steps 07-18). Look at the README file under `/scripts` for detailed information.
 
 
 ## Repository architecture
 
-- `config`: ...
-- `data`: ChEMBL raw and processed data.
-- `output`: Results associated to 
-- 
+- `config`: config files pre-set by the Ersilia team. They can be manually edited to obtain different pipeline outputs, if requred
+- `data`: all ChEMBL raw and processed data.
+- `output`: per-pathogen results
 
 
 ## About the Ersilia Open Source Initiative 🌍🤝

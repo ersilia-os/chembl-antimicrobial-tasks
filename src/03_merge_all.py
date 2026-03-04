@@ -1,8 +1,4 @@
-from rdkit.Chem import Descriptors
-from rdkit import Chem
-from tqdm import tqdm
 import pandas as pd
-import numpy as np
 import sys
 import os
 

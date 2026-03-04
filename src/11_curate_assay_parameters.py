@@ -1,11 +1,7 @@
 # This script needs to be run with a GPU machine available
-from collections import Counter
 from pydantic import BaseModel
-from zipfile import ZipFile, ZIP_DEFLATED
 from tqdm import tqdm
 import pandas as pd
-import numpy as np
-import shutil
 import ollama
 import json
 import sys

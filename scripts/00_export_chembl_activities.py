@@ -1,3 +1,19 @@
+"""
+Step 00 — Export ChEMBL tables and generate curation summaries.
+
+Exports 10 raw tables from a local PostgreSQL ChEMBL installation to CSV
+(data/chembl_activities/). Then generates frequency-count summary CSVs of
+key activity fields.
+
+IMPORTANT: The summary files produced here (activity_comments.csv,
+standard_text.csv, activity_std_units.csv) informing the manual curation process.
+After running this step, a curator must create/update:
+  config/activity_comments_manual_curation.csv
+  config/standard_text_manual_curation.csv
+  config/activity_std_units_curated_manual_curation.csv
+These config files are required by step 05 (clean_activities).
+"""
+
 import psycopg
 import os
 import sys
@@ -26,6 +42,10 @@ activity_tables = [
 os.makedirs(output_dir, exist_ok=True)
 
 def export_table(conn, table):
+    """Export a ChEMBL PostgreSQL table to CSV.
+    compound_structures is exported with selected columns only — the binary
+    CTAB molfile column is excluded as it is large and not needed downstream.
+    """
     outfile = os.path.join(output_dir, f"{table}.csv")
     print(f"Exporting {table} -> {outfile}")
 
@@ -41,6 +61,9 @@ def export_table(conn, table):
                     f.write(data.tobytes().decode("utf-8"))
 
 def get_files_from_db():
+    """Connect to the local ChEMBL PostgreSQL database and export all tables
+    listed in activity_tables to CSV files in the output directory.
+    """
     with psycopg.connect(
         dbname=DATABASE_NAME,
         user=CHEMBL_USR,
@@ -52,6 +75,15 @@ def get_files_from_db():
             export_table(conn, tbl)
 
 def curate_activity_files():
+    """Read activities.csv and generate frequency-count summaries for key fields.
+
+    NaN values are treated as empty strings (fillna("")) so the empty-string
+    row in each output CSV represents "no value recorded". 
+    standard_text_value is expected to be populated for <5% of rows
+    (qualitative assays only); the remaining rows appear as the empty-string
+    bucket. Outputs are the basis for manual curation of the config/ files
+    required by step 05.
+    """
     df = pd.read_csv(os.path.join(output_dir, "activities.csv"), low_memory=False)
 
     # Activity comments
@@ -66,7 +98,7 @@ def curate_activity_files():
     total_count = out['count'].sum()
     out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
     out.to_csv(os.path.join(output_dir, "activity_comments.csv"), index=False)
-    print(f"Activiy comments [counts] stored in {os.path.join(output_dir, 'activity_comments.csv')}")
+    print(f"Activity comments [counts] stored in {os.path.join(output_dir, 'activity_comments.csv')}")
 
     # Activity type - standard units
     s = df[["standard_type", "standard_units"]].astype("string").fillna("")
@@ -78,7 +110,7 @@ def curate_activity_files():
     total_count = out['count'].sum()
     out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
     out.to_csv(os.path.join(output_dir, "activity_std_units.csv"), index=False)
-    print(f"Activiy type - unit pairs [counts] stored in {os.path.join(output_dir, 'activity_std_units.csv')}")
+    print(f"Activity type - unit pairs [counts] stored in {os.path.join(output_dir, 'activity_std_units.csv')}")
 
     # Standard units
     s = df['standard_units'].astype("string").str.strip().fillna("")
@@ -107,6 +139,11 @@ def curate_activity_files():
     print(f"Standard text [counts] stored in {os.path.join(output_dir, 'standard_text.csv')}")
 
 def curate_assay_files():
+    """Extract (assay_id, chembl_id, description) from assays.csv.
+
+    Produces a lightweight human-readable assay reference used, for example,
+    during LLM-based assay parameter curation in step 11.
+    """
     df = pd.read_csv(os.path.join(output_dir, "assays.csv"), low_memory=False)
     s = df[['assay_id','chembl_id','description']]
     s = s.sort_values("assay_id", ascending=True, ignore_index=True)

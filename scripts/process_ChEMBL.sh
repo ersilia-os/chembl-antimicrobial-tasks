@@ -3,12 +3,27 @@ set -euo pipefail
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
-# python $SCRIPT_DIR/../src/00_export_chembl_activities.py
-# python $SCRIPT_DIR/../src/01_get_compound_info.py
-# python $SCRIPT_DIR/../src/02_standardize_compounds.py
-# python $SCRIPT_DIR/../src/03_merge_all.py
-# python $SCRIPT_DIR/../src/04_prepare_conversions.py
-# python $SCRIPT_DIR/../src/05_clean_activities.py
+python $SCRIPT_DIR/00_export_chembl_activities.py
+python $SCRIPT_DIR/01_prepare_manual_files.py
+
+echo ""
+echo "ACTION REQUIRED before continuing:"
+echo "  Fill in manual_curation_direction in:"
+echo "    data/01_activity_std_units_converted.csv"
+echo "  Save the result as:"
+echo "    config/activity_std_units_curated_manual_curation.csv"
+echo ""
+
+CURATION_FILE="$SCRIPT_DIR/../config/activity_std_units_curated_manual_curation.csv"
+if [[ ! -f "$CURATION_FILE" ]]; then
+  echo "ERROR: $CURATION_FILE not found. Complete manual curation before proceeding." >&2
+  exit 1
+fi
+
+python $SCRIPT_DIR/02_get_compound_info.py
+python $SCRIPT_DIR/03_standardize_compounds.py
+python $SCRIPT_DIR/04_merge_activity_and_compounds.py
+python $SCRIPT_DIR/05_clean_activities.py
 
 
 CALCULATE_ECFPS=0
@@ -20,5 +35,5 @@ for arg in "$@"; do
 done
 
 if (( CALCULATE_ECFPS )); then
-  python $SCRIPT_DIR/../src/06_calculate_ecfps.py
+  python $SCRIPT_DIR/06_calculate_ecfps.py
 fi

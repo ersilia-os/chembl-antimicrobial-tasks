@@ -1,0 +1,6068 @@
+type,count,old_types
+PKB,7,pKb ; pKB ; pkB ; PKB ; pkb ; PKb ; PkB
+ACTIVITY,5,Activity ; activity ; Activ ity ; Activit y ; A ctivity
+DELTATM,5,Delta TM ; Delta Tm ; deltaTm ; delta Tm ; DeltaTm
+PKA,5,pKa ; pKA ; pka ; PKa ; Pka
+KBAPP,4,Kbapp ; KB app ; Kb app ; K Bapp
+KACT,4,Kact ; k act ; K ACT ; K act
+KA,4,KA ; Ka ; ka ; K A
+2XAPTT,4,2x APTT ; 2x aPTT ; 2 x APTT ; 2xAPTT
+LOGKA,4,logKA ; logKa ; Log KA ; Log Ka
+KR,4,Kr ; kr ; KR ; kR
+KH,4,KH ; K H ; kH ; Kh
+DELTAT,4,deltaT ; Delta t ; Delta T ; delta T
+KB,4,Kb ; KB ; kb ; K B
+LOGK'W,4,Log k'w ; Log k' w ; Log K'W ; Log K'w
+KOBS,4,k_obs ; K obs ; Kobs ; kobs
+RI,3,RI ; R.I ; Ri
+AUCRATIO,3,AUC Ratio ; AUC ratio ; AUC_ratio
+CT,3,Ct ; CT ; C/T
+RESIDUALACTIVITY,3,Residual Activity ; Residual activity ; Residual_activity
+INCREASEINDPDTMAX,3,Increase in dP/dTmax ; Increase in dP/dt max ; Increase in dP/dtmax
+EMAX,3,Emax ; E max ; EMax
+KCATKM,3,Kcat/Km ; k cat/Km ; K cat/Km
+KE,3,Ke ; KE ; ke
+SI,3,SI ; S.I ; Si
+PLASMAINSULIN,3,Plasma insulin ; Plasma Insulin ; Plasma_insulin
+K12,3,K1/2 ; K12 ; k12
+K2,3,k2 ; K2 ; k_2
+K2KI,3,k2/Ki ; k2 / Ki ; k2/KI
+AC50,3,AC50 ; Ac50 ; AC_50
+KS,3,Ks ; ks ; KS
+KHOX,3,kHOX ; K HOX ; KHOX
+KOX,3,kOX ; KOX ; K OX
+KCAT,3,Kcat ; k cat ; K cat
+KIKI,3,ki/Ki ; Ki/KI ; Ki/ki
+KIAPP,3,Ki app ; Ki_app ; KIapp
+KINACT,3,Kinact ; K inact ; kinact
+KINACTKI,3,K inact/Ki ; kinact/Ki ; Kinact/Ki
+LOGIC50,3,logIC50 ; Log IC50 ; LogIC50
+LOGK,3,log K ; Log K ; Log k
+KOFF,3,k_off ; koff ; Koff
+KON,3,kon ; k_on ; Kon
+KREL,3,Krel ; K rel ; krel
+LOGD50,3,Log D50 ; LogD5.0 ; Log d50
+-LOGKB,3,-Log KB ; -Log K B ; -Log Kb
+PKA2,3,pKa2 ; PKa2 ; Pka2
+LOGKW,3,logKw ; Log kw ; Log Kw
+LOGPAPP,3,logPapp ; LogP app ; LogPapp
+MAXACTIVATION,3,max activation ; Max. activation ; Max activation
+PD'2,3,pD'2 ; PD'2 ; PD' 2
+PC,3,Pc ; PC ; pC
+PALPHA,3,pAlpha ; Palpha ; p alpha
+TI,3,TI ; T.I. ; Ti
+TC,3,T/C ; TC ; Tc
+%ACTIVITYREMAINING,2,% Activity remaining ; % activity remaining
+[3H]THYMIDINECPMDISH,2,[3H] thymidine cpm/dish ; [3H] thymidinecpm/dish
+%INHIBITION,2,% inhibition ; % Inhibition
+BWC,2,BWC ; bwc
+C8H,2,C8h ; C 8 h
+C90,2,c90 ; C90
+CELLSURVIVAL,2,Cell survival ; Cell Survival
+CELLVIABILITY,2,Cell Viability ; Cell viability
+CFC20,2,CF C20 ; CFC20
+CHOLESTEROLLEVEL,2,Cholesterol level ; cholesterol level
+CI,2,CI ; C/I
+CL,2,CL ; Cl
+CLB,2,CLb ; ClB
+CLM,2,ClM ; CLm
+CLP,2,Clp ; CLp
+CLT,2,ClT ; CLT
+BLOODPRESSURE,2,Blood pressure ; Blood Pressure
+BP,2,BP ; B/P
+BSI,2,BSI ; BsI
+SOLUBILITY,2,Solubility ; solubility
+ST,2,ST ; S/T
+T,2,T ; t
+T12,2,T1/2 ; t1/2
+TCMAX,2,T/C max ; tCmax
+TIME,2,TIME ; Time
+TMAX,2,Tmax ; T max
+TP,2,TP ; Tp
+TR,2,TR ; tR
+TT,2,TT ; Tt
+ULCERINDEX,2,Ulcer index ; Ulcer Index
+PLADY,2,pLADY ; pLADy
+PLASMACHOLESTEROL,2,Plasma cholesterol ; Plasma_cholesterol
+PLASMACONCENTRATION,2,Plasma concentration ; Plasmaconcentration
+-LOGMIC,2,-logMIC ; -Log MIC
+10E2K1,2,10E2 k1 ; 10E2 K1
+NOOFCULTURESACTIVETOTAL,2,No. of cultures active/total ; No. of culturesactive/total
+NT,2,NT ; N/T
+ODCACTIVITY,2,ODC activity ; ODC Activity
+P50C,2,P50c ; P50C
+P50EP50C,2,P50e/P50c ; P50e / P50c
+PA,2,Pa ; PA
+PA2-PA10,2,pA2 - pA10 ; pA2-pA10
+PARTITIONRATIO,2,Partition ratio ; partition_ratio
+PD,2,pD ; P/D
+PD2,2,pD2 ; PD2
+PD50,2,PD50 ; PD 50
+30DAYSURVIVALTOTAL,2,30 day survival / total ; 30 day survival/total
+LOGRA,2,Log RA ; logRA
+LOGS,2,Log S ; log S
+LOGT12,2,Log t1/2 ; logt1/2
+LVDPDT,2,LV dP/dt ; LV dp/dt
+M2M1INDEX,2,M2/M1 index ; M2/M1 Index
+MAD,2,MAD ; M.A.D
+MAXINHIBITION,2,Max inhibition ; max inhibition
+MAXPOTENTIATION,2,Max. potentiation ; Max potentiation
+MAXSTIMULATION,2,Max stimulation ; Max.stimulation
+MFI,2,MfI ; MFI
+MORTALITY,2,mortality ; Mortality
+N,2,N ; n
+ND,2,ND ; N/D
+NOOFAXONALBRANCHPOINTSCELL,2,No. of axonal branch points/cell ; No. of axonal branchpoints/cell
+LOGK-IAMEX,2,LogK-IAMex ; logK-IAMex
+LOGKB,2,logKb ; Log KB
+LOGKD,2,Log Kd ; logKd
+LOGKI,2,Log Ki ; logKi
+LOGKILL,2,Log kill ; Log Kill
+LOGKOW,2,log KOW ; Log Ko/w
+LOGLD50,2,logLD50 ; Log LD50
+LOGP,2,LogP ; logP
+LOGPE,2,log Pe ; Log Pe
+LOGPI,2,Log PI ; logPi
+2XPT,2,2x PT ; 2X PT
+KT,2,KT ; Kt
+LAMBDA-Z,2,lambda-z ; Lambda-z
+LOG(1C),2,log(1/C) ; Log (1/C)
+LOG10CFU,2,log10cfu ; Log10 cfu
+LOG1GI50,2,log1/GI50 ; Log 1/GI50
+LOG1IC50,2,log1/IC50 ; Log 1/IC50
+LOGBB,2,logBB ; Log BB
+LOGD,2,LogD ; logD
+LOGEC50,2,Log EC50 ; logEC50
+LOGED50,2,Log ED50 ; logED50
+LOGGI50,2,logGI50 ; Log GI50
+LOGI50,2,Log I50 ; logI50
+PXC50,2,PXC50 ; pXC50
+QTCINTERVAL,2,QTc interval ; QTc Interval
+RATIOEC50,2,Ratio EC50 ; Ratio_EC50
+-LOGKA,2,-logKa ; -Log KA
+PERMEABILITY,2,permeability ; Permeability
+PI,2,PI ; pI
+PINHIBITION,2,pInhibition ; pinhibition
+PKA1,2,pKa1 ; PKa1
+PKABZ,2,pKabz ; pKa BZ
+PKD,2,pKD ; pKd
+PKP,2,pKp ; pKP
+PLADM,2,pLADM ; pLADm
+LOGK',2,Log k' ; Log K'
+KL,2,KL ; K L
+KM,2,Km ; K m
+KMAX,2,kmax ; Kmax
+KN,2,kn ; Kn
+KNBP,2,K NBP ; KNBP
+KO,2,Ko ; ko
+KOBS1,2,K obs / 1 ; k obs / 1
+KOH,2,kOH ; KOH
+KP,2,Kp ; kp
+ABSORBANCE,2,absorbance ; Absorbance
+AC,2,AC ; Ac
+KF,2,KF ; Kf
+KI',2,Ki' ; KI'
+KI50,2,Ki50 ; KI50
+KIC,2,Kic ; Ki.c
+KII,2,Kii ; KII
+KIN,2,Kin ; kin
+KINX,2,Kin x ; KinX
+KIS,2,Kis ; KIs
+KBIND,2,K Bind ; K bind
+KC,2,kc ; Kc
+KD,2,Kd ; KD
+KD',2,KD' ; Kd'
+KD1,2,Kd1 ; KD1
+KD2,2,Kd2 ; KD2
+KDAPP,2,KD app ; Kdapp
+KDISS,2,Kdiss ; K diss
+KDMPC,2,KDMPC ; K DMPC
+KDS,2,KDs ; Kds
+SELECTIVITY,2,Selectivity ; selectivity
+SELECTIVITYINDEX,2,Selectivity Index ; Selectivity index
+PLASMAGLUCOSE,2,Plasma glucose ; Plasma_glucose
+PLASMALEVEL,2,Plasma level ; Plasma Level
+PLASMATRIGLYCERIDE,2,Plasma triglyceride ; Plasma_triglyceride
+PM,2,Pm ; pM
+PMAX,2,Pmax ; pMax
+POTENCYRATIO,2,Potency ratio ; Potency Ratio
+PRATIO,2,P ratio ; pRatio
+PROTECTEDTESTED,2,Protected/Tested ; Protected/tested
+PROTECTIVEINDEX,2,Protective index ; Protective Index
+PT,2,PT ; Pt
+PTD50,2,pTD50 ; PTD50
+PVALUE,2,P value ; p value
+KEFF,2,K eff ; k eff
+KEL,2,Kel ; kel
+KEQ,2,Keq ; keq
+K-2,2,k-2 ; K-2
+K05,2,K0.5 ; K 0.5
+K1,2,K1 ; k1
+K21,2,K21 ; k21
+K3,2,k3 ; K3
+K3K1,2,k3/k1 ; k3/K1
+K3KI,2,k3/Ki ; k3/ki
+KAPP,2,K app ; Kapp
+ACTIVITYINDEX,2,Activity_index ; Activity index
+IDG,2,ID/g ; I.D./g
+IDGTISSUE,2,ID/g tissue ; I.D./g tissue
+IE,2,IE ; I/E
+ILSMAX,2,ILSmax ; ILS max
+INHIBITION,2,Inhibition ; INHIBITION
+INHIBITIONINDEX,2,Inhibition index ; Inhibition_index
+INHIBITIONOFCONTROL,2,inhibition of control ; Inhibition of control
+INHIBITIONZONE,2,Inhibition zone ; Inhibition Zone
+IONIZATION,2,Ionization ; ionization
+IP,2,IP ; Ip
+K,2,K ; k
+K',2,k' ; K'
+K+2,2,k+2 ; K+2
+K-1,2,K-1 ; k-1
+FOLDREDUCTION,2,Fold_reduction ; Fold reduction
+FOLDSELECTIVITY,2,Fold selectivity ; fold selectivity
+FOODINTAKE,2,Food intake ; food intake
+GDPACTIVITY,2,GDPactivity ; GDP activity
+GINDEX,2,G index ; G Index
+GRAFTSURVIVAL,2,graft survival ; Graft survival
+GROWTHINDEX,2,Growth_index ; Growth Index
+GROWTHINHIBITION,2,Growth Inhibition ; Growth inhibition
+GROWTHRATE,2,Growth Rate ; Growth rate
+GTP-GAMMASINDEX,2,GTP-gammaS index ; GTP-gammaS Index
+GTPSHIFT,2,GTP shift ; GTPshift
+HILLSLOPE,2,HILLSLOPE ; Hill slope
+I90,2,I 90 ; I90
+IAR,2,IAr ; IAR
+IC,2,IC ; I/C
+EC15,2,EC1.5 ; EC15
+EC5X,2,EC5X ; EC5x
+ECMAX,2,ECmax ; ECMax
+ED15,2,ED1.5 ; ED15
+ED50,2,ED50 ; ED 50
+ED50RATIO,2,ED50 ratio ; ED50 Ratio
+EFFECT,2,Effect ; effect
+FA,2,Fa ; FA
+FCMAX,2,fCmax ; fc max
+FCMAXMIC,2,fCmax/MIC ; fc max/MIC
+FIC50,2,fIC50 ; FIC50
+FLUORESCENCE,2,fluorescence ; Fluorescence
+FLUORESCENCEINTENSITY,2,Fluorescence intensity ; Fluorescence Intensity
+FM,2,Fm ; fm
+FOLDINCREASE,2,Fold increase ; Fold_increase
+AE,2,Ae ; AE
+AESCORE,2,AE Score ; AE score
+DELTAPKI,2,Delta pKi ; deltapKi
+DELTARM,2,deltaRm ; Delta RM
+DELTATC,2,Delta TC ; DeltaTC
+DELTAVMAX,2,Delta Vmax ; delta Vmax
+DOSE,2,DOSE ; Dose
+DP,2,DP ; D/P
+DPDT,2,dP/dt ; dp/dt
+DRUGEXCRETION,2,Drug excretion ; Drugexcretion
+DTM,2,dTM ; dTm
+DURATIONOFACTION,2,Duration of action ; duration of action
+E12,2,E 1/2 ; E1/2
+EA,2,Ea ; EA
+COMPOUNDRECOVERY,2,Compound recovery ; Compound Recovery
+CONCENTRATIONPLASMA,2,Concentration_Plasma ; Concentration_plasma
+CP,2,Cp ; C/P
+CPM,2,CPM ; cpm
+CPMAX,2,Cp max ; CPmax
+CR,2,Cr ; CR
+CSS,2,Css ; C ss
+CURES@40MGKG,2,Cures@ 40mg/kg ; Cures@ 40 mg/kg
+CV,2,CV ; c.v
+D50,2,D50 ; d50
+DELTABP,2,Delta BP ; DeltaBP
+DELTAG,2,deltaG ; Delta G
+CMINSS,2,Cminss ; Cmin ss
+CO,2,Co ; CO
+COMPLEXFORMATION,2,Complex formation ; Complex_formation
+RATIOKI,2,Ratio Ki ; Ratio ki
+%REMAINING,2,% remaining ; %Remaining
+REDUCTIONINRESPIRATORYVOLUME,2,Reduction in respiratory volume ; Reduction in respiratoryvolume
+RELATIVEBIOAVAILABILITY,2,Relative bioavailability ; Relative Bioavailability
+RELATIVEGROWTH,2,Relative Growth ; Relative growth
+RELATIVEPOTENCY,2,Relative potency ; Relative Potency
+RETENTIONTIME,2,Retention_time ; Retention time
+RF,2,Rf ; RF
+RIC50,2,RIC50 ; rIC50
+RM,2,Rm ; RM
+SCAVENGINGACTIVITY,2,Scavenging activity ; Scavenging Activity
+DELTALOGP,2,delta Log P ; delta logP
+DELTAPEC50,2,deltapEC50 ; Delta pEC50
+DELTAPH,2,Delta pH ; deltapH
+WEIGHT,2,WEIGHT ; Weight
+XI50,2,XI50 ; Xi50
+ALPHAKI,2,alphaKi ; Alpha Ki
+ALT,2,ALT ; ALT.
+ANALGESICACTIVITY,2,Analgesic activity ; Analgesicactivity
+ANTICONVULSANTACTIVITY,2,Anticonvulsant activity ; Anticonvulsant Activity
+APOPTOTICACTIVITY,2,Apoptotic Activity ; Apoptotic activity
+APTT,2,APTT ; aPTT
+AVERAGEPEAKCONCN,2,Average peak Concn. ; Average peak Concn
+BA,2,BA ; Ba
+BEHAVIOR,2,behavior ; Behavior
+BEHAVIORALOBSERVATION,2,Behavioral observation ; behavioral observation
+VM,2,VM ; Vm
+VMAXKM,2,Vmax/Km ; Vmax / Km
+VR,2,VR ; Vr
+X,1,X
+WRITHINGNUMBER,1,Writhing number
+%LBF,1,%LBF
+%INJECTEDDOSECM3,1,% injected dose/cm3
+%INHIBITIONOFCONTROLVALUES(MEANN=2),1,% Inhibition of Control Values (Mean n=2)
+%INHIBITIONOFCONTROLVALUES,1,% Inhibition of Control Values
+%INHIBITIONOFCONTROLSPECIFICBINDING(MEANN=2),1,% Inhibition of Control Specific Binding (Mean n=2)
+%INHIBITIONOFCONTROLSPECIFICBINDING,1,% Inhibition of Control Specific Binding
+%INHIBITIONOFCONTROLAGONISTRESPONSE(MEANN=2),1,% Inhibition of Control Agonist Response (Mean n=2)
+%INHIBITIONOFCONTROLAGONISTRESPONSE,1,% Inhibition of Control Agonist Response
+%INHIBITIONINSPLEEN,1,% inhibition in spleen
+%INHIBITIONINLIVER,1,% inhibition in liver
+%INHIBITIONINBONE-MARROW,1,% inhibition in bone-marrow
+%INHIB(MEAN),1,%Inhib (Mean)
+%,1,%
+[35S]TBPSSHIFT,1,[35S] TBPS shift
+ALKALINEPHOSPHATASEACTIVITY,1,alkaline phosphatase activity
+ALDHACTIVITY,1,AlDH activity
+%CTRL,1,% Ctrl
+%CONTROLSPECIFICBINDING(MEANN=2),1,% control specific binding (Mean n=2)
+%CONTROL,1,% Control
+%CLEARED,1,%Cleared
+%CHANGE,1,% change
+%CELLDEATH,1,% Cell Death
+%BOUNDFRACTION,1,% bound fraction
+%BOUNDALBUMIN,1,%Bound_Albumin
+%BOUND,1,% bound
+%BINDING,1,% binding
+%AUCEXTRA,1,%AUCextra
+%AUC,1,%AUC
+%ABSORBED,1,% absorbed
+%ACTIVITY,1,% activity
+ALPHAC,1,Alpha c
+ALPHA50,1,Alpha 50
+ALPHA-LIPOPROTEINCHOLESTEROL,1,Alpha-lipoprotein cholesterol
+ALPHA-CHOLESTEROL,1,Alpha-cholesterol
+ALPHA-ADRENOLYTICACTIVITY,1,Alpha-adrenolytic activity
+ALPHA,1,Alpha
+ALPCHANGETO,1,ALP_CHANGE_TO
+ALPACTIVITY,1,ALP activity
+ALP,1,ALP
+ALLOSTEICENHANER(AE),1,Alloste ic enhan er (AE)
+ALLODYNIASCORE,1,Allodynia score
+ALKYLATION,1,Alkylation
+ALKYLATINGACTIVITY,1,Alkylating activity
+ALKALINEPHOSPHATASEINCREASE-NUMBEROFREPORTS,1,Alkaline Phosphatase Increase - Number of Reports
+ALKALINEPHOSPHATASEINCREASE-INDEXVALUE,1,Alkaline Phosphatase Increase - Index Value
+ALKALINEPHOSPHATASEINCREASE-ACTIVITYSCORE,1,Alkaline Phosphatase Increase - Activity Score
+AMOUNTEXCRETED,1,Amount excreted
+AMOUNTDELIVERED,1,Amount delivered
+AMOUNTBOUND,1,Amount bound
+AMOUNT,1,Amount
+AMNESIAREVERSAL,1,Amnesia reversal
+AMINEFORMED,1,Amine formed
+AMBULATIONSCORE,1,Ambulation score
+AMAX,1,Amax
+AM,1,Am
+ALTGPT,1,ALT/GPT
+ALPLEVEL,1,ALP Level
+ALPHAX10E,1,Alphax10E
+ALPHAT12(APP),1,alphat1/2(app)
+ALPHAT12,1,alphat1/2
+ALPHAMAX,1,Alpha max
+ALPHAE,1,Alpha E
+ANABOLICACTIVITY,1,Anabolic activity
+AMYLASESTIMULATION,1,Amylase stimulation
+AMPLITUDE,1,Amplitude
+AMPAEFFECT,1,AMPA effect
+AMOUNTRECOVEREDINURINE,1,Amount Recovered in urine
+AMOUNTOF[3H]THYMIDINE,1,Amount of [3H]thymidine
+AMOUNTOFUNREACTEDSUBSTRATE,1,Amount of unreacted substrate
+AMOUNTOFTXB2FORMATION,1,Amount of TXB2 formation
+AMOUNTOFTNF-ALPHA,1,Amount of TNF-alpha
+AMOUNTOFOUABAINUSED,1,Amount of Ouabain used
+AMOUNTOFMETABOLITE,1,Amount of metabolite
+AMOUNTOFCROSS-LINKEDPROTEIN,1,Amount of cross-linked protein
+AMOUNTOFACOTINEUSED,1,Amount of Acotine used
+AMOUNTINURINE,1,amount in urine
+AMOUNTINCORPORATED,1,Amount incorporated
+AMOUNTFORMED,1,Amount formed
+ANIMALSCURED,1,Animals cured
+ANIMALSAFFECTED,1,Animals affected
+ANIMALS,1,Animals
+ANIMALDEATH,1,Animal death
+ANEUPLOIDYACTIVTY,1,Aneuploidy activty
+ANESTHETICEFFECT,1,Anesthetic effect
+ANESTHESIADURATION,1,Anesthesia duration
+ANALOGUELEVEL,1,Analogue level
+ANALGESICRESPONSE,1,Analgesic response
+ANALGESICEFFICACYCOMPAREDTOMORPHINE,1,Analgesic efficacy compared to morphine
+ANALGESICEFFICACYCOMPAREDTOEPIBATIDINE,1,Analgesic efficacy compared to epibatidine
+ANALGESICEFFICACY,1,Analgesic efficacy
+ANALGESICEFFECT,1,Analgesic effect
+ANALGESIC,1,Analgesic
+ANALGESIADURATION,1,Analgesia duration
+ANALGESIA,1,Analgesia
+ANTI-FACTORXAACTIVITY,1,Anti-Factor Xa activity
+ANTI-EMETIC,1,Anti-emetic
+ANTI-ARHYTHMIC,1,Anti-arhythmic
+ANTI-ANALGESIC,1,Anti-analgesic
+ANTAGONISTPOTENCY,1,Antagonist potency
+ANTAGONISTICACTIVITY,1,Antagonistic activity
+ANTAGONISTEFFICACY,1,Antagonist efficacy
+ANTAGONISTEFFECT,1,Antagonist effect
+ANTAGONISTACTIVITY,1,Antagonist activity
+ANTAGONIST,1,Antagonist
+ANTAGONISMEFFECTS,1,Antagonism effects
+ANTAGONISM,1,Antagonism
+ANOGENITALDISTANCE,1,Anogenital distance
+ANIMALSWITHPALPABLETUMOR,1,Animals with palpable tumor
+ANIMALSPROTECTED,1,Animals protected
+ANIMALSDEAD,1,Animals dead
+ANTICOCCIDIALACTIVITY,1,Anticoccidial Activity
+ANTICOAGULANTACTIVITY,1,Anticoagulant activity
+ANTICANCERACTIVITY,1,Anticancer activity
+ANTIBODYTITER,1,Antibody titer
+ANTIBODYSTIMULATION,1,Antibody stimulation
+ANTIBODYRESPONSE,1,Antibody response
+ANTIBIOTICRESISTANCE,1,Antibiotic resistance
+ANTIBIOTICACTIVITY,1,Antibiotic activity
+ANTIBACTERIALACTIVITY,1,Antibacterial activity
+ANTIAMNESICACTIVITY,1,Antiamnesic activity
+ANTI-UTEROTROPHICEFFECT,1,Anti-uterotrophic effect
+ANTI-PENTEFFECT,1,Anti-pent effect
+ANTI-INFECTIOUSEFFECT,1,Anti-infectious effect
+ANTI-HIVACTIVITY,1,Anti-HIV activity
+ANTI-FXAACTIVITY,1,Anti-fXa activity
+ANTI-FIGHTINGBEHAVIOUR,1,Anti-fighting behaviour
+ANTIINFLAMMATORYACTIVITY,1,Antiinflammatory Activity
+ANTIHYPERTENSIVESCORE,1,Antihypertensive score
+ANTIHYPERTENSIVEACTIVITY,1,Antihypertensive activity
+ANTIHYPERTENSIVE,1,Antihypertensive
+ANTIGENP24CONTENT,1,Antigen p24 content
+ANTIFUNGALACTIVITY,1,Antifungal activity
+ANTIFERTILITYPOTENCY,1,Antifertility potency
+ANTIFERTILITYACTIVITY,1,Antifertility activity
+ANTIEMETICACTIVITY,1,Antiemetic activity
+ANTIDIURETICACTIVITY,1,Antidiuretic activity
+ANTIDIURETIC,1,Antidiuretic
+ANTICONVULSANTDOSE,1,Anticonvulsant dose
+ANTICONVULSANTACTIVITYANTICONVULSANTACTIVITY,1,Anticonvulsant activityAnticonvulsant activity
+ANTICONVULSANT,1,Anticonvulsant
+ANTICONULSANTACTIVITY,1,Anticonulsant activity
+ANTICONFLICTACTIVITY,1,Anticonflict activity
+ANTIVIRALSELECTIVITY,1,Antiviral selectivity
+ANTIVIRALINDEX,1,Antiviral index
+ANTIVIRALEFFECT,1,Antiviral effect
+ANTIVIRALACTIVITY,1,Antiviral activity
+ANTIUTEROTROPICEFFECT,1,Antiuterotropic effect
+ANTIUTEROTROPHICACTIVITY,1,Antiuterotrophic activity
+ANTITUMOURACTIVITY,1,Antitumour activity
+ANTITUMORACTIVITY,1,Antitumor activity
+ANTIPSYCHOTIC,1,Antipsychotic
+ANTIPROLIFERATIVEEFFECT,1,Antiproliferative effect
+ANTIPAPILLOMAACTIVITY,1,Antipapilloma activity
+ANTIOVULATORYACTIVITY,1,Antiovulatory activity
+ANTINOCICEPTION,1,Antinociception
+ANTIMICROBIALACTIVITY,1,Antimicrobial activity
+ANTIMALARIALACTIVITY,1,Antimalarial activity
+ANTILIPIDPEROXIDATION,1,Antilipid peroxidation
+APDC,1,APDc
+APD95,1,APD95
+APD90,1,APD90
+APD75,1,APD75
+APD70,1,APD70
+APD60,1,APD60
+APD50,1,APD50
+APD30,1,APD30
+APD,1,APD
+APA,1,APA
+AP50,1,AP50
+AP,1,AP
+AOC,1,AOC
+AOA,1,AOA
+ANXIOLYTICAFFECT,1,Anxiolytic affect
+ANXIOLYTICACTIVITY,1,Anxiolytic activity
+AQUEOUSSOLUBILITY,1,Aqueous solubility
+AQ,1,AQ
+APPTT,1,APPTT
+APPROXPKA,1,Approx. pKa
+APPROXLETHALDOSE,1,Approx. lethal dose
+APPROXIMATECOLONYFORMATIONUNIT,1,Approximate colony formation unit
+APPARENTPKA,1,Apparent_pKa
+APPARENTENZYMEACTIVITY,1,Apparent enzyme activity
+APPARENTBINDINGCONSTANT,1,Apparent binding constant
+APOPTOTICINDEX,1,Apoptotic index
+APOPTOTICCELLS,1,Apoptotic cells
+APOPTOTICCELL,1,Apoptotic cell
+APOPTOSISINDUCTION,1,Apoptosis induction
+APOPTOSISINDEX,1,Apoptosis index
+APOPTOSIS,1,Apoptosis
+APE,1,apE
+ASSEMBLY,1,Assembly
+ASPIRINFORMED,1,Aspirin formed
+ASORBANCE,1,Asorbance
+ASF,1,ASF
+ASCRIT,1,ascrit
+ASCITESVOLUME,1,ascites volume
+ASATLEVELS,1,ASAT levels
+ARTHRITISSCORES,1,Arthritis scores
+ARTHRITICSCORE,1,Arthritic score
+ARTERIALPRESSURE,1,Arterial pressure
+ARTERIALOCCLUSION,1,Arterial occlusion
+ARRHYTHMIASTIMES,1,Arrhythmias times
+ARRHYTHMIASCORE,1,Arrhythmia score
+ARP,1,ARP
+AREA,1,Area
+AR,1,AR
+AUCC,1,AUC c
+AUC1T1,1,AUC 1/T1
+AUC100,1,AUC 100
+AUC(APP),1,AUC(app)
+AUC(0-24)NORMALISED,1,AUC(0-24) normalised
+AUC,1,AUC
+AUBC,1,AUBC
+ATTTACKS,1,Atttacks
+ATTACKS,1,Attacks
+ATRIALMAPD90,1,Atrial MAPD90
+ATPCONTENT,1,ATP content
+ATHEROGENICINDEX,1,Atherogenic index
+ATAXIA,1,Ataxia
+AT1AFFINITY,1,AT1 affinity
+ASTROCYTEREVERSAL,1,Astrocyte reversal
+AST,1,AST
+AUCNORMALISED,1,AUC normalised
+AUCNOM,1,AUC nom
+AUCN,1,AUC N
+AUCMETAUCP,1,AUCmet/AUCp
+AUCMETABOLITEAUCRADIOLABEL,1,AUC metabolite/AUC radiolabel
+AUCLASTDOSE,1,AUClast/dose
+AUCLAST,1,AUClast
+AUCINF,1,AUC inf
+AUCGLUREDUCTION(MMXMIN),1,AUC glu reduction(mM x min)
+AUCGLUREDUCTION,1,AUC glu reduction
+AUCGLU,1,AUC glu
+AUCFIRSTTREATMENT,1,AUC first treatment
+AUCED90,1,AUCED90
+AUCED50,1,AUC ED50
+AUCDOSE,1,AUC/dose
+AUCCYTOTOXICITY,1,AUC cytotoxicity
+AUMCT,1,AUMCt
+AUMCLAST,1,AUMClast
+AUMC,1,AUMC
+AUIC,1,AUIC
+AUGMENTATION,1,Augmentation
+AUG,1,AUG
+AUEC,1,AUEC
+AUDPC,1,AUDPC
+AUCUNITS,1,AUC units
+AUCTOTAL,1,AUC total
+AUCTDOSE,1,AUCt/dose
+AUCT,1,AUCt
+AUCSS(TAU)NORMALISED,1,AUCss(tau) normalised
+AUCSECONDTREATMENT,1,AUC second treatment
+AUCP,1,AUC p
+AUCNPO,1,AUC Npo
+AVERAGEDOSE,1,Average dose
+AVERAGECONSUMED,1,Average consumed
+AVERAGECOLONYCOUNT,1,Average colony count
+AVERAGECHANGEINWEIGHT,1,Average change in weight
+AVERAGECHANGEINBODYWEIGHT,1,Average change in body weight
+AVERAGEBODYWEIGHTCHANGE,1,Average body weight change
+AVERAGEBODYWEIGHT,1,Average body weight
+AVERAGEBILEFLOW,1,Average bile flow
+AVERAGEACTIVITY,1,Average activity
+AVERAGE14-DAYMGR,1,Average 14-day MGR
+AVERAGE,1,Average
+AVBLOCK,1,AV block
+AV,1,av
+AUTOPHAGYINDUCTION,1,autophagy induction
+AURC,1,AURC
+AUPAP,1,AUPAP
+AVERAGEPROPORTION,1,Average proportion
+AVERAGEONSET,1,Average onset
+AVERAGENOOFMETASTASIS,1,Average No. of metastasis
+AVERAGEMAX,1,Average max
+AVERAGELUNGWEIGHT,1,Average lung weight
+AVERAGELOGGI50,1,average log GI50
+AVERAGELESIONSCORE,1,Average lesion score
+AVERAGELATENCY,1,Average latency
+AVERAGEIOP,1,Average IOP
+AVERAGEINHIBITION,1,Average inhibition
+AVERAGEIC90,1,Average IC90
+AVERAGEGROSSPATHOLOGYSCORES+-SE,1,Average gross pathology scores+/- SE
+AVERAGEGI50,1,Average GI50
+AVERAGEFORSKINREACTION,1,Average for skin reaction
+AVERAGEFOODINTAKE,1,Average food intake
+AVERAGEDOSEPERORGAN,1,Average dose per organ
+AVERAGEWEEKLYWEIGHTCHANGE,1,Average weekly weight change
+AVERAGEUTERINEWEIGHT,1,Average uterine weight
+AVERAGETURNSFIRST15MIN,1,Average turns/first 15 min
+AVERAGETURNS,1,Average turns
+AVERAGETUMORWEIGHT,1,Average tumor weight
+AVERAGETUMORVOLUME,1,Average tumor volume
+AVERAGESURVIVED,1,Average survived
+AVERAGESURVIVALTIME,1,Average survival time
+AVERAGESURVIVALDAYS,1,Average survival days
+AVERAGESURVIVAL(DAYS),1,Average survival (days)
+AVERAGESURVIVAL,1,Average survival
+AVERAGESKINREACTION,1,Average skin reaction
+AVERAGESEIZURESCORE,1,Average seizure score
+AVERAGESCORE,1,Average score
+AVERAGESAMPLEINTAKE,1,Average sample intake
+AVERAGERATIO,1,Average ratio
+BACTERIALGROWTH,1,Bacterial growth
+BACTERIALCOUNTS,1,Bacterial counts
+BACTERIALBIOTRANSFORMATION,1,Bacterial Biotransformation
+B50,1,B50
+B-AA-B,1,B-A/A-B
+B(DPB),1,B(DPB)
+B,1,B
+AZTFORMATION,1,AZT formation
+AXONALREGENERATIONRATE,1,Axonal regeneration rate
+AWC,1,AWC
+AVOIDANCETIME,1,Avoidance time
+AVOIDANCERESPONSE,1,Avoidance response
+AVGIC90,1,Avg IC90
+AVERAGEWEIGHTGAIN,1,Average weight gain
+AVERAGEWEIGHTCHANGE,1,Average weight change
+AVERAGEWEIGHT,1,Average weight
+BAT,1,BAT
+BASOLE,1,BASOLE
+BASO,1,BASO
+BASISMOTILITY,1,Basis motility
+BASELINESYSTOLICBP,1,Baseline systolic BP
+BASELINE,1,Baseline
+BASALUPTAKE,1,Basal uptake
+BASALINHIBITION,1,Basal inhibition
+BASALGLUCOSE,1,Basal glucose
+BASALGH,1,Basal GH
+BASALCONTROL,1,Basal control
+BASALBINDING,1,Basal binding
+BASALACTIVITY,1,Basal activity
+BASAL,1,Basal
+BAPP,1,Bapp
+BACTERICIDAL,1,Bactericidal
+BEHAVIORALSYNDROME,1,Behavioral syndrome
+BEHAVIORALSCORE,1,Behavioral score
+BEHAVIORALRESPONSE,1,Behavioral response
+BEHAVIORALEFFECT,1,Behavioral effect
+BEATSMIN,1,Beats/min
+BDW,1,BDW
+BCMSERUMCA,1,BCM serum Ca
+BC,1,BC
+BBR,1,BBR
+BBC50,1,BBC50
+BBC,1,BBC
+BBBIMPERMEABLE,1,BBB Impermeable
+BBB,1,BBB
+BAV,1,BAV
+BATWEIGHT,1,BAT weight
+BATHOCHROMICSHIFT,1,Bathochromic shift
+BILEFLOW,1,Bile flow
+BILDIR,1,BILDIR
+BICARBONATELEVEL,1,Bicarbonate level
+BIC,1,BIC
+BHIA50,1,BHIA50
+BGREDUCTION,1,BG reduction
+BGL,1,BGL
+BG,1,BG
+BFU,1,BFU
+BETAT12,1,beta t1/2
+BETA2DURATION,1,Beta2 duration
+BETA-LACTAMASEINDUCTION,1,Beta-lactamase induction
+BENZIDINEPOSITIVECELLS,1,Benzidine positive cells
+BEI,1,BEI
+BEHAVIORSCORE,1,Behavior score
+BEHAVIORRESPONSE,1,Behavior response
+BINDINGSELECTIVITY,1,Binding selectivity
+BINDINGRATIO,1,Binding ratio
+BINDINGPOTENCY,1,Binding potency
+BINDINGINTENSITY,1,Binding intensity
+BINDINGINHIBITION,1,Binding inhibition
+BINDINGENERGY,1,Binding energy
+BINDINGDECREASE,1,Binding Decrease
+BINDINGCONSTANT,1,Binding constant
+BINDINGCOMPETITION,1,Binding competition
+BINDINGAFFINITY,1,Binding affinity
+BINDINGACTIVITY,1,Binding activity
+BINDING,1,Binding
+BINCORPORATION,1,B incorporation
+BILURUBINLEVEL,1,Bilurubin Level
+BILIARYEXCRETION,1,Biliary excretion
+BILI,1,BILI
+BLOCKADEEFFECT,1,Blockade effect
+BLOCKADEDURATION,1,Blockade duration
+BLOCKADE,1,Blockade
+BLOCK,1,Block
+BLEEDINGTIME,1,Bleeding time
+BK,1,BK
+BITTERTASTEINTENSITY,1,Bitter taste intensity
+BIOREDUCTION,1,Bioreduction
+BIOLOGICALEVALUATION,1,Biological evaluation
+BIOLOGICALACTIVITY,1,Biological activity
+BIODISTRIBUTIONRATIO,1,Biodistribution ratio
+BIODISTRIBUTION,1,Biodistribution
+BIOAVAILABILITYINCREASE,1,Bioavailability Increase
+BINDINGSTOICHIOMETRY,1,Binding stoichiometry
+BINDINGSITEPREFERENCE,1,Binding site preference
+BINDINGSITEFRACTION,1,Binding site fraction
+BLOODVOLUME,1,Blood volume
+BLOODUREANITROGEN,1,Blood urea nitrogen
+BLOODSUGARLOWERING,1,Blood sugar lowering
+BLOODPLASMARATIO,1,Blood/Plasma ratio
+BLOODLOSS,1,Blood loss
+BLOODLEVEL,1,Blood level
+BLOODLACTATE,1,Blood lactate
+BLOODGLUCOSELEVEL,1,Blood glucose level
+BLOODGLUCOSE,1,Blood glucose
+BLOODFLOW,1,Blood flow
+BLOODCLEARANCE,1,Blood clearance
+BLOODACH,1,Blood AcH
+BLOCKTIME,1,Block time
+BLOCKOFACTIVITY,1,Block of activity
+BLOCKAGEACTIVITY,1,Blockage activity
+BLOCKAGE,1,Blockage
+BODYWEIGHTINFI,1,Body weight In. / Fi.
+BODYWEIGHTGAIN,1,Body weight gain
+BODYWEIGHTCHANGE,1,Body weight change
+BODYWEIGHT,1,Body weight
+BODYTEMPERATUREDROP,1,Body temperature drop
+BODYTEMPERATURE,1,Body temperature
+BODYTEMPDROP,1,Body temp drop
+BODYTEMPCHANGE,1,Body temp change
+BNA,1,BNa
+BMF,1,BMF
+BMD,1,BMD
+BMAXL,1,BmaxL
+BMAXH,1,BmaxH
+BMAX2,1,Bmax2
+BMAX1,1,Bmax1
+BMAX,1,Bmax
+BPR,1,BPR
+BPINCREASE,1,BP increase
+BPI,1,BPI
+BPDECREASE,1,BP decrease
+BPCHANGE,1,BP change
+BP(ED50),1,BP (ED50)
+BOUND,1,Bound
+BOTTOM,1,BOTTOM
+BORONINMEDIAAT0H,1,Boron in media at 0h
+BORONINCORPORATION,1,Boron incorporation
+BORONCONCENTRATION,1,Boron concentration
+BONEMINERALDENSITY,1,Bone mineral density
+BONEDAMAGESCORE,1,Bone damage score
+BODYWEIGHTREDUCTION,1,Body weight reduction
+BODYWEIGHTLOSSATNADIR,1,Body weight loss at nadir
+BODYWEIGHTLOSS,1,Body weight loss
+BRONCHOSELECTIVITY,1,Broncho selectivity
+BRONCHOALVEOLARLAVAGES,1,Bronchoalveolar lavages
+BRDUPOSITIVE,1,Brdu positive
+BRAINUPTAKE,1,Brain uptake
+BRAINPLASMA,1,Brain/Plasma
+BRAINPENETRATIONINDEX,1,Brain penetration index
+BRAINLEVELS,1,Brain levels
+BRAINLEVEL,1,Brain level
+BRAINLESION,1,Brain lesion
+BRAINCONTENT,1,Brain content
+BRAINCONCENTRATION,1,Brain concentration
+BRAINCONC,1,Brain conc
+BRAINBLOODCONCENTRATION,1,Brain/Blood concentration
+BRAIN,1,Brain
+BQL,1,BQL
+BPRATIO,1,B/P ratio
+C0(UNBOUND),1,C0(unbound)
+C0,1,C0
+C(24H),1,C(24h)
+C,1,C
+BWLOSS,1,BW loss
+BWLMAX,1,BWLmax
+BWL,1,BWL
+BWD,1,BWD
+BW,1,BW
+BUNCHANGEBY,1,BUN_CHANGE_BY
+BUN,1,BUN
+BULLATACININDEX,1,Bullatacin index
+BUI,1,BUI
+BT,1,BT
+BSR,1,BSR
+BSABINDING,1,BSA binding
+AGONISTINDEX,1,Agonist index
+C2,1,C2
+C175,1,C175
+C16,1,C1.6
+C13,1,C1.3
+C12H,1,C12h
+C120ED50,1,C120/ED50
+C120,1,C120
+C10N2,1,C10 N2
+C10APD90,1,C10APD90
+C10AIRC10N2,1,C10 air/C10 N2
+C10AIR,1,C10 air
+C100,1,C100
+C10,1,C10
+C1,1,C1
+C0DOSE,1,C0/dose
+C20,1,C20
+ALD50,1,ALD50
+ALBUMIN,1,Albumin
+ALBGLOB,1,ALBGLOB
+ALBCHANGE,1,ALB_CHANGE
+ALB,1,ALB
+ALATLEVELS,1,ALAT levels
+AIRECOVERYTIME,1,AI recovery time
+AIDHACTIVITY,1,AIDH activity
+AI50,1,AI50
+AI,1,AI
+AHV,1,AHV
+AHINTERVAL,1,AH interval
+AHA,1,AHA
+AGONISTRESPONSE,1,Agonist response
+AGONISTPOTENCY,1,Agonist potency
+CA2+ANTAGONISM,1,Ca2+ antagonism
+CA2+,1,Ca2+
+CA,1,CA
+C70,1,C70
+C6H,1,C6h
+C5MIN,1,C5 min
+C5AMAX,1,C5a max
+C5AAFFINITY,1,C5a affinity
+C50K,1,C50k
+C50G,1,C50g
+C50,1,C50
+C30,1,c30
+C24H,1,C24h
+C24,1,C24
+C20FRP,1,C20 FRP
+C20APD95,1,C20 APD95
+CAGELEAVING,1,Cage leaving
+CACO-2PERMEABILITY,1,Caco-2 permeability
+CACO-2PAPP,1,Caco-2 Papp
+CACO-2A-B,1,Caco-2 A-B
+CAC,1,CAC
+CAACTIVITY,1,CA activity
+CA2+TRANSPORTSM,1,Ca2+ transport S/M
+CA2+TRANSPORT,1,Ca2+ transport
+CA2+SERUM,1,Ca2+ serum
+CA2+REDUCTION,1,Ca2+ reduction
+CA2+FLUX,1,Ca2+ flux
+CA2+EXCRETION,1,Ca2+ excretion
+CA2+ELEVATION,1,Ca2+ elevation
+CA2+CURRENT,1,Ca2+ current
+CA2+BINDINGPROTEIN,1,Ca2+ binding protein
+CA2+ANTAGONISTICACTIVITY,1,Ca2+ antagonistic activity
+CARBOXYLASEACTIVITY,1,Carboxylase activity
+CARBONYLGROUP,1,Carbonyl group
+CARBOHYDRATE,1,Carbohydrate
+CARBAMOYLATINGACTIVITY,1,Carbamoylating activity
+CAR,1,CAR
+CAPACITY,1,Capacity
+CAMPPRODUCTION,1,cAMP production
+CAMPINCREASE,1,cAMP increase
+CAMPCONTENT,1,cAMP content
+CAMPACTIVITYINDEX,1,cAMP activity index
+CAMPACCUMULATION,1,cAMP accumulation
+CAMP,1,cAMP
+CALCULATEDRATIO,1,Calculated Ratio
+CALCIUMRELEASE,1,Calcium release
+CALCIUM,1,CALCIUM
+CAIACTIVITY,1,CAI activity
+CATALEPSY,1,Catalepsy
+CATALASERATE,1,Catalase rate
+CATALASE,1,Catalase
+CATACTIVITY,1,CAT activity
+CASPASEINDUCTION,1,Caspase induction
+CARTILAGESPACE,1,Cartilage space
+CAROTIDFLOWREDUCTION,1,Carotid flow reduction
+CAROTIDFLOWDECREASE,1,Carotid Flow Decrease
+CARNITINEACETYLTRANSFERASE,1,Carnitine acetyl transferase
+CARDIOTOXICITY,1,Cardiotoxicity
+CARDIOSELECTIVITY,1,Cardio selectivity
+CARDIACOUTPUT,1,Cardiac output
+CARDIACFREQUENCY,1,Cardiac frequency
+CARDIACFORCE,1,Cardiac force
+CARDIACDEPRESSION,1,Cardiac depression
+CARDIACCONTRACTILEFORCE,1,Cardiac contractile force
+CC10,1,CC10
+CC,1,CC
+CBRAIN,1,Cbrain
+CBFRATIO,1,CBF Ratio
+CBFINCREASINGACTIVITY,1,CBF increasing activity
+CBF-ID75,1,CBF-ID75
+CAVG,1,Cavg
+CAVERAGE,1,Caverage
+"CAVE,SS",1,"Cave,ss"
+CAVE,1,Cave
+CAV(SS),1,Cav(ss)
+CATSCORE,1,Cat score
+CATIONINFLUX,1,Cation influx
+CATALYPTICACTION,1,Catalyptic action
+CATALEPTICEFFECT,1,Cataleptic effect
+CATALEPSYSCORE,1,Catalepsy score
+CCONTROL,1,Ccontrol
+CCID50,1,CCID50
+CCIC50,1,CCIC50
+CCH,1,CCh
+CCELLULAR,1,Ccellular
+CCCT,1,CCCT
+CC90,1,CC90
+CC75,1,CC75
+CC50IC50,1,CC50/IC50
+CC50EC50,1,CC50/EC50
+CC50%,1,CC50%
+CC50,1,CC50
+CC30,1,CC30
+CC25,1,CC25
+CC20,1,CC20
+CC100,1,CC100
+CELLDENSITY,1,Cell density
+CELLDEATH,1,Cell death
+CELLCYCLEFRACTION,1,Cell cycle fraction
+CELLCYCLEEFFECT,1,Cell cycle effect
+CELLCYCLEANALYSIS,1,Cell cycle analysis
+CELLCYCLE,1,Cell cycle
+CELLAGGREGATES,1,Cell aggregates
+CELL,1,Cell
+CE37,1,CE37
+CDYN,1,Cdyn
+CDOG,1,CDOG
+CD90,1,CD90
+CD50,1,CD50
+CD100,1,CD100
+CD,1,CD
+CCTD50,1,CCTD50
+CELLPROTEIN,1,Cell protein
+CELLPROLIFERATIONIC50,1,Cell Proliferation IC50
+CELLPROLIFERATIONEC70,1,Cell Proliferation EC70
+CELLPROLIFERATIONEC50,1,Cell Proliferation EC50
+CELLPROLIFERATIONAC50,1,Cell Proliferation AC50
+CELLPROLIFERATION,1,Cell proliferation
+CELLPLATINGEFFICIENCY,1,Cell plating efficiency
+CELLPERMEATION,1,Cell permeation
+CELLNUMBER,1,Cell number
+CELLNODISHX10E5,1,Cell no./dish x10E5
+CELLNODISHX10E3,1,Cell no./dish x10E3
+CELLNODISH,1,Cell no/dish
+CELLNO,1,Cell no
+CELLKILLACTIVITY,1,cell kill activity
+CELLKILL,1,Cell kill
+CELLGROWTH,1,Cell growth
+CELLULARUPTAKE,1,Cellular uptake
+CELLULARREVERSION,1,Cellular reversion
+CELLULARGROWTH,1,Cellular growth
+CELLULARCONTENT,1,Cellular content
+CELLULARCONCENTRATION,1,Cellular concentration
+CELLTOXICITY,1,Cell toxicity
+CELLSURVIVED,1,Cell survived
+CELLSSICKLED,1,Cells sickled
+CELLSPOSITIVE,1,Cells positive
+CELLSKILLED,1,Cells killed
+CELLSIZE,1,Cell size
+CELLSINMETAPHASE,1,Cells in metaphase
+CELLSATURATION,1,Cell saturation
+CELLSARRESTED,1,Cells arrested
+CELLS,1,Cells
+CELLPROTEININUNTREATEDCONTROL,1,Cell protein in untreated control
+CHANGE,1,Change
+CHALLENGETIME,1,Challenge time
+CHALLENGEDOSE,1,Challenge dose
+CGMPCONTENT,1,cGMP content
+CGI,1,CGI
+CFUML,1,CFU/ml
+CFUG,1,CFU/g
+CFU-GEMM,1,CFU-GEMM
+CFU,1,CFU
+CFRRATING,1,CFR rating
+CFR,1,CFR
+CF,1,CF
+CENTRALSELECTIVITY,1,Central selectivity
+CELOGK',1,CE logK'
+CELLVIABILITYRATIO,1,Cell Viability Ratio
+CELLULARUPTAKEOFBORONAT16H,1,Cellular uptake of boron at 16h
+CHANGEINCORPORALUTEA,1,Change in corpora lutea
+CHANGEINCONFLICT,1,Change in conflict
+CHANGEINCL-CURRENT,1,Change in Cl- current
+CHANGEINCHOLESTEROL,1,Change in cholesterol
+CHANGEINCELLNUMBER,1,Change in cell number
+CHANGEINCAMP,1,Change in cAMP
+CHANGEINBP,1,Change in BP
+CHANGEINBODYWEIGHT,1,Change in body weight
+CHANGEINBODYTEMPERATURE,1,Change in body temperature
+CHANGEINBLOODPRESSURE,1,Change in blood pressure
+CHANGEINBLOODGLUCOSE,1,Change in blood glucose
+CHANGEINBLOODFLOW,1,Change in blood flow
+CHANGEINAMPLITUDERESPONSE,1,Change in amplitude response
+CHANGEHDL-C,1,Change HDL -C
+CHANGEFROMCONTROL(LVDPDT),1,Change from Control (LV dp/dt)
+CHANGEFROMCONTROL,1,Change from control
+CHANGEINMYOCARDIALCONDUCTION,1,Change in myocardial conduction
+CHANGEINMST,1,Change in MST
+CHANGEINMEANAORTICFLOW,1,Change in mean aortic flow
+CHANGEINMAP,1,Change in MAP
+CHANGEINMABP,1,Change in MABP
+CHANGEINLVDPDT,1,Change in LV dp/dt
+CHANGEINIOP,1,Change in IOP
+CHANGEINIC50,1,Change in IC50
+CHANGEINHEMATOLOGY,1,Change in hematology
+CHANGEINHEARTRATE,1,Change in heart rate
+CHANGEINFVR,1,Change in FVR
+CHANGEINFOOT-LICKINGLATENCY,1,Change in foot-licking latency
+CHANGEINENTRYLATENCY,1,Change in entry latency
+CHANGEINDPDT,1,Change in dP/dt
+CHANGEINDENSITYOFUTERINEGLAND,1,Change in density of uterine gland
+CHANGEINDASYNTHESIS,1,Change in DA synthesis
+CHANGEINTM,1,Change in Tm
+CHANGEINTIDALVOLUME,1,Change in tidal volume
+CHANGEINTEMPARATURE,1,Change in temparature
+CHANGEINTC,1,Change in TC
+CHANGEINSYSTOLICPRESSURE,1,Change in systolic pressure
+CHANGEINSYSTOLICBP,1,Change in systolic BP
+CHANGEINSTROKEVOLUME,1,Change in stroke volume
+CHANGEINSPERMATOGENESIS,1,Change in spermatogenesis
+CHANGEINSENSITIVITY,1,Change in sensitivity
+CHANGEINRESPONSERATE,1,Change in response rate
+CHANGEINRESPONSE,1,Change in response
+CHANGEINRESPIRATORYFREQUENCY,1,Change in respiratory frequency
+CHANGEINREACTIONTIME,1,Change in reaction time
+CHANGEINRATBLOODSUGAR,1,Change in rat blood sugar
+CHANGEINOVARIANFOLLICULARATRESIA,1,Change in ovarian follicular atresia
+CHANGEINNOOFTROPHOZOITESX10E-5,1,Change in No. of trophozoites x 10E-5
+CHANGEOFPREDOSE,1,Change of predose
+CHANGEOFHR,1,Change of HR
+CHANGEOFHEMOCONCENTRATION,1,Change of hemoconcentration
+CHANGEOFDBP,1,Change of DBP
+CHANGEOFCO,1,Change of CO
+CHANGEOFCF,1,Change of CF
+CHANGEOFBODYWEIGHT,1,Change of body weight
+CHANGEOFBODYTEMPERATURE,1,Change of body temperature
+CHANGEOFAREA,1,Change of area
+CHANGENONHDL-C,1,Change non HDL-C
+CHANGEMAP,1,Change MAP
+CHANGEINWEIGHT,1,Change in weight
+CHANGEINWBC,1,Change in WBC
+CHANGEINVOLUME,1,Change in volume
+CHANGEINTUMORAREA,1,Change in tumor area
+CHANGEINTPR,1,Change in TPR
+CHOL,1,CHOL
+CHLORINEUPTAKE,1,Chlorine uptake
+CHLORIDE,1,CHLORIDE
+CHI,1,CHI
+CHEMOTHERAPEUTICINDEX,1,Chemotherapeutic index
+CHEMOTACTICINDEX,1,Chemotactic index
+CHEMOSENSITIZINGACTIVITY,1,Chemosensitizing activity
+CHELATOR,1,Chelator
+CHANGETC,1,Change TC
+CHANGESYSTOLICBP,1,Change systolic BP
+CHANGESINDYNAMICCOMPLIANCE,1,Changes in dynamic compliance
+CHANGESINAIRWAYRESISTANCE,1,Changes in airway resistance
+CHANGEOFWEIGHT,1,Change of weight
+CHANGEOFTUMORAREA,1,Change of tumor area
+CHANGEOFSIZE,1,Change of size
+CHANGEOFSBP,1,Change of SBP
+CIC95,1,CIC95
+CIC90,1,CIC90
+CIC,1,CIC
+CI95,1,CI95
+CI90,1,CI90
+CI75,1,CI75
+CI50,1,CI50
+CI25,1,CI25
+CHRONICTI,1,Chronic TI
+CHOLINEUPTAKE,1,Choline uptake
+CHOLESTROLLEVELS,1,Cholestrol levels
+CHOLESTEROLREDUCTION,1,Cholesterol reduction
+CHOLESTEROLCONTENT,1,Cholesterol content
+CHOLESTEROLCONCENTRATION,1,Cholesterol Concentration
+CHOLESTEROL,1,Cholesterol
+CHOLCHANGE,1,CHOL_CHANGE
+CLC95,1,ClC95
+CLBLOOD,1,CLblood
+CLBILIARY,1,CL_biliary
+CLAST,1,Clast
+CL-RENAL,1,CL-renal
+CL-CURRENTCHANGE,1,Cl - current change
+CL-,1,Cl-
+CL(APP),1,CL(app)
+CL(%Q),1,CL(%Q)
+CKI,1,cKi
+CK,1,CK
+CITH,1,CITH
+CIT,1,CIT
+CIRATIO,1,C/I ratio
+CIP,1,CIp
+CICIC50,1,CIC IC50
+CLOGD,1,CLogD
+CLIP,1,CLIP
+CLINT,1,CLint
+CLINICALREFERENCE,1,Clinical reference
+CLINEDSCREENTEST,1,Clined screen test
+CLH(APP),1,CLH(app)
+CLH,1,CLH
+CLFREE,1,CL free
+CLF,1,CL/F
+CLERANCE,1,Clerance
+CLEAVAGERATE,1,Cleavage rate
+CLEAVAGE,1,Cleavage
+CLEARANCEBLOOD,1,Clearance_blood
+CLEARANCE,1,Clearance
+CLDF,1,CLd/F
+CLD,1,CLd
+CLUP,1,CLup
+CLUF,1,CLu/F
+CLTOTAL,1,CLtotal
+CLTOT,1,CLtot
+CLTF,1,CLt/F
+CLT50,1,CLT50
+CLRENAL,1,CL_renal
+CLRATIO,1,CL_Ratio
+CLR,1,CLr
+CLONICSEIZURES,1,Clonic seizures
+CLONIC,1,Clonic
+CLONES,1,Clones
+CLONAZEPAM,1,Clonazepam
+CLOGP-LOGP,1,clogP-logP
+CLOGP,1,CLogP
+CLOGD74,1,CLogD7.4
+CMC,1,CMC
+CMAX[GH],1,Cmax_[GH]
+CMAXUNBOUND,1,Cmax_unbound
+CMAXTUMOR,1,Cmax_tumor
+CMAXTRIPHOSPHATE,1,Cmax_triphosphate
+CMAXTMAX,1,Cmax/Tmax
+CMAXSS,1,Cmax/SS
+CMAXRATIO,1,Cmax_ratio
+CMAXPTH,1,Cmax_PTH
+CMAXNORMALISED,1,Cmax normalised
+CMAXMETABOLITE,1,Cmax_metabolite
+CMAXDOSE,1,Cmax/dose
+CMAX(RATIO),1,Cmax (Ratio)
+CMAX(APP),1,Cmax(app)
+CMAX,1,Cmax
+CLZF,1,CLz/F
+CO2,1,CO2
+CNSACTIVITY,1,CNS activity
+CMVYIELD,1,CMV yield
+CMT,1,CMT
+CMR,1,CMR
+CMPH,1,CMpH
+CMP,1,CMP
+CMINRATIO,1,Cmin_ratio
+CMINPBMC,1,Cmin_PBMC
+CMIN(SS),1,Cmin(ss)
+CMIN(84HR),1,Cmin(84hr)
+CMIN(80HR),1,Cmin(80hr)
+CMIN(1),1,Cmin(1)
+CMIN,1,Cmin
+CMI,1,CMI
+CMEDIA,1,Cmedia
+COMPLETESURVIVALDOSE,1,Complete survival dose
+COMPLETESPONTANEOUSREVERSAL,1,Complete spontaneous reversal
+COMPLETEREMISSION,1,Complete remission
+COMPETITIVEPROTECTION,1,Competitive protection
+COMPETITIONFACTOR,1,Competition factor
+COMPETITION,1,Competition
+COMMUNICATINGCELLS,1,Communicating cells
+COMBINATIONINDEX,1,Combination_index
+COLONYFORMATION,1,Colony formation
+COLONYCOUNT,1,Colony_count
+COLONICWEIGHT,1,Colonic weight
+COLLATERALINDEX,1,Collateral index
+COLLAPSETIME,1,Collapse time
+COI,1,COI
+COF,1,COF
+COCAINE,1,Cocaine
+CONCENTRATIONURINE,1,Concentration_urine
+CONCENTRATIONRATIO,1,Concentration ratio
+CONCENTRATIONOFMAXRESPONSE,1,Concentration of max response
+CONCENTRATIONOFCL-,1,Concentration of Cl-
+CONCENTRATIONINSERUM,1,Concentration in serum
+CONCENTRATIONINBRAIN,1,Concentration in Brain
+CONCENTRATION@MAXI,1,Concentration @ Maxi
+CONCENTRATION,1,Concentration
+CONCBRAIN,1,Conc_brain
+CONC@MAXFOLDINCR,1,Conc @ Max Fold Incr
+COMPOUNDREMAINING,1,Compound remaining
+COMPOUNDINURINE,1,Compound in urine
+COMPOUNDCONCENTRATI,1,Compound_Concentrati
+COMPOSITEACTIVITY-SCORE,1,Composite Activity - Score
+COMPOSITEACTIVITY-MARGINAL,1,Composite Activity - Marginal
+COMPOSITEACTIVITY-ACTIVE,1,Composite Activity - Active
+CONTROLCOMPOUNDIC50,1,Control compound IC50
+CONTROLCELLNUMBER,1,Control cell number
+CONTROLATTHEDOSEOF50MICROGMOUSE,1,Control at the dose of 5.0microg/mouse
+CONTROLATTHEDOSEOF500MICROGMOUSE,1,Control at the dose of 50.0microg/mouse
+CONTROL,1,Control
+CONTRAGESTATIONALACTIVITY,1,Contragestational activity
+CONTRACTION,1,Contraction
+CONTRACTILITY(LVDPDT),1,Contractility (LV dP/dt)
+CONTRACTILITY,1,Contractility
+CONTRACTILEFORCE,1,Contractile force
+CONTENTOFCELLCYCLE,1,Content of cell cycle
+CONTENT,1,Content
+CONSUMPTION,1,Consumption
+CONNECTIVITYDENSITY,1,Connectivity density
+CONDUCTION,1,Conduction
+CONCPLASMA,1,Conc_plasma
+CONTROLOFP-450MARKER,1,Control of P-450 marker
+CONTROLOFGROWTH,1,Control of growth
+CONTROLLEVEL,1,Control level
+CONTROLGROWTH,1,Control growth
+CONTROLDMSOTUBULINPHENOTYPEDIFFERENTCELLS(%),1,Control DMSO Tubulin Phenotype Different Cells (%)
+CONTROLDMSOTOTALCELLS,1,Control DMSO Total Cells
+CONTROLDMSOPYKNOSEDNUCLEI(%),1,Control DMSO Pyknosed Nuclei (%)
+CONTROLDMSOMITOTICCELLS(%),1,Control DMSO Mitotic Cells (%)
+CONTROLDMSOMITOCHONDRIADIFFERENT-PHENOTYPECELLS(%),1,Control DMSO Mitochondria Different-Phenotype Cells (%)
+CONTROLDMSOMEMBRANEPERMEABLE-PHENOTYPECELLS(%),1,Control DMSO Membrane Permeable-Phenotype Cells (%)
+CONTROLDMSOHEALTHYNUCLEI(%),1,Control DMSO Healthy Nuclei (%)
+CONTROLDMSOGROWTHRATE,1,Control DMSO Growth Rate
+CONTROLDMSOFRAGMENTEDNUCLEI%,1,Control DMSO Fragmented Nuclei %
+CONTROLDMSOAPOPTOTICCELLS(%),1,Control DMSO Apoptotic Cells (%)
+CONTROLDEATHDAY,1,Control death day
+CONTROLCURRENT,1,Control current
+CONVULSIONS,1,Convulsions
+CONVULSION,1,Convulsion
+CONVERSIONRATE,1,Conversion rate
+CONVERSIONDOSE,1,Conversion dose
+CONVERSION,1,Conversion
+CONTROLVOMITS,1,Control vomits
+CONTROLVALUE,1,Control value
+CONTROLUPTAKE,1,Control Uptake
+CONTROLTUMORVOLUME,1,Control tumor volume
+CONTROLSURVIVALSTOTAL,1,Control survivals/total
+CONTROLST,1,Control S/T
+CONTROLS,1,Controls
+CONTROLRETCHES,1,Control retches
+CONTROLRESPONSE,1,Control response
+CONTROLRELAXATION,1,Control relaxation
+CONTROLPERIOD,1,Control period
+AG80,1,AG80
+AFLCL,1,AFLCl
+COUNTS30,1,Counts/30
+COUNTS,1,Counts
+COUNTH,1,Count/h
+COUNT,1,Count
+CORTICALINFARCTVOLUME,1,Cortical infarct volume
+CORTEXCLEARANCE,1,Cortex_Clearance
+CORRELATIONCOEFFICIENT,1,Correlation coefficient
+CORRECTRESPONSES,1,Correct responses
+CORR,1,Corr
+CORPORALUTEA,1,Corpora lutea
+CORONARYFLOW,1,Coronary flow
+COOPERATIVITY,1,Cooperativity
+COOPERATIVEEFFECT,1,Cooperative effect
+CONVULSIONTHRESHOLD,1,Convulsion threshold
+COUNTSOFROTATION,1,Counts of rotation
+COUNTS30MIN,1,Counts/30 min
+AGONISTICPOTENCY,1,Agonistic potency
+AGONISTICEFFECT,1,Agonistic effect
+AGONISTICACTIVITY,1,Agonistic activity
+AGONISTEFFECT,1,Agonist effect
+AGONISTACTIVITY,1,Agonist activity
+AGONIST,1,Agonist
+AGONISMINFLECTIONPOINT,1,Agonism inflection point
+AGONISM,1,Agonism
+AGGREGATIONRESPONSE,1,Aggregation response
+AGGREGATIONRATIO,1,Aggregation ratio
+AGGREGATION,1,Aggregation
+AGGREGATES,1,Aggregates
+AGGREGATE,1,Aggregate
+AGE,1,Age
+CPP,1,CPP
+CPMX1000,1,CPM x1000
+CPMMILLIONCELLS,1,cpm/million cells
+CPI,1,CPI
+CPEINDEX,1,CPE index
+CPE50,1,CPE50
+CPDOSE,1,Cp/dose
+CPD50,1,CPD50
+CPCC,1,CPCC
+CPA,1,CPA
+CP(T),1,Cp(T)
+CP(F)SS,1,Cp(f)ss
+CP(F)MAX,1,Cp(f)max
+CP(F)DOSE,1,Cp(f)/dose
+CP(F),1,Cp(f)
+COVALENTBINDING,1,Covalent binding
+CRRELEASE,1,Cr release
+CROSSREACTION,1,Cross reaction
+CROSSLINKING,1,Cross linking
+CROPYIELD,1,Crop_yield
+CRLEAKAGE,1,Cr leakage
+CRITICALMICELLECONCENTRATION,1,Critical micelle concentration
+CRITICALCONCENTRATION,1,Critical concentration
+CREL,1,Crel
+CREATININECL,1,Creatinine_CL
+CREATININE,1,Creatinine
+CREATCHANGEBY,1,CREAT_CHANGE_BY
+CREAT,1,CREAT
+CRCCRC0,1,CRC/CRC0
+CR2,1,CR2
+CQ,1,CQ
+CPSS,1,Cpss
+CT3,1,CT3
+CT2,1,CT2
+CT10RATIO,1,CT10 ratio
+CT10,1,CT10
+CT1,1,CT1
+CT-LUCITAR,1,CT-luci TAR
+CSSMIN,1,Css min
+CSS-4W,1,Css-4w
+CSS-48H,1,Css-48h
+CSS-12W,1,Css-12w
+CSINDEX,1,CS index
+CSFLEVELS,1,CSF levels
+CSATCO,1,Csat/Co
+CSAT,1,Csat
+CS50,1,CS50
+CRSECRETION,1,Cr secretion
+CUMULATIVEDOSE,1,Cumulative dose
+CUMULATIVEAMOUNT,1,Cumulative amount
+CULTURENEGATIVE,1,Culture negative
+CULTURE,1,Culture
+CTT2,1,Ctt2
+CTSINCREASE,1,CTS increase
+CTS,1,CTS
+CTP,1,CTP
+CTLACTIVITY,1,CTL activity
+CTF,1,CTF
+CTE,1,CTE
+CTD50,1,CTD50
+CTC50,1,CTC50
+CTAU,1,Ctau
+CT50,1,CT50
+CT5,1,CT5
+CUTANEOUSTOXICOLOGYSCORE,1,Cutaneous toxicology score
+CURRENTS,1,Currents
+CURESTOTAL,1,Cures/total
+CURESNOOFANIMALS,1,Cures/no. of animals
+CURES@80MGKG,1,Cures@ 80 mg/kg
+CURES@20MGKG,1,Cures@ 20mg/kg
+CURES@10MGKG,1,Cures@ 10mg/kg
+CURES,1,Cures
+CURERATE,1,Cure rate
+CUREDTREATED,1,Cured/treated
+CUREDINFECTED,1,Cured/Infected
+CUREDANIMALS,1,Cured animals
+CURED,1,Cured
+CURE,1,Cure
+CURATIVEINDEX,1,Curative Index
+CUMULATIVEURINEVOLUME,1,Cumulative urine volume
+CYTOTOXICCONCENTRATION,1,Cytotoxic concentration
+CYTOTOXICACTIVITY,1,Cytotoxic activity
+CYTOSTATICCONCENTRATION,1,Cytostatic concentration
+CYTOSTATICACTIVITY,1,Cytostatic activity
+CYTOPROTECTIVEEFFECT,1,Cytoprotective effect
+CYTOPLASMICVACUOLIZATION,1,Cytoplasmic vacuolization
+CYTOKINETICRESPONSE,1,Cytokinetic response
+CYTOKINEINDUCTION,1,Cytokine induction
+CYTOCIDALEFFECT,1,Cytocidal effect
+CYTOCIDALACTIVITY,1,Cytocidal activity
+CYTOCHROMELOSS,1,Cytochrome loss
+CYSTEINEREACTION,1,Cysteine reaction
+CYOTOXICITY,1,Cyotoxicity
+CYD50,1,CyD50
+CYCLASESTIMULATION,1,Cyclase stimulation
+CVDOSE,1,CV dose
+DALEVEL,1,DA level
+D40,1,D40
+D2SELECTIVITY,1,D2 selectivity
+D2DURATION,1,D2 duration
+D150,1,D150
+D10,1,D10
+D-2,1,D-2
+D,1,D
+CZ,1,Cz
+CYTOTOXITY,1,Cytotoxity
+CYTOTOXICIY,1,Cytotoxiciy
+CYTOTOXICITYINDEX,1,Cytotoxicity index
+CYTOTOXICITYIC50,1,Cytotoxicity IC50
+CYTOTOXICITY,1,Cytotoxicity
+CYTOTOXICENDPOINT,1,Cytotoxic endpoint
+CYTOTOXICEFFECT,1,Cytotoxic effect
+DAYOFVAGINALOPENING,1,Day of vaginal opening
+DAYOFFIRSTPOSITVEREACTION,1,Day of first positve reaction
+DAYOFDEATH,1,Day of death
+DAY9-RTV,1,Day 9-RTV
+DAY22-TC,1,Day 22-T/C
+DAUTILIZATION,1,DA utilization
+DASTIM,1,DA stim
+DARESPONSE,1,DA response
+DARELEASE,1,DA release
+DAR,1,DAR
+DAQ,1,Daq
+DAP,1,DAP
+DANERATIO,1,DA/NE ratio
+DAMAGESCORE,1,Damage score
+DAMAGEREDUCTION,1,damage reduction
+DAMAGEDAREA,1,Damaged area
+DEADTREATED,1,Dead/treated
+DEADTOTAL,1,Dead/total
+DEADCELLS,1,Dead cells
+DEAD,1,Dead
+DDTMSAD,1,DDT msad
+DD,1,DD
+DCMAX,1,DCmax
+DC50,1,DC50
+DC,1,DC
+DBPUPRATIO,1,DBP/UP ratio
+DBPCHANGE,1,DBP change
+DBP15,1,DBP15
+DBP-20,1,DBP-20
+DBP,1,DBP
+DAYSTOTUMORDOUBLING,1,Days to tumor doubling
+DAYS,1,Days
+DECREASEINCR,1,Decrease in CR
+DECREASEINBMAX,1,Decrease in Bmax
+DECREASEINBLOODPRESSURE,1,Decrease in blood pressure
+DECREASEINBLOODGLUCOSE,1,Decrease in blood glucose
+DECREASEINARTERIALBLOODPRESSURE,1,Decrease in arterial blood pressure
+DECREASEINAP,1,Decrease in AP
+DECREASEINACTIVITY,1,Decrease in activity
+DECREASEDTRIGLYCERIDE,1,Decreased_triglyceride
+DECREASE,1,Decrease
+DECREACEINBP,1,Decreace in BP
+DECAY-TIMECONSTANT,1,Decay-time constant
+DEC,1,Dec
+DEATHSTOTAL,1,Deaths/total
+DEATHS,1,Deaths
+DEATHDOSE,1,Death dose
+DEATH,1,Death
+DECREASEINSBP,1,Decrease in SBP
+DECREASEINRFU,1,Decrease in RFU
+DECREASEINQAINTERVAL,1,Decrease in QA interval
+DECREASEINPRESSURE,1,Decrease in pressure
+DECREASEINNOOFAVOIDENCERESPONSES,1,Decrease in No. of avoidence responses
+DECREASEINMEANARTERIALPRESSURE,1,Decrease in mean arterial pressure
+DECREASEINMAP,1,Decrease in MAP
+DECREASEINMABP,1,Decrease in MABP
+DECREASEINLIFESPAN,1,Decrease in life span
+DECREASEINIC50,1,Decrease in IC50
+DECREASEINHYPOTHALAMUSNOREPINEPHRINE,1,Decrease in hypothalamus norepinephrine
+DECREASEINHEARTRATE,1,Decrease in heart rate
+DECREASEINHEARTNOREPINEPHRINE,1,Decrease in heart norepinephrine
+DECREASEINFIGHTING,1,Decrease in fighting
+DECREASEINEXITLATENCY,1,Decrease in exit latency
+DECREASEINCVR,1,Decrease in CVR
+DELTA,1,Delta
+DEIODINATION,1,Deiodination
+DEGREESCENTIGRADE,1,Degrees Centigrade
+DEGREEOFRESISTANCE,1,Degree of resistance
+DEGREEOFCROSSRESISTANCE,1,Degree of cross resistance
+DEGREEOFACTIVATION,1,Degree of activation
+DEGRANULATINGACTIVITY,1,Degranulating activity
+DEGRADATIONRATIO,1,Degradation ratio
+DEGRADATIONRATECONSTANT,1,Degradation rate constant
+DEGRADATION,1,Degradation
+DECREASERVR,1,Decrease RVR
+DECREASEOFSPONTANEOUSFIRINGRATE,1,Decrease of spontaneous firing rate
+DECREASEOFSBP,1,Decrease of SBP
+DECREASEINTONE,1,Decrease in tone
+DECREASEINTHEQAINTERVAL,1,Decrease in the QA interval
+DECREASEINSYSTOLICBLOODPRESSURE,1,Decrease in Systolic blood pressure
+DELTAED50,1,Delta ED50
+DELTACURATEDELTACINSULIN,1,Delta C urate / delta C insulin
+DELTACT,1,deltaCT
+DELTACPP,1,Delta CPP
+DELTACPMX10E-3,1,Delta cpm x10e-3
+DELTACP,1,DeltaCp
+DELTACORONARYFLOW,1,Delta coronary flow
+DELTACA,1,Delta Ca
+DELTABLOODPRESSURE,1,Delta blood pressure
+DELTABG,1,Delta BG
+DELTABEATSMIN,1,Delta beats/min
+DELTAAPD95,1,Delta APD95
+DELTAAPD90,1,Delta APD90
+DELTAAMIN,1,Delta A/min
+DELTAA,1,deltaA
+DELTA(V12),1,delta(V1/2)
+DELTAHR,1,Delta HR
+DELTAHEARTRATE,1,Delta heart rate
+DELTAHDL-C,1,Delta HDL-C
+DELTAHDL,1,Delta HDL
+DELTAH1,1,deltaH1
+DELTAH-V,1,Delta H-V
+DELTAH,1,deltaH
+DELTAGSOLV,1,Delta Gsolv
+DELTAGM,1,Delta Gm
+DELTAFMAX,1,Delta Fmax
+DELTAFFA,1,Delta FFA
+DELTAFC,1,Delta FC
+DELTAF75,1,Delta F75
+DELTAF,1,Delta F
+DELTAERPC,1,Delta ERPc
+DELTAERP,1,Delta ERP
+DELTALOGP50,1,delta Log P50
+DELTALOGIC50,1,deltalogIC50
+DELTALOGDOCT-DOD74,1,delta Log Doct-dod 7.4
+DELTALOGD,1,delta logD
+DELTALOG10CFUML,1,deltalog10CFU/ml
+DELTALOG10CFU,1,deltalog10CFU
+DELTALOG10CCID50,1,deltalog10CCID50
+DELTALOG(TAUKA),1,deltalog(Tau/KA)
+DELTALATENCYTIME,1,Delta latency time
+DELTAKAPPA,1,Delta/kappa
+DELTAK,1,Delta K
+DELTAIOP,1,Delta IOP
+DELTAII,1,Delta I/I
+DELTAIC,1,Delta IC
+DELTAI,1,Delta I
+DELTAHR50,1,Delta HR50
+DELTAPCA50,1,Delta pCa50
+DELTAP50,1,Delta P50
+DELTAP,1,Delta p
+DELTAOD,1,deltaOD
+DELTANONHDL-C,1,Delta non HDL-C
+DELTAMV,1,Delta mV
+DELTAMST,1,Delta MST
+DELTAMMHG,1,Delta mmHg
+DELTAMEANSURVIVALTIME,1,Delta mean survival time
+DELTAMEANBLOODPRESSURE,1,Delta mean blood pressure
+DELTAMAP,1,Delta MAP
+DELTAMABP,1,Delta MABP
+DELTAMA,1,Delta MA
+DELTALV,1,Delta LV
+DELTALOGS,1,Delta logS
+DELTALOGPOCT-DOD,1,delta logPoct-dod
+DELTAPIC50WT-MUTANT,1,delta pIC50 wt-mutant
+DELTAPIC50,1,deltapIC50
+AFI,1,AFI
+AFFINITYSTATE2,1,Affinity state 2
+AFFINITYSTATE1,1,Affinity state 1
+AFFINITYRATIO,1,Affinity ratio
+AFFINITYCONSTANT,1,Affinity constant
+AFFINITY,1,Affinity
+AFFECTEDANIMALS,1,Affected animals
+AFC50,1,AFC50
+AERP,1,AERP
+AED,1,AED
+AEACTIVITY,1,AE activity
+ADVERSEEFFECT,1,Adverse effect
+ADRENOCHROMEFORMATION,1,Adrenochrome formation
+ADRENALUPTAKE,1,Adrenal uptake
+DEPENDENCY,1,Dependency
+DEOXYRIBOSEDEGRADATION,1,Deoxyribose degradation
+DENSITY,1,Density
+DENATURATIONRATECONSTANT,1,Denaturation rate constant
+DELYSE,1,Delyse
+DELTAWEIGHT,1,Delta weight
+DELTATMSTAUROSPORINEPOSITIVECONTROL,1,delta Tm Staurosporine positive control
+DELTATG,1,Delta TG
+DELTATCID50,1,deltaTCID50
+DELTATAO,1,Delta TAO
+DELTASBP,1,Delta SBP
+DELTAS-H,1,Delta S-H
+DELTAS,1,deltaS
+DELTARBF,1,Delta RBF
+DELTAPLASMACHOLESTEROL,1,Delta plasma cholesterol
+DELTAPKA,1,delta pKa
+DIAZEPAMANTAGONISM,1,Diazepam antagonism
+DIAMETEROFINHIBITIONZONE,1,Diameter of inhibition zone
+DIAMETER,1,Diameter
+DI50,1,DI50
+DHP-ISUSCEPTIBILITY,1,DHP-I susceptibility
+DHP-ISTABILITY,1,DHP-I stability
+DFMBMD,1,DFMBMD
+DFM,1,DFM
+DEVELOPEDTENSION,1,Developed tension
+DEUTERIUMRETENTION,1,Deuterium retention
+DESENSITISATION,1,Desensitisation
+DERIVEDTRABECULARTHICKNESS,1,Derived trabecular thickness
+DERIVEDTRABECULARNUMBER,1,Derived trabecular number
+DEPRESSION,1,Depression
+DEPOLARISATION,1,Depolarisation
+DEPLETION,1,Depletion
+DIRECTLYMEASUREDTHICKNESS,1,Directly measured thickness
+DIOXYGENUPTAKERATE,1,Dioxygen uptake rate
+DILISEVERITYCLASS,1,DILI_severity_class
+DILIPOSITIVENEGATIVE,1,DILI positive/negative
+DILICONCERN,1,DILI_Concern
+DILATION,1,Dilation
+DIFFUSIONANALYSIS,1,Diffusion analysis
+DIFFUSION,1,Diffusion
+DIFFERENTIATIONACTIVITYRATIO,1,Differentiation activity ratio
+DIFFERENTIATION,1,Differentiation
+DIFFERENTIATEDCELLS,1,Differentiated cells
+DIFFERENTIALAFFINITY,1,Differential affinity
+DIFFERENTIAL,1,Differential
+DIFFERENCEINRETENTIONTIME,1,Difference in retention time
+DIFFERENCE,1,Difference
+DIET,1,Diet
+DISTRIBUTIONRATIO,1,Distribution ratio
+DISTRIBUTIONPERCENT,1,Distribution percent
+DISTRIBUTIONOFRADIOACTIVITY,1,Distribution of radioactivity
+DISTRIBUTIONOFEXCRETEDFE,1,Distribution of excreted Fe
+DISTRIBUTIONCOEFFICIENT,1,Distribution coefficient
+DISTRIBUTION(DOSEG),1,Distribution (dose/g)
+DISTRIBUTION,1,Distribution
+DISSOCIATIONRATIO,1,Dissociation ratio
+DISSOCIATIONRATECONSTANT,1,Dissociation rate constant
+DISSOCIATIONCONSTANT,1,Dissociation constant
+DISSOCIATION,1,Dissociation
+DISPLACEMENTOFDP,1,Displacement of DP
+DISPLACEMENT,1,Displacement
+DISPACEMENT,1,Dispacement
+DISEASECONTROL,1,Disease control
+DISCRIMINATIONRATIO,1,Discrimination ratio
+DNACROSSLINKING,1,DNA crosslinking
+DNACLEAVAGEACTIVITY,1,DNA cleavage activity
+DNACLEAVAGE,1,DNA cleavage
+DNABINDING,1,DNA binding
+DNAALKYLATION,1,DNA alkylation
+DNA,1,DNA
+DMF,1,DMF
+DMAX,1,Dmax
+DLSCONCENTRATION,1,DLS Concentration
+DLBT,1,DLBT
+DL50,1,DL50
+DIZ,1,DIZ
+DIURETICEFFECTS,1,Diuretic effects
+DIURETICEFFECT,1,Diuretic effect
+DIURETICACTIVITY,1,Diuretic activity
+DIURESIS,1,Diuresis
+DOPALEVEL,1,DOPA level
+DOPACCONCENTRATION,1,DOPAC concentration
+DOPAC,1,DOPAC
+DOPAACCUMULATION,1,DOPA accumulation
+DOM,1,DOM
+DOBS,1,Dobs
+DNAUNWINDINGCONCENTRATION,1,DNA unwinding concentration
+DNAUC,1,DNAUC
+DNASINGLESTRANDBREAKS,1,DNA single strand breaks
+DNARELAXATION,1,DNA relaxation
+DNAPHOTO-CROSSLINKING,1,DNA photo-crosslinking
+DNAPEAKEXCLUSION,1,DNA peak exclusion
+DNAONFILTER,1,DNA on filter
+DNAFRAGMENTATION,1,DNA fragmentation
+DNAFRACTION,1,DNA fraction
+DNADAMAGE,1,DNA damage
+DOSENONRENALLYCLEARED,1,Dose non renally cleared
+DOSEMODIFICATION,1,Dose modification
+DOSEML,1,Dose/ml
+DOSEINTERVAL,1,Dose interval
+DOSEGTISSUE,1,Dose/g tissue
+DOSEGOFTISSUE,1,Dose/g of tissue
+DOSEG,1,Dose/g
+DOSEEXCRETED,1,Dose excreted
+DOSEELEVATION,1,Dose elevation
+DOSECONVERTED,1,Dose converted
+DOSEBPBP,1,dose BP/BP
+DOSE-MODIFYINGFACTOR,1,Dose-modifying factor
+DOSE(URINARYRECOVERY),1,Dose (urinary recovery)
+DOSAGE,1,Dosage
+DOPAMINERELEASE,1,Dopamine release
+DOPAMINELEVEL,1,Dopamine level
+DRUG,1,Drug
+DRF,1,DRF
+DR20,1,DR20
+DR2,1,DR2
+DR10,1,DR10
+DPT,1,dPT
+DPMBOUNDTOPROTEIN,1,dpm bound to protein
+DPM,1,DPM
+DPDTMAX,1,dP/dt max
+DPDT20,1,dP/dt20
+DPDT(MAX),1,dp/dt(max)
+DOSERATIO,1,Dose ratio
+DOSERANGE,1,Dose range
+DOSEPERORGAN,1,Dose per organ
+DOSEORGAN,1,Dose/organ
+DOSENORMALIZEDCLEARANCE,1,Dose normalized clearance
+DRUGRESPONDING,1,Drug responding
+DRUGRELEASE,1,Drug release
+DRUGRECOVERY,1,Drug recovery
+DRUGPERIOD,1,Drug period
+DRUGMOLBASEPAIR,1,Drug mol/base pair
+DRUGMOBILITY,1,Drug mobility
+DRUGMETABOLISM,1,Drug metabolism
+DRUGLEVEL,1,Drug level
+DRUGDISSOLUTION,1,Drug dissolution
+DRUGDISCRIMINATIONEFFECT,1,Drug discrimination effect
+DRUGDEGRADATION,1,Drug degradation
+DRUGDEATHS,1,Drug deaths
+DRUGCONCENTRATION,1,Drug concentration
+DRUGCONC(SERUM),1,Drug Conc (serum)
+DRUGCONC(LDL),1,Drug Conc (LDL)
+DRUGABSORPTION,1,Drugabsorption
+DUR,1,DUR
+DU,1,Du
+DTTINHIBITION,1,DTT inhibition
+DTOX,1,d tox
+DTH,1,DTH
+DTAGG,1,dTagg
+DT50,1,DT50
+DT,1,DT
+DSB,1,DSB
+DRYWEIGHT,1,Dry weight
+DRUGUPTAKEDOSE,1,Druguptake/dose
+DRUGUPTAKE(FREE)DOSE,1,Druguptake(free)/dose
+DRUGUPTAKE(FREE),1,Drug uptake(free)
+DRUGUPTAKE,1,Drug uptake
+DRUGTRANSPORT,1,Drug transport
+DRUGRESPONSE,1,Drug response
+E2:E1,1,E2:E1
+E2,1,E2
+E100,1,E100
+E0,1,E0
+E,1,E
+DW,1,DW
+DURATIONTIME,1,Duration time
+DURATIONOFSEIZURE,1,Duration of seizure
+DURATIONOFREVERSAL,1,Duration of reversal
+DURATIONOFPLATEAU,1,Duration of plateau
+DURATIONOFPEAKACTION,1,Duration of peak action
+DURATIONOFINCREASEINSLA,1,Duration of increase in SLA
+DURATIONOFIMMOBILITY,1,Duration of immobility
+DURATIONOFBLOCK,1,Duration of block
+DURATIONOFANESTHESIA,1,Duration of anesthesia
+DURATION,1,Duration
+EC150,1,EC150
+EC14,1,EC14
+EC125,1,EC125
+EC12,1,EC12
+EC10X,1,EC10x
+EC1000,1,EC1000
+EC100,1,EC100
+EC10,1,EC10
+EC025,1,EC0.25
+EC001,1,EC0.01
+EC,1,EC
+EBD20,1,EBD20
+EAUC50,1,EAUC50
+EARTHICKNESS,1,Ear thickness
+E50,1,E50
+E2RESPONSE,1,E2 response
+EC50H,1,EC50H
+EC50,1,EC50
+EC5,1,EC5
+EC40,1,EC40
+EC37,1,EC37
+EC300,1,EC300
+EC30,1,EC30
+EC2X,1,EC2x
+EC25(UNBOUND),1,EC25(unbound)
+EC25,1,EC25
+EC24,1,EC24
+EC200,1,EC200
+EC20,1,EC20
+EC2,1,EC2
+EC170,1,EC170
+EC16,1,EC16
+AD,1,AD
+ACUTETOXICITY,1,Acute toxicity
+EC95,1,EC95
+EC91,1,EC91
+EC90MIC,1,EC90/MIC
+EC90,1,EC90
+EC80,1,EC80
+EC75,1,EC75
+EC70,1,EC70
+EC68,1,EC68
+EC60,1,EC60
+EC59,1,EC59
+EC50REL,1,EC50rel
+EC50RATIO,1,EC50 ratio
+EC50L,1,EC50L
+EC50IGC,1,EC50 iGC
+EC986,1,EC98.6
+EC98,1,EC98
+ADPFORMATION,1,ADP formation
+ADOMETDC,1,AdoMetDC
+ADMINISTEREDDOSE,1,Administered dose
+ADJUVANTEFFECT,1,Adjuvant effect
+ADJUVANTACTIVITY,1,Adjuvant activity
+ADJUSTEDKI,1,Adjusted Ki
+ADI,1,ADI
+ADHESION,1,Adhesion
+ADDUCTFORMATION,1,Adduct formation
+ADD,1,ADD
+AD99,1,AD99
+AD90,1,AD90
+AD50,1,AD50
+AD100,1,AD100
+ED10HR,1,ED10 HR
+ED100,1,ED100
+ED10,1,ED10
+ED0,1,ED0
+ED(1MV),1,ED (1mV)
+ED,1,ED
+ECSRATIO,1,ECS ratio
+ECLT,1,ECLT
+ECI,1,ECI
+ECG,1,ECG
+ECAUC02,1,ECAUC0.2
+ECAR,1,ECAR
+EC>90,1,EC>90
+EC999,1,EC99.9
+EC996,1,EC99.6
+EC99,1,EC99
+ED33,1,ED33
+ED30DBP,1,ED30 DBP
+ED300,1,ED300
+ED30,1,ED30
+ED3,1,ED3
+ED2SEC,1,ED2sec
+ED250,1,ED250
+ED25,1,ED25
+ED200,1,ED200
+ED20,1,ED20
+ED2,1,ED2
+ED195,1,ED19.5
+ED150,1,ED150
+ED145,1,ED14.5
+ED13,1,ED1/3
+ED125,1,ED125
+ED95,1,ED95
+ED90,1,ED90
+ED85,1,ED85
+ED80,1,ED80
+ED75,1,ED75
+ED70,1,ED70
+ED60,1,ED60
+ED6,1,ED6
+ED58,1,ED58
+ED50MGKG,1,ED50 mg/kg
+ED50MGANIMALDAY,1,ED50 mg/animal/day
+ED50ED50(TAXOL),1,ED50 / ED50 (taxol)
+ED5,1,ED5
+ED40,1,ED40
+ED37,1,ED37
+ED35,1,ED35
+EDP,1,EDP
+EDMIN,1,EDmin
+EDMES(25),1,EDMES(2.5)
+EDMAX,1,EDmax
+EDEMAVARIATION,1,Edema variation
+EDEMARATIO,1,Edema ratio
+EDEMAINHIBITION,1,Edema inhibition
+EDEMADENSITY,1,Edema density
+EDEMA,1,Edema
+EDDELTA5,1,ED delta5
+EDDELTA20,1,ED delta20
+EDDELTA,1,ED delta
+EDAREC,1,ED Arec
+ED999,1,ED99.9
+ED99,1,ED99
+ED97,1,ED97
+EFFICACYRATIO,1,Efficacy ratio
+EFFICACYINDEX,1,Efficacy index
+EFFICACY,1,Efficacy
+EFFECTONPOLYAMINEPOOLS,1,Effect on polyamine pools
+EFFECTIVENESS,1,Effectiveness
+EFFECTIVEMOLARITY,1,Effective molarity
+EFFECTIVEDOSE,1,Effective dose
+EFFECTIVECONCENTRATION,1,Effective concentration
+EFF+-SD,1,EFF+/-SD
+EFF,1,Eff
+EF90,1,EF90
+EF200,1,EF200
+EEREF,1,E/Eref
+EEMAX,1,E/Emax
+EDUCTION,1,eduction
+EDRATIO,1,ED ratio
+EIR,1,EIR
+EII50,1,EII50
+EICOSANOIDPRODUCTION,1,Eicosanoid production
+EIC50,1,EIC50
+EI,1,EI
+EH,1,EH
+EGGS,1,Eggs
+EGGREDUCTION,1,Egg reduction
+EFTPC,1,EFTPC
+EFFLUXRATIOPLUSINHIBITOR,1,Efflux ratio plus inhibitor
+EFFLUXRATIO,1,Efflux ratio
+EFFLUXKI,1,Efflux Ki
+EFFLUXCL,1,efflux_CL
+EFFLUX,1,Efflux
+EFFLLUX,1,Effllux
+EFFICIENCY,1,Efficiency
+ENANTIOMERICCOMPOSITION,1,Enantiomeric composition
+EMR,1,EMR
+EMPTY,1,Empty
+EMIN,1,Emin
+EMETICEPISODES,1,Emetic episodes
+EMESISED,1,Emesis_ED
+EMESISCMAX,1,Emesis_Cmax
+EMESIS,1,Emesis
+EMAXL,1,EmaxL
+EMAXH,1,EmaxH
+"EMAX,DISS",1,"Emax,diss"
+ELOGD,1,eLog D
+ELIMINATION,1,Elimination
+ELEVATIONOFTHRESHOLD,1,Elevation of threshold
+ELEVATION,1,Elevation
+ELECTROLYTEEXCRETION,1,Electrolyte excretion
+EP22,1,Ep2/2
+EP,1,Ep
+EOSLE,1,EOSLE
+EOSINOPHILS,1,Eosinophils
+EOSINHIBITION,1,EOS inhibition
+EOS,1,EOS
+ENZYMELEVEL,1,Enzyme level
+ENZYMEINHIBITION,1,Enzyme inhibition
+ENZYMEACTIVITY,1,Enzyme activity
+ENTRYLATENCY,1,Entry latency
+ENOYL-COAHYDRATASE,1,Enoyl-CoA hydratase
+ENHANCEMENTRATIO,1,Enhancement ratio
+ENHANCEMENT,1,Enhancement
+ENDOSTEALMINERALIZINGSURFACE,1,Endosteal mineralizing surface
+ENDOSTEALERODEDSURFACE,1,Endosteal eroded surface
+ENANTIOSELECTIVITYCOEFFICIENT,1,Enantioselectivity coefficient
+ERP,1,ERP
+EROSIONS,1,Erosions
+ERMAX,1,ER max
+ERH,1,ERH
+ER-PHAGYSUPPRESSION,1,ER-phagy suppression
+ER,1,ER
+EQUILIBRIUMOD340,1,Equilibrium OD340
+EQUILIBRIUM,1,Equilibrium
+EQUIEFFECTIVEDOSE,1,Equieffective dose
+EPSMED,1,EPS MED
+EPS,1,EPS
+EPOXIDEFORMATION,1,Epoxide formation
+EPMR,1,EPMR
+EPINEPHRINELEVEL,1,Epinephrine level
+EPILEPTOGENICITY,1,Epileptogenicity
+EPIDERMALTHICKNESS,1,Epidermal thickness
+EU,1,EU
+ETOPICBEATS,1,Etopic beats
+ET-1LEVEL,1,ET-1 level
+ESTROGENICPOTENCY,1,Estrogenic potency
+ESTROGENICEFFECT,1,Estrogenic effect
+ESCLOSS,1,Esc loss
+ERYTHROIDINDUCTION,1,Erythroid induction
+ERYTHEMAINTENSITY,1,Erythema intensity
+ERYTHEMAINDUCTION,1,Erythema induction
+ERYTHEMAFORMATION,1,Erythema formation
+ERYTHEMA,1,Erythema
+ERPR,1,ER/PR
+ERPOBSERVATIONS,1,ERP observations
+ERP3,1,ERP3
+ERP1,1,ERP1
+ERP(DELTA),1,ERP (delta)
+EXPERIMENTALDPM,1,Experimental DPM
+EXHIBITINGTURNING,1,Exhibiting turning
+EXHALATIONOF14CO2,1,Exhalation of 14CO2
+EXHAL+B1718ATIONOF14CO2,1,Exhal+B1718ation of 14CO2
+EXCRETIONRATE,1,Excretion rate
+EXCRETIONNA+,1,Excretion Na+
+EXCRETIONK+,1,Excretion K+
+EXCRETIONCL-,1,Excretion Cl-
+EXCRETION,1,Excretion
+EXCRETEDGLUCOSE,1,Excreted glucose
+EXCRETED,1,Excreted
+EXCLUSIONPARAMETER,1,Exclusion parameter
+EXCESSZONERADIUS,1,Excess zone radius
+EXCESSMST,1,Excess MST
+EX-VIVOSCREENING,1,Ex-vivo screening
+EUDISMICRATIO,1,Eudismic ratio
+EXUDATEVOLUME,1,Exudate volume
+EXUDATE,1,Exudate
+EXTREMESTREATED,1,Extremes treated
+EXTRACTIONRATIO,1,Extraction ratio
+EXTRACTION,1,Extraction
+EXTRACTED,1,Extracted
+EXTERNALNUCLEOSIDE,1,External nucleoside
+EXTENTOFSKINLESIONS,1,Extent of skin lesions
+EXTENTOFDNABINDING,1,Extent of DNA binding
+EXTENT,1,Extent
+EXTENSION,1,Extension
+EXTAUC,1,Ext AUC
+EXPRESSION,1,Expression
+EXPLORATORYACTIVITY,1,Exploratory activity
+EXPLORATIONMOTILITY,1,Exploration motility
+EXPINHIBCONSTANT,1,Exp Inhib Constant
+FAUCDOSE,1,fAUC/dose
+FAUC,1,fAUC
+FAPP,1,Fapp
+FANA,1,Fana
+FALLING,1,Falling
+FALLENTREATED,1,Fallen/treated
+FALL,1,Fall
+FAFG,1,FaFg
+FACOACTIVITY,1,FACO Activity
+FABS,1,Fabs
+F34,1,F3/4
+F12,1,F1/2
+F(CAVE),1,f(Cave)
+F%T>MIC,1,f %t > MIC
+F,1,F
+EYETOXICITY,1,Eye toxicity
+FE,1,FE
+FDOSE,1,F/dose
+FDI,1,FDI
+FD,1,FD
+FCMIN,1,fCmin
+FCMAXDOSE,1,fCmax/dose
+FC50,1,FC50
+FC,1,FC
+FBPMEANSCORE,1,FBP mean score
+FBP,1,FBP
+FBFRATIO,1,FBF Ratio
+FBF,1,FBF
+FBA,1,FBA
+FB,1,FB
+FAUCMIC,1,fAUC/MIC
+FAUCLAST,1,fAUClast
+FG,1,Fg
+FFRACTION,1,F_fraction
+FEZ,1,Fez
+FEVERRESPONSE,1,Fever response
+FERRETEMESIS,1,Ferret emesis
+FEREMOVED,1,Fe removed
+FEMURWEIGHT,1,Femur weight
+FEMORALBLOODFLOW,1,Femoral blood flow
+FEEDEFFICIENCY,1,Feed efficiency
+FEEDCONSUMPTION,1,Feed consumption
+FECES,1,Feces
+FECALWEIGHT,1,Fecal weight
+FECALRECOVERY,1,Fecal recovery
+FEC90,1,fEC90
+FEC85,1,fEC85
+FEC50,1,fEC50
+FICI90,1,FICI90
+FICI80,1,FICI80
+FICI50,1,FICI50
+FICI,1,FICI
+FIC90,1,fIC90
+FIC80,1,fIC80
+FIC30,1,fIC30
+FIC20,1,fIC20
+FIC,1,FIC
+FIBRINO,1,FIBRINO
+FIBRILFORMATION,1,Fibril formation
+FIBERSPREPARATIONS,1,Fibers/preparations
+FI50,1,FI50
+FI5,1,FI5
+FI,1,FI
+FH,1,Fh
+FMAX,1,Fmax
+FLUOROSCENCE,1,Fluoroscence
+FLUORESCENCEACTIVITYRATIO,1,Fluorescence activity ratio
+FLUINTENSITY,1,Flu intensity
+FLUID,1,Fluid
+FLT,1,FLT
+FLOWRATE,1,Flow rate
+FLOAEL,1,fLOAEL
+FLEA,1,Flea
+FLAKINGSCORE,1,Flaking score
+FL-1,1,FL-1
+FKI,1,fKi
+FIRSTADVERSEEFFECT,1,First adverse effect
+FINALPLASMACONCENTRATION,1,Final plasma concentration
+FINALAVERAGETUMORWEIGHT,1,Final average tumor weight
+FICINDEX,1,FIC index
+ACTIVITYOFCONTROL,1,Activity of control
+FOLDSELECTIVE,1,Fold selective
+FOLDREVERSION,1,Fold reversion
+FOLDRESISTANCE,1,Fold resistance
+FOLDINDUCTION,1,Fold induction
+FOLDIC50,1,Fold IC50
+FOLDCHANGE,1,Fold change
+FOLDACTIVITY,1,Fold_activity
+FOLDACTIVATION,1,Fold activation
+FOLD-INDUCTION,1,Fold-induction
+FOCIDISH,1,Foci/dish
+FOC,1,FOC
+FNOAEL,1,fNOAEL
+FMUT,1,Fmut
+FMEC,1,fMEC
+FMEAN,1,Fmean
+FOLDSHIFT,1,Fold shift
+ACUTETOLERABILITY,1,Acute tolerability
+ACUTETI,1,Acute TI
+ACUTELETHALTOXICITY,1,Acute lethal toxicity
+ACUTEELECTROSHOCKACTIVITY,1,Acute electroshock activity
+ACTVITY,1,Actvity
+ACTUALDURACTION,1,Actual duraction
+ACTUALCLEARANCE,1,Actual clearance
+ACTIVTY,1,Activty
+ACTIVITYSCORE,1,Activity Score
+ACTIVITYSCALE,1,Activity scale
+ACTIVITYREMANING,1,Activity remaning
+ACTIVITYREMAINING,1,Activity remaining
+ACTIVITYREGAINED,1,Activity regained
+ACTIVITYRATIO,1,Activity ratio
+ACTIVITYRATING,1,Activity rating
+FPIC50,1,fpIC50
+FPGSACTIVITY,1,FPGS activity
+FPGCORRECTION,1,FPG correction
+FPEC50,1,fpEC50
+FPDMEASUREMENT,1,FPD measurement
+FPDC,1,FPDc
+FP,1,fp
+FOS,1,Fos
+FORMATIONOFNO3-,1,Formation of NO3-
+FORMATIONOFNO2-,1,Formation of NO2-
+FORMATIONOFERYTHEMA,1,Formation of erythema
+FORMATIONOFCOMPOUND,1,Formation of compound
+FORMATION,1,Formation
+FORMALDEHYDE,1,Formaldehyde
+FOOD,1,Food
+FOLDSTIMULATION,1,Fold stimulation
+FRACTIONOFACCUMULATED86RBREMAINING,1,Fraction of accumulated 86Rb remaining.
+FRACTIONIONISED,1,Fraction ionised
+FRACTIONEXPERIENCINGSEIZURES,1,Fraction experiencing seizures
+FRACTIONEXCRETEDUNCHANGED,1,Fraction excreted unchanged
+FRACTIONCURED,1,Fraction cured
+FRACTIONCLEAREDRENALLY,1,Fraction cleared renally
+FRACTIONCHANGE,1,Fraction change
+FRACTION,1,Fraction
+FR50,1,FR50
+FR10TREATED,1,FR10 treated
+FR10CONTROL,1,FR10 control
+FR,1,FR
+FPTMSAD,1,FPT msad
+FPTASEACTIVITY,1,FPTase activity
+FPT,1,FPT
+FPKI,1,fpKi
+FS-SIF,1,FS-SIF
+FRS50,1,FRS50
+FRPC20,1,FRP C20
+FRPAT10MICROM,1,FRP at 10microM
+FRP,1,FRP
+FRESHWEIGHT,1,Fresh weight
+FREQUENCY,1,Frequency
+FREL,1,Frel
+FREERADICALSCAVENGING,1,Free radical scavenging
+FREEFRACTION,1,Free fraction
+FREECOMPLEX,1,Free complex
+FREEC,1,Free C
+FREE,1,Free
+FRE,1,FRE
+FRACTIONRECOVEREDINURINE,1,Fraction Recovered in urine
+FRACTIONOFLIVERBLOODFLOW,1,Fraction of Liver Blood Flow
+G0G1,1,G0/G1
+G-PROTEINACTIVATION,1,G-protein activation
+FVDSS,1,fVdss
+FUNGICIDALCONCENTRATION,1,Fungicidal concentration
+FUNGICIDAL,1,Fungicidal
+FUNCTIONALSELECTIVITY,1,Functional selectivity
+FUNCTIONALPROFILE,1,Functional profile
+FUNCTION,1,Function
+FULLINHIBITION,1,Full inhibition
+FU,1,Fu
+FTMEANSCORE,1,FT mean score
+FT>MIC,1,fT>MIC
+FT50,1,FT50
+FT12,1,ft1/2
+FSCRECOVERY,1,FSC recovery
+FSC,1,FSC
+GASTRICLESIONS,1,Gastric lesions
+GASTRICEMPTYING,1,Gastric emptying
+GASTRICDAMAGE,1,Gastric damage
+GASTRICCONCENTRATION,1,Gastric concentration
+GAMMACMC,1,gammaCMC
+GAIN,1,Gain
+GAG,1,GAG
+GABASHIFT,1,GABA shift
+GABARATIO,1,GABA ratio
+GABAENHANCEMENT,1,GABA enhancement
+GABACURRENT,1,GABA current
+GABAAGONISM,1,GABA agonism
+G30MIN,1,g/30min
+G30,1,G30
+G2M,1,G2/M
+G1,1,G1
+GGT,1,GGT
+GFR,1,GFR
+GEOMETRICMEAN,1,Geometric mean
+GENERALIZATION,1,Generalization
+GENERALACTIVITY,1,General activity
+GELLARCOOKACTIVITY,1,Gellar cook activity
+GE,1,GE
+GDPED50,1,GDP ED50
+GD200[D],1,GD200 [d]
+GC50,1,GC50
+GC200[D],1,GC200 [d]
+GATEDCURRENT,1,Gated current
+GASTRICULCERINDEX,1,Gastriculcer index
+GASTRICTOXICITY,1,Gastric toxicity
+GASTRICSCORE,1,Gastric score
+GASTRICLESIONSCORE,1,Gastric lesion score
+GI80,1,GI80
+GI75,1,GI75
+GI50RATIO,1,GI50 ratio
+GI50EC50,1,GI50/EC50
+GI50,1,GI50
+GI25,1,GI25
+GI20,1,GI20
+GI,1,GI
+GHPEAK,1,GH peak
+GHMAX,1,GHmax
+GHI,1,GHI
+GHAUC0-180,1,GH AUC 0-180
+GH,1,GH
+GGTINCREASE-NUMBEROFREPORTS,1,GGT Increase - Number of Reports
+GGTINCREASE-INDEXVALUE,1,GGT Increase - Index Value
+GGTINCREASE-ACTIVITYSCORE,1,GGT Increase - Activity Score
+GLUCOSETRANSPORT,1,Glucose transport
+GLUCOSERISE,1,Glucose rise
+GLUCOSENORMALISATION,1,Glucose normalisation
+GLUCOSELOWERINGRELATIVETOPOSITIVECONTROL,1,Glucose lowering relative to positive control
+GLUCOSELOWERINGOBOBDOSE,1,Glucose lowering ob/ob dose
+GLUCOSELEVEL,1,Glucose level
+GLUCOSECORRECTION,1,Glucose correction
+GLUCOSE,1,Glucose
+GLUC,1,GLUC
+GITOLERANCE,1,GI tolerance
+GII50,1,GII50
+GID75,1,GID75
+GICLEARENCE,1,GI clearence
+GIC50,1,GIC50
+GI99,1,GI99
+GI90,1,GI90
+GOTLEVEL,1,GOT Level
+GOF,1,GOF
+GMSACTIVITY,1,GMS activity
+GMOUSE,1,g/mouse
+GMMIC,1,GMMIC
+GM-MIC,1,GM-MIC
+GM,1,GM
+GLYCINEANTAGONISM,1,Glycine antagonism
+GLYCEAMIAEVOLUTION,1,Glyceamia evolution
+GLYCAEMIAEVOLUTION,1,Glycaemia evolution
+GLUTATHIONELEVELS,1,Glutathione levels
+GLUTATHIONE,1,Glutathione
+GLUCURONIDATIONRATE,1,Glucuronidation rate
+GLUCURONIDATION,1,Glucuronidation
+GLUCOSEUTILIZATION,1,Glucose utilization
+GLUCOSEUPTAKE,1,Glucose uptake
+GROSSLOGKILL,1,Gross log kill
+GROSSKILL,1,Gross kill
+GRIPSTRENGTH,1,Grip strength
+GRIPSCORE,1,Grip score
+GRI,1,GRI
+GRCONTROL,1,GR control
+GRADE,1,grade
+GRACTIVITY,1,GR activity
+GR80,1,GR80
+GR50,1,GR50
+GR20,1,GR20
+GR10,1,GR10
+GR,1,GR
+GPTLEVEL,1,GPT Level
+GPI,1,GPI
+GPGBTENSION,1,GPGB tension
+GSHREACTIVITY,1,GSH reactivity
+GSHLEVEL(MG),1,GSH level (mg)
+GSHLEVEL,1,GSH level
+GSH-PXACTIVITY,1,GSH-Px activity
+GSH,1,GSH
+GS,1,GS
+GROWTHZONE,1,Growth zone
+GROWTHRESPONSE,1,Growth response
+GROWTHOFCELLS,1,Growth of cells
+GROWTHINHIBITON,1,Growth inhibiton
+GROWTHDELAY(T-CC),1,Growth delay (T-C/C)
+GROWTHDELAY,1,Growth delay
+GROWTH,1,Growth
+GROUPTOXICITY,1,Group toxicity
+GROUPPERFORMANCETIME,1,Group performance time
+GROSSMORPHOLOGY,1,Gross morphology
+HARELEASE,1,HA release
+HAR,1,HAR
+HAPTOGLOBIN,1,Haptoglobin
+HAMMETTCONSTANT,1,Hammett constant
+HALUCINOGENICACTIVITY,1,Halucinogenic activity
+HALFDURATION,1,Half duration
+HACUIMPROVEMENT,1,HACU improvement
+HABC,1,H ABC
+H2O2PROT,1,H2O2 prot
+H2ACTIVITY,1,H2 activity
+GTRATE,1,GT rate
+GTPASEACTIVITY,1,GTPase Activity
+GTP-GAMMA35SBOUND,1,GTP-gamma35S bound
+GTFOLDSTIMULATION,1,GT fold stimulation
+GSTCPACTIVITY,1,GSTCP activity
+GSTACTIVITY,1,GST activity
+HD50,1,HD50
+HD40,1,HD40
+HD100,1,HD100
+HD10,1,HD10
+HCT,1,HCT
+HCR,1,HCR
+HCMVYIELDREDUCTION,1,HCMV yield reduction
+HCMVYIELD,1,HCMV yield
+HC>=50,1,HC>=50
+HC90,1,HC90
+HC50,1,HC50
+HC5,1,HC5
+HC30,1,HC30
+HC20,1,HC20
+HC10,1,HC10
+HBSSOLUBILIZED,1,HbS solubilized
+HEMODYNAMICCHANGE,1,Hemodynamic change
+HEMISPHERESREDUCTION,1,Hemispheres reduction
+HEMELOSS,1,Heme loss
+HEMATOTOXICITY,1,Hematotoxicity
+HEMATOCRIT,1,Hematocrit
+HELICITY,1,Helicity
+HED,1,HED
+HEARTWEIGHTABSOLUTE,1,Heart weight absolute
+HEARTWEIGHT,1,Heart weight
+HEARTRATE,1,Heart rate
+HEARTBEAT,1,Heart beat
+HDT,1,HDT
+HDLCHOLESTEROL,1,HDL cholesterol
+HDL-CCHANGE,1,HDL-C change
+HDL-C,1,HDL-C
+HDL,1,HDL
+HEPATOTOXICITY(CHRONICLIVERDISEASE),1,Hepatotoxicity (chronic liver disease)
+HEPATOTOXICITY(CHOLEOSTASIS),1,Hepatotoxicity (choleostasis)
+HEPATOTOXICITY(BENIGNTUMOUR),1,Hepatotoxicity (benign tumour)
+HEPATOTOXICITY(ASSOCIATIONWITHVASCULARDISEASE),1,Hepatotoxicity (association with vascular disease)
+HEPATOTOXICITY(ANIMALTOXICITYKNOWN),1,Hepatotoxicity (animal toxicity known)
+HEPATOTOXICITY(ACUTE),1,Hepatotoxicity (acute)
+HEPATOTOXICITY,1,Hepatotoxicity
+HEPATOCYTESTABILITY,1,Hepatocyte stability
+HEPATICTRIGLYCERIDE,1,Hepatic triglyceride
+HEPATICNECROSISINSURVIVORS,1,Hepatic necrosis in survivors
+HEPATICEXTRACTIONRATIO,1,Hepatic Extraction ratio
+HEPATICEXTRACTION,1,Hepatic extraction
+HEPATICCHOLESTEROL,1,Hepatic cholesterol
+HEPATICBLOODFLOW,1,Hepatic blood flow
+HEMOLYTICACTIVITY,1,Hemolytic activity
+HEMOLYSIS,1,Hemolysis
+HEPSECHOLELITHIASIS,1,HepSE_cholelithiasis
+HEPSECHOLECYSTITIS,1,HepSE_cholecystitis
+HEPSEBILIRUBINEMIA,1,HepSE_bilirubinemia
+HEPG2TOXASSAY-CC90,1,HEPG2TOX ASSAY - CC90
+HEPG2TOXASSAY-CC50,1,HEPG2TOX ASSAY - CC50
+HEPATOTOXICITY(TIMETOONSET),1,Hepatotoxicity (time to onset)
+HEPATOTOXICITY(SUCCESSFULREINTRODUCTION),1,Hepatotoxicity (successful reintroduction)
+HEPATOTOXICITY(STEATOSIS),1,Hepatotoxicity (steatosis)
+HEPATOTOXICITY(SEVEREHEPATITIS),1,Hepatotoxicity (severe hepatitis)
+HEPATOTOXICITY(MODERATE),1,Hepatotoxicity (moderate)
+HEPATOTOXICITY(MECHANISM),1,Hepatotoxicity (mechanism)
+HEPATOTOXICITY(MALIGNANTTUMOUR),1,Hepatotoxicity (malignant tumour)
+HEPATOTOXICITY(GRANULOMATOUSHEPATITIS),1,Hepatotoxicity (granulomatous hepatitis)
+HEPATOTOXICITY(CYTOLYTIC),1,Hepatotoxicity (cytolytic)
+HEPATOTOXICITY(COMMENT),1,Hepatotoxicity (comment)
+HEPATOTOXICITY(CIRRHOSIS),1,Hepatotoxicity (cirrhosis)
+HG,1,Hg
+HFRATIO,1,HF ratio
+HF2,1,HF2
+HF,1,HF
+HEXOBARBST,1,Hexobarb ST
+HEPSELIVERFUNCTIONTESTSABNORMAL,1,HepSE_liver function tests abnormal
+HEPSELIVERFATTY,1,HepSE_liver fatty
+HEPSELIVERDISEASE,1,HepSE_liver disease
+HEPSEJAUNDICE,1,HepSE_jaundice
+HEPSEHEPATOMEGALY,1,HepSE_hepatomegaly
+HEPSEHEPATITIS,1,HepSE_hepatitis
+HEPSEHEPATICNECROSIS,1,HepSE_hepatic necrosis
+HEPSEHEPATICFAILURE,1,HepSE_hepatic failure
+HEPSEELEVATEDLIVERFUNCTIONTESTS,1,HepSE_elevated liver function tests
+HEPSECOMBINEDSCORES,1,HepSE_Combined Scores
+HEPSECIRRHOSIS,1,HepSE_cirrhosis
+HITSCORE,1,Hit score
+HISTOPATHOLOGY,1,Histopathology
+HISTONEMODIFICATION,1,Histone_modification
+HISTAMINERELEASE,1,Histamine release
+HISTAMINELEVEL,1,Histamine level
+HIND-PAWLICKLATENCYTIME,1,Hind-paw lick latency time
+HILLCOEFFICIENT(N50),1,Hill coefficient (n50)
+HILLCOEFFICIENT,1,Hill coefficient
+HIGHESTNONTOXICDOSE,1,Highest nontoxic dose
+HIGHESTACTIVEDOSE,1,Highest active dose
+HIGH,1,High
+HIA,1,HIA
+HI,1,HI
+HHP,1,HHP
+HGBLEVELS,1,Hgb levels
+HGB,1,HGB
+HSFACTIVITYX10E2,1,HSF activity x10e2
+HSF,1,HSF
+HSASHIFT,1,HSA shift
+HSAI,1,HSAI
+HRCHOL,1,HR/chol
+HR(DELTA),1,HR(delta)
+HR,1,HR
+HPB,1,HPB
+HOURSABOVEEC90,1,Hours above EC90
+HORMONALACTIVITY,1,Hormonal activity
+HORIZONTALSCREEN,1,Horizontal screen
+HORIZONTALACTIVITY,1,Horizontal activity
+HOMOVANILLICACIDCONCENTRATION,1,Homovanillic acid concentration
+HMGRACTIVITY,1,HMGR activity
+HMAX,1,Hmax
+HK,1,Hk
+HYDROPHOBICITYINDEX,1,Hydrophobicity index
+HYDROLYSISRATECONSTANT,1,Hydrolysis rate constant
+HYDROLYSISRATE,1,Hydrolysis rate
+HYDROLYSIS,1,Hydrolysis
+HYDROGENPEROXIDEDEGRADATION,1,Hydrogen peroxide degradation
+HXSHIFT,1,Hx shift
+HVINTERVAL,1,HV interval
+HVALEVEL,1,HVA level
+HVACONTROL,1,HVA control
+HVA,1,HVA
+HUMANPOTENCY,1,Human potency
+HTSDATA,1,HTS data
+HTD,1,HTD
+HT50,1,HT50
+HSLOCURRENT,1,hSlo current
+HSFRELEASE,1,HSF release
+HYPOTENSIVEACTIVITY,1,Hypotensive activity
+HYPOTENSION,1,Hypotension
+HYPOKINESIA,1,Hypokinesia
+HYPOGLYCEMICACTIVITY,1,Hypoglycemic activity
+HYPOGLYCEMIC,1,Hypoglycemic
+HYPOCOTYLLENGTH,1,Hypocotyl length
+HYPOCHROMICSHIFT,1,Hypochromic shift
+HYPOCALCEMICACTIVITY,1,Hypocalcemic activity
+HYPO,1,HYPO
+HYPNOSISPOTENTIATION,1,Hypnosis potentiation
+HYPNOSISDURATION,1,Hypnosis duration
+HYPERSENSITIVITYFACTOR,1,Hypersensitivity factor
+HYPERMOTILITY,1,Hypermotility
+HYPERGLYCEMICACTIVITY,1,Hyperglycemic activity
+HYPERACTIVITY,1,Hyperactivity
+HYDROXYPROLINERELEASE,1,Hydroxyproline release
+I50M,1,I50 M
+I50,1,I50
+I5,1,I5
+I42,1,I42
+I40,1,I40
+I30,1,I30
+I28,1,I28
+I23,1,I23
+I20,1,I20
+I16,1,I16
+I14,1,I14
+I13,1,I13
+I10,1,I10
+I05,1,I0.5
+I,1,I
+HYPOTHERMICEFFECT,1,Hypothermic effect
+IC20,1,IC20
+IC16,1,IC16
+IC15,1,IC15
+IC12,1,IC12
+IC100,1,IC100
+IC10,1,IC10
+IC05,1,IC05
+IC02,1,IC0.2
+IC0,1,IC0
+IBUPROFEN,1,Ibuprofen
+IABC,1,I ABC
+IA50,1,IA50
+IA,1,IA
+I80,1,I80
+I75,1,I75
+I7,1,I7
+IC50L,1,IC50L
+IC50IC50,1,IC50/IC50
+IC50H,1,IC50H
+IC50EC50,1,IC50/EC50
+IC50(APP),1,IC50(app)
+IC50,1,IC50
+IC5,1,IC5
+IC40,1,IC40
+IC37,1,IC37
+IC35,1,IC35
+IC33,1,IC33
+IC30,1,IC30
+IC2X,1,IC2x
+IC27,1,IC27
+IC25,1,IC25
+IC200,1,IC200
+ICD,1,ICD
+ICA,1,ICA
+IC>80,1,IC>80
+IC99,1,IC99
+IC95,1,IC95
+IC90MUTANTIC90WT,1,IC90 mutant/IC90 WT
+IC90,1,IC90
+IC85,1,IC85
+IC80,1,IC80
+IC75,1,IC75
+IC70,1,IC70
+IC60,1,IC60
+IC50[E],1,IC50/[E]
+IC50RELATIVE,1,IC50 relative
+IC50REDUCTION,1,IC50 reduction
+IC50RATIO,1,IC50 ratio
+ID60,1,ID60
+ID50RATIO,1,ID50 ratio
+ID50MGKG,1,ID50 mg/kg
+ID50,1,ID50
+ID40,1,ID40
+ID30,1,ID30
+ID25,1,ID25
+ID16,1,ID16
+ID100,1,ID100
+ID(PERGOFTISSUE),1,ID (per g of tissue)
+ID(PERGOFORGAN),1,ID (per g of organ)
+ID,1,ID
+ICMAX,1,ICmax
+ICL50,1,ICL50
+ICL5,1,ICL5
+ICDATP-50,1,ICdATP-50
+ID80,1,ID80
+ACTIVITYMABP,1,Activity MABP
+ACTIVITYINANIMALS,1,Activity in animals
+ACTIVITYFACTOR,1,Activity Factor
+ACTIVITYEC50,1,Activity EC50
+ACTIVITYB,1,Activity B
+ACTIVITYA,1,Activity A
+ACTIVITY(UMOLMGOFPROTEINMIN),1,Activity (umol/mg.of protein. min)
+ACTIVITY(UMOLGOFLIVER75MIN),1,Activity (umol/g.of liver 75.min)
+ACTIVITY(NMOLMGOFPROTEINMIN),1,Activity (nmol/mg.of protein. min)
+ACTIVITY(MG),1,Activity (mg)
+ACTIVETOTALCULTURES,1,Active/total cultures
+ACTIVETOTAL,1,Active/total
+ACTIVEDOSERANGE,1,Active dose range
+ACTIVEDOSE,1,Active dose
+ID75,1,ID75
+IFN,1,IFN
+IFI,1,IFI
+IF,1,IF
+IE50,1,IE50
+IE100,1,I / E100
+IE1,1,IE1
+IDXKGOFBODYWEIGHTGOFTISSUE,1,ID x kg of body weight/g of tissue
+IDTHYROID,1,ID/thyroid
+IDORGAN,1,ID/organ
+IDGFEMUR,1,ID/g femur
+IDBRAIN,1,ID/brain
+IDANIMAL,1,ID/animal
+ID99,1,ID99
+ID95,1,ID95
+ID90,1,ID90
+ID84,1,ID84
+ILS40,1,ILS40
+ILS30,1,ILS30
+ILS(TC),1,ILS (T/C)
+ILS(SUR),1,ILS (Sur)
+ILS(MGKG),1,ILS (mg/kg)
+ILS,1,ILS
+ILEALACTIVITY,1,Ileal activity
+ILC,1,ILC
+ILB,1,ILB
+ILA,1,ILA
+IL-1PRODUCTION,1,IL-1 production
+IIC50,1,I/IC50
+IH50,1,IH50
+IG50,1,IG50
+IG,1,IG
+IFNGAMMACONCENTRATION,1,IFN gamma concentration
+INACTIVATION,1,Inactivation
+IN,1,IN
+IMRATIO,1,I/M ratio
+IMPROVEMENT,1,Improvement
+IMPROVED,1,Improved
+IMPLANTS,1,Implants
+IMPDHACTIVITY,1,IMPDH activity
+IMPAIRED,1,Impaired
+IMMUNOSUPRESSIVEACTIVITY,1,Immunosupressive activity
+IMMOBILITYTIME,1,Immobility time
+IMMOBILITY,1,Immobility
+IMBALANCE,1,Imbalance
+IMAX,1,Imax
+IM,1,IM
+ILSMAXOD,1,ILSmaxOD
+ILSDAYS,1,ILS days
+INCREASEINBLOODPRESSURE(PR),1,Increase in blood pressure (P/R)
+INCREASEINBLOODPRESSURE,1,Increase in blood pressure
+INCREASEDLIFESPAN,1,Increased life span
+INCREASED,1,Increased
+INCREASECONTRACTILITY,1,Increase contractility
+INCREASE(EMAX),1,Increase (Emax)
+INCREASE,1,Increase
+INCORPORATIONRATE,1,Incorporation rate
+INCORPORATION,1,Incorporation
+INCORPORATED,1,Incorporated
+INCIDENCEOFRBCDECREASE,1,Incidence of RBC decrease
+INCIDENCEOFOCCLUSION,1,Incidence of occlusion
+INCIDENCECOUNT,1,Incidence_count
+INCIDENCE,1,Incidence
+INCC50,1,INCC50
+INACTIVATIONTIME,1,Inactivation time
+INCREASEINRESPONSE,1,increase in response
+INCREASEINPLASMALIPASE,1,Increase in plasma lipase
+INCREASEINPLASMAAMYLASE,1,Increase in plasma amylase
+INCREASEINMEANSURVIVALTIME,1,increase in mean survival time
+INCREASEINMAP,1,Increase in MAP
+INCREASEINLIFE-SPAN,1,Increase in life-span
+INCREASEINLD50,1,Increase in LD50
+INCREASEINIC50,1,Increase in IC50
+INCREASEINHR,1,Increase in HR
+INCREASEINHEARTRATE,1,Increase in heart rate
+INCREASEINFOOTPADTHICKNESS,1,Increase in footpad thickness
+INCREASEINEARTHICKNESS,1,Increase in ear thickness
+INCREASEINDPM,1,Increase in DPM
+INCREASEINCONCENTRATION,1,Increase in concentration
+INCREASEINCBF,1,Increase in CBF
+INCREASEINCAMP,1,Increase in cAMP
+INFECTEDERYTHROCYTES,1,Infected erythrocytes
+INFECTED,1,Infected
+INFARCTVOLUME,1,Infarct volume
+INFARCT,1,Infarct
+INDUCTIONOFCATALEPSY,1,Induction of catalepsy
+INDUCTIONNUMBER,1,Induction number
+INDUCTION,1,Induction
+INDUCEDFREQUENCY,1,Induced frequency
+INDUCEDCONVULSION,1,Induced convulsion
+INDEX,1,Index
+INCREASES,1,Increases
+INCREASEOVERCONTROL,1,Increase over control
+INCREASEIN[CA+2],1,Increase in [Ca+2]
+INCREASEINVOLUME,1,Increase in volume
+INCREASEINTEMPERATURE,1,increase in temperature
+INCREASEINRFU,1,increase in RFU
+INHIBITION(500ΜM),1,Inhibition (500 µM)
+INHIBITION(%OFCONTROL),1,Inhibition (% of control)
+INH,1,INH
+INFUSIONRATE,1,Infusion rate
+INFLUXKI,1,Influx Ki
+INFLUXCL,1,influx_CL
+INFLUX,1,Influx
+INFLECTIONPOINT,1,Inflection point
+INFLAMMATIONUNITS,1,Inflammation units
+INFLAMED,1,Inflamed
+INFI,1,In/Fi
+INFERTILITYACTIVITY,1,Infertility activity
+INFECTIOUSVIRUS,1,Infectious virus
+INFECTIONSCOREMEAN,1,Infection score mean
+INFECTIONSCORE,1,Infection score
+INFECTEDMOSQUITOES,1,Infectedmosquitoes
+INHIBITIONPOTENCY,1,Inhibition potency
+INHIBITIONPERIOD,1,Inhibition period
+INHIBITIONOVERTIME,1,Inhibition over time
+INHIBITIONOFINCREASEINWEIGHT,1,Inhibition of increase in weight
+INHIBITIONOFDAMAGE,1,Inhibition of damage
+INHIBITIONEFFECT,1,Inhibition effect
+INHIBITIONCONSTANT,1,Inhibition constant
+INHIBITIONCONCENTRATION,1,Inhibition concentration
+INHIBITIONAT5NM,1,Inhibition at 5nM
+INHIBITIONAT1UM,1,Inhibition at 1uM
+INHIBITIONAT10NM,1,Inhibition at 10nM
+INHIBITIONACTIVITY,1,Inhibition activity
+INHIBITION(MEAN),1,Inhibition (mean)
+INHIBITION(ATCONCENTRATIONM),1,Inhibition (at concentration M)
+INHIBITION(AT100UM),1,inhibition (at 100uM)
+INHIBITION(ALPHA=001),1,Inhibition (alpha = 0.01)
+INHIBITORYPOTENCY,1,Inhibitory potency
+INHIBITORYINDEX,1,Inhibitory index
+INHIBITORYEFFECT,1,Inhibitory effect
+INHIBITORYDOSE,1,Inhibitory dose
+INHIBITORYDIAMETER,1,Inhibitory diameter
+INHIBITORYCONCENTRATION,1,Inhibitory concentration
+INHIBITORYBINDING,1,Inhibitory binding
+INHIBITORYACTIVITYRATIO,1,Inhibitory activity ratio
+INHIBITORYACTIVITY,1,Inhibitory activity
+INHIBITORLEVEL,1,Inhibitor level
+INHIBITIONUPTAKE,1,Inhibition uptake
+INHIBITIONTYPE,1,Inhibition type
+INHIBITIONTUMORINDEX,1,Inhibition tumor index
+INHIBITIONRATIO,1,Inhibition ratio
+INHIBITIONRATE,1,Inhibition rate
+INHIBITIONPOTENCYTII,1,Inhibition potency T/II
+INITIALRATES,1,Initial rates
+INITIALRATERATIO,1,Initial rate ratio
+INITIALRATE,1,Initial_rate
+INITIALMEANARTERIALPRESSURE,1,Initial mean arterial pressure
+INITIALINHIBITION,1,Initial inhibition
+INITIALHEARTRATE,1,Initial heart rate
+INITIALCONCENTRATION,1,Initial concentration
+INITIALBLOODPRESSURE,1,Initial blood pressure
+INITIALAVERAGETUMORWEIGHT,1,Initial average tumor weight
+INITIALACTIVITY,1,Initial activity
+INIHIBITION,1,Inihibition
+INHIBITORYZONE,1,Inhibitory zone
+INHIBITORYRESPONSE,1,Inhibitory response
+INHIBITORYRATIO,1,Inhibitory ratio
+INHIBITORYRATE,1,Inhibitory rate
+INHIBITORYPOTENTIAL,1,Inhibitory potential
+INTAKE,1,Intake
+INTACT,1,Intact
+INSULINSECRETION,1,Insulin secretion
+INSULINRELEASE,1,Insulin release
+INSULINLOWERINGEFFECT,1,Insulin lowering effect
+INSULIN-SENSITIZINGACTIVITY,1,Insulin-sensitizing activity
+INOTROPICPOTENCY,1,Inotropic potency
+INOTROPICEFFECT,1,Inotropic effect
+INJECTIONDOSEG,1,Injection dose/g
+INJECTEDDOSEORGAN,1,Injected dose/organ
+INJECTEDDOSEGTISSUE,1,Injected dose/g tissue
+INJECTEDDOSEG,1,Injected dose/g
+INJECTEDDOSE(G),1,Injected dose (g)
+INJECTEDDOSE,1,Injected dose
+INJECTED(DOSEG),1,Injected (dose/g)
+INJECTED,1,Injected
+INTRINSICVASORELAXATION,1,Intrinsic vasorelaxation
+INTRINSICTOXICITY,1,Intrinsic Toxicity
+INTRINSICSOLUBILITY,1,Intrinsic_solubility
+INTRINSICEFFICACY,1,Intrinsic efficacy
+INTRINSICACTVITY,1,Intrinsic actvity
+INTRINSICACTIVITY,1,Intrinsic activity
+INTRINSIC,1,Intrinsic
+INTRAPERITONEALSCORE,1,Intraperitoneal score
+INTRAPERITONALSCORE,1,Intraperitonal score
+INTINSICACTIVITY,1,Intinsic activity
+INTIMAAREA,1,Intima area
+INTESTINALTOXICITY,1,Intestinal toxicity
+INTERNALISATION,1,Internalisation
+INTERFERONRESPONSE,1,Interferon response
+INTENSITYOFERYTHEMIA,1,Intensity of erythemia
+INTENSITY,1,Intensity
+IR,1,IR
+IPSCORE,1,Ip score
+IPOL,1,IPol
+IPA,1,IPA
+IP3-SENSITIVECA2+STORES,1,IP3-sensitive Ca2+ stores
+IP+SCSCORE,1,IP+SC score
+IOPLOWERING,1,IOP lowering
+IOP,1,IOP
+IONOTROPICACTIVITY,1,Ionotropic activity
+IONENHANCEMENT,1,Ion enhancement
+IOGP,1,IogP
+IO,1,IO
+INVIVODURATION,1,In vivo duration
+INVITROACTIVITY,1,In vitro activity
+INVERSERELATIVEPOTENCY,1,Inverse relative potency
+INVERSEAGONISM,1,Inverse agonism
+ISOMETRICCONTRACTION,1,Isometric contraction
+ISC,1,ISC
+ISAAR,1,IS/AAR
+ISA,1,ISA
+IS,1,IS
+IRRITATIONOFEYES,1,Irritation of eyes
+IRRITATION,1,Irritation
+IRREVERSIBLEBINDING,1,Irreversible binding
+IRREVERSIBILITY,1,Irreversibility
+IRONOUTPUT,1,Iron output
+IRONMOBILIZED,1,Iron mobilized
+IRONMOBILIZATION,1,Iron mobilization
+IRONEXCRETION,1,Iron excretion
+IRONCLEARENCE,1,Iron clearence
+IRONCHANGE,1,Iron change
+IRONBINDING,1,Iron binding
+K'',1,k''
+JUMPLATENCYTIME,1,Jump latency time
+JUDGMENTS,1,Judgments
+JSS,1,Jss
+JMAX,1,Jmax
+IZAARAARLV,1,IZ/AAR / AAR/LV
+IZ,1,IZ
+IW,1,IW
+IVR,1,IVR
+IVP,1,IVP
+IUPAD50,1,IUP AD50
+IUP,1,IUP
+ITP,1,ITP
+ITIACTIVITY,1,ITI activity
+IT50,1,IT50
+IT100,1,IT100
+K-1DECREASE,1,K-1 decrease
+K-1APP,1,k-1 app
+K+OUTPUT,1,K+ output
+K+NA+RATIO,1,K+/Na+ ratio
+K+IONCONTENT,1,K+ Ion content
+K+EXCRETION,1,K+ excretion
+K+2KI,1,K+2/Ki
+K+2K,1,k+2/k
+"K(P,UU,CSF)",1,"K(p,uu,CSF)"
+"K(P,UU,BRAIN)",1,"K(p,uu,brain)"
+K(ON)K(OFF),1,k(on)/k(off)
+K'O,1,k'o
+K'K'+1,1,k'/k'+1
+K'I,1,K'i
+K'A,1,K'a
+K''IAM,1,K''IAM
+ACTIVECULTURE,1,Active culture
+ACTIVECONCENTRATIONI,1,ActiveConcentrationI
+ACTIVE,1,Active
+ACTIVATIONTIME,1,Activation time
+ACTIVATIONFACTOR,1,Activation Factor
+ACTIVATION(%OFCONTROL),1,Activation (% of control)
+ACTIVATION,1,Activation
+ACT,1,ACT
+ACR,1,ACR
+ACQUISITIONTIME,1,Acquisition time
+ACIDTITER,1,Acid titer
+ACIDSECRETION,1,Acid secretion
+ACIDOUTPUT,1,Acid output
+ACIDHYDROLYSIS,1,Acid hydrolysis
+ACETYLCHOLINERELEASE,1,Acetylcholine release
+ACETYLCHOLINELEVEL,1,Acetylcholine level
+KA1,1,Ka1
+KA-,1,kA-
+KA(T4),1,Ka(T4)
+KA',1,Ka'
+K6,1,K6
+K50,1,K50
+K5,1,K5
+K4,1,K4
+K3',1,k3'
+K2KS,1,k2/Ks
+K2C,1,k2c
+K2'',1,k2''
+K2',1,k2'
+K13+K23,1,K13+K23
+K10E4,1,K/10e4
+K0,1,k0
+KASSAPP,1,K ass app
+KASS,1,K ass
+KAPS,1,K aps
+KAPPX10E6,1,K app x10e6
+KAPPX10E-7,1,K app x10e-7
+KAPPRATIO,1,K app ratio
+KAMINE,1,K amine
+KALKYL,1,K alkyl
+KALIURETICACTIVITY,1,Kaliuretic activity
+KAKRKR,1,kaKr/kr
+KAKR,1,ka/kr
+KAKI,1,ka/Ki
+KAH,1,kAH
+KAFF,1,K aff
+KAEFFECT,1,KA effect
+KAAPP,1,Ka app
+ACETYLATION,1,Acetylation
+ACETALDEHYDE,1,Acetaldehyde
+ACCUMULATIONCOUNTS,1,Accumulation counts
+ACCUMULATIONCOEFFICIENT,1,Accumulation coefficient
+ACCUMULATION,1,Accumulation
+ACCUMULATEDCOUNTS30MIN,1,Accumulated counts/30 min
+ACCUMULATEDCOUNTS30,1,Accumulated counts/30
+ACCUMULATEDCOUNTS,1,Accumulated counts
+ACCEPTORACTIVITY,1,Acceptor activity
+ACCELERATION,1,Acceleration
+ACCCOUNTS,1,Acc. counts
+ACATACTIVITY,1,ACAT activity
+AC40,1,AC40
+AC30,1,AC30
+AC3,1,AC3
+KB1,1,KB1
+KDH,1,KdH
+KDERROR,1,Kd Error
+KD50,1,KD50
+"KD,APP",1,"Kd,app"
+KD(APP),1,Kd(app)
+"KCS,APP",1,"KCS, APP"
+KCATKUNCAT,1,k cat/Kuncat
+KCATKINACT,1,K cat/Kinact
+KCATKI,1,k cat/Ki
+KCAT(APP),1,Kcat(app)
+KCALC,1,K calc
+"KC,U",1,"kC,U"
+KBS,1,KbS
+KBP,1,KBp
+KBETA,1,K beta
+KBB,1,Kbb
+KESELECTIVITYRATIO,1,Ke selectivity ratio
+KERATIO,1,Ke ratio
+KENALOXONE,1,Ke naloxone
+KELIM,1,k_elim
+KEFF(REL),1,k eff (rel)
+KE(APP),1,Ke(app)
+KDSS,1,KDss
+KDSPR,1,KdSPR
+KDSPA,1,KdSPA
+KDPPH,1,kDPPH
+KDNONIONIC,1,KD non ionic
+KDNB,1,KDNB
+KDMPG,1,K DMPG
+KDL,1,KdL
+KDKI,1,KD/Ki
+KDHYDRO,1,KD hydro
+KHD,1,Khd
+KGMAX,1,Kgmax
+AC200,1,AC200
+AC10,1,AC10
+ABSORPTION,1,Absorption
+ABSOPTION,1,Absoption
+ABSOLUTETURNANGULAR3MIN,1,Absolute turn angular/3 min
+ABSOLUTERATIO,1,Absolute ratio
+ABSOLUTE,1,Absolute
+ABSAC90,1,AbsAC90
+ABSAC50UM,1,AbsAC50_uM
+ABSAC50,1,AbsAC50
+ABSAC40UM,1,AbsAC40_uM
+ABSAC40,1,AbsAC40
+ABSAC35UM,1,AbsAC35_uM
+ABSAC35,1,AbsAC35
+KIACT,1,Kiact
+KIA,1,KiA
+KI2,1,Ki2
+KI1,1,Ki1
+KI05,1,Ki 0.5
+KI0,1,Ki0
+"KI,APP",1,"Ki,app"
+KI(KMKCAT),1,Ki/(Km/Kcat)
+KI(APP),1,Ki(app)
+KI(18X10E-11),1,Ki(1.8x10e-11)
+KI'UNCOMP,1,Ki' uncomp
+KI'',1,Ki''
+KI,1,Ki
+KHYDROL,1,Khydrol
+KHYDR,1,khydr
+KHO,1,kHO
+KIKM,1,Ki/Km
+KIK0KI,1,kik0/Ki
+KIK'I,1,Ki/K'i
+KIINT,1,Ki int
+KIINACT,1,Ki inact
+KIHIGH,1,Ki high
+KIH,1,KiH
+KIF,1,Kif
+KIEQ,1,Kieq
+KIDNEYWEIGHT,1,Kidney weight
+KIDNEYVDR,1,Kidney VDR
+KID,1,Kid
+KICOMP,1,Ki comp
+KIAPP(INACT),1,Ki app (inact)
+KIAM',1,kIAM'
+KIAH,1,KiAH
+KINX10E3,1,Kin x10e3
+KINETICSOLUBILITY(APP),1,Kinetic_solubility(app)
+KINETICSOLUBILITY,1,Kinetic_solubility
+KINETICCONSTANT,1,Kinetic constant
+KINETIC,1,Kinetic
+KINASEACTIVITY,1,Kinase activity
+KINACTKM,1,K inact/Km
+KINACTKIAPP,1,kinact/KIapp
+KINACTI,1,K inact/I
+KINA,1,Kina
+KIMUTKIWT,1,Kimut/Kiwt
+KIMICROM,1,KI_MICROM
+KILOW,1,Ki low
+KILLED,1,Killed
+KILLATC50,1,Kill at C50
+KIL,1,KiL
+ABERRANTCELLS,1,Aberrant cells
+ABDOMINALFAT,1,Abdominal fat
+KM(UNBOUND),1,Km(unbound)
+KM(APP),1,Km(app)
+KM',1,Km'
+KKMAX,1,Kkmax
+KKIN,1,Kkin
+KK,1,k/K
+KIX,1,Kix
+KIUC,1,Kiuc
+KISS,1,Ki ss
+KISO,1,Kiso
+KISLOPE,1,Ki slope
+KIRR,1,kirr
+KIRATIO,1,Ki ratio
+KIOBS[I],1,Ki obs / [I]
+KMAXKS,1,kmax/KS
+KMAPP,1,Km app
+ABSAC30UM,1,AbsAC30_uM
+ABSAC30,1,AbsAC30
+ABSAC26UM,1,AbsAC26_uM
+ABSAC200UM,1,AbsAC200_uM
+ABSAC1000UM,1,AbsAC1000_uM
+ABSAC1,1,AbsAC1
+ABSAC054UM,1,AbsAC0.54_uM
+ABSAC047UM,1,AbsAC0.47_uM
+ABSAC039UM,1,AbsAC0.39_uM
+ABRATIO,1,A/B ratio
+ABRASIONSCORE,1,Abrasion score
+ABORTION,1,Abortion
+ABOLITION,1,Abolition
+ABILITY,1,Ability
+KQ,1,Kq
+"KPOTA,B",1,"Kpot A,B"
+KPOL,1,Kpol
+KPCB,1,KPCB
+KONOO-,1,kONOO-
+KOH-,1,kOH-
+KOBSX10E2,1,K obs x10e2
+KOBSS,1,K obs / s
+KOBSCONCENTRATION,1,k obs / concentration
+KOBS11MS,1,K obs / 1 1/Ms
+KNA,1,KNa
+KMX10E3,1,Km x10e3
+KML,1,KmL
+KMKI,1,Km/Ki
+KMKCAT,1,Km/Kcat
+KMH,1,KmH
+KW,1,Kw
+KUP,1,Kup
+KUNCAT,1,Kuncat
+KUN,1,Kun
+KTM,1,K Tm
+KT4,1,KT4
+KSV,1,KSV
+KSOLV,1,Ksolv
+KSI,1,Ks/i
+KSH,1,K SH
+KSECOND,1,K second
+KSAPP,1,Ks app
+KRKMAX,1,Kr/kmax
+KRELATIVE,1,Krelative
+KRED,1,kred
+KREACT,1,Kreact
+LAMBDAZ,1,LambdaZ
+LAMBDA-EX,1,Lambda-ex
+LAMBDA-EM,1,Lambda-em
+LALTEST,1,LAL test
+LAGTIME,1,Lag time
+LAD,1,LAD
+LACTOSEPRODUCTION,1,Lactose production
+LACTONEPRODUCTION,1,Lactone production
+LACTONE,1,Lactone
+LACTATEPRODUCED,1,Lactate produced
+LA,1,LA
+L-T3,1,L-T3
+L,1,L
+KX10E3,1,k x10e3
+KX10E-5,1,K x10e-5
+KX10E-3,1,k x10e-3
+LC50RATIO,1,LC50 ratio
+LC50,1,LC50
+LC5,1,LC5
+LC30,1,LC30
+LC25,1,LC25
+LC20,1,LC20
+LC15,1,LC15
+LC100,1,LC100
+LC10,1,LC10
+LC1,1,LC1
+LBF,1,LBF
+LATENCYTOSTEPTHROUGH,1,Latency to step through
+LATENCYTOEXIT,1,Latency to exit
+LATENCYTIME,1,Latency time
+LATENCY,1,Latency
+LASTTHERAPYDAY,1,Last therapy day
+LD16,1,LD16
+LD100,1,LD100
+LD10,1,LD10
+LD0,1,LD0
+LD,1,LD
+LCK,1,LCK
+LCE,1,L/CE
+LCC999,1,LCC99.9
+LCC99,1,LCC99
+LC999,1,LC99.9
+LC99,1,LC99
+LC95,1,LC95
+LC90,1,LC90
+LC80,1,LC80
+LC70,1,LC70
+LC60,1,LC60
+LD99,1,LD99
+LD95,1,LD95
+LD90,1,LD90
+LD84,1,LD84
+LD80,1,LD80
+LD70,1,LD70
+LD60,1,LD60
+LD50X140,1,LD50 x 1/40
+LD50X120,1,LD50 x 1/20
+LD50X110,1,LD50 x 1/10
+LD50,1,LD50
+LD5,1,LD5
+LD40,1,LD40
+LD33,1,LD33
+LD30,1,LD30
+LD20,1,LD20
+LED,1,LED
+LEASTDOSE,1,Least dose
+LEARNINGTIME,1,Learning time
+LDLOXIDATION,1,LDL oxidation
+LDLO,1,LDLO
+LDLCHOLESTEROL,1,LDL cholesterol
+LDL-C,1,LDL-C
+LDL,1,LDL
+LDHRELEASE,1,LDH release
+LDHINCREASE-NUMBEROFREPORTS,1,LDH Increase - Number of Reports
+LDHINCREASE-INDEXVALUE,1,LDH Increase - Index Value
+LDHINCREASE-ACTIVITYSCORE,1,LDH Increase - Activity Score
+LDH50,1,LDH50
+LDH,1,LDH
+LDED80,1,LD/ED80
+LDAPP,1,LD app
+LEVEL,1,Level
+LETHALTOXICITY,1,Lethal toxicity
+LETHALITY,1,Lethality
+LETHALDOSE,1,Lethal dose
+LESIONSCORE,1,Lesion score
+LESIONS,1,lesions
+LESIONLENGTH,1,Lesion length
+LESIONINDEX,1,Lesion index
+LESIONFREQUENCY,1,Lesion frequency
+LESIONCOVERAGE,1,Lesion coverage
+LESIONCLEARANCE,1,Lesion_Clearance
+LESION,1,Lesion
+LENGTH,1,Length
+LEISHMANICIDALACTIVITY,1,Leishmanicidal activity
+LEFTATRIALPRESSURE,1,Left atrial pressure
+LED100,1,LED100
+LIPOPROTEINLEVEL,1,Lipoprotein level
+LIPOPHILICITY,1,Lipophilicity
+LIPIDPEROXIDATION,1,Lipid peroxidation
+LIPIDLEVEL,1,Lipid level
+LIPID-SOLUBLERADIOACTIVITY,1,Lipid-soluble radioactivity
+LIPHOPHILICITY,1,Liphophilicity
+LIPASE,1,LIPASE
+LIMITINGT12,1,Limiting t1/2
+LIGHTTRANSMISSION,1,Light transmission
+LIFESPAN,1,Life span
+LICKINGLATENCY,1,Licking latency
+LHLEVEL,1,LH level
+LHCONCENTRATION,1,LH concentration
+LH,1,LH
+LEVELOFCGMP,1,Level of cGMP
+LEVELINSERUM,1,Level in serum
+A10,1,A10
+A05,1,A0.5
+LNKT,1,ln Kt
+LNKP,1,ln Kp
+LNK,1,lnK
+LMA,1,LMA
+LM,1,LM
+LLRSCORE,1,LLR score
+LLRMSAD,1,LLR msad
+LL,1,LL
+LIVERWEIGHT,1,Liver weight
+LIVERTG,1,Liver TG
+LIVERCONCENTRATION,1,Liver concentration
+LIVERCHOLESTEROL,1,Liver cholesterol
+LIVERCHLEVELS,1,Liver CH levels
+LIVERCATALASE,1,Liver catalase
+LOAEL,1,LOAEL
+LOAD,1,Load
+ABD50,1,ABD50
+ABC,1,ABC
+ABBC,1,ABBC
+ABAANALOGUERATIO,1,AbA/analogue ratio
+AB50,1,AB50
+AB,1,AB
+AAL,1,AAL
+AAD,1,A/Ad
+AAC,1,AAC
+AA,1,AA
+A50,1,A50
+A2SELECTIVITY,1,A2 selectivity
+A2,1,A2
+A1SELECTIVITY,1,A1 selectivity
+LOG(1ED80),1,log(1/ED80)
+LOG(1ED50),1,log(1/ED50)
+LOG(1ED30),1,log(1/ED30)
+LOG(1D40),1,log(1/D40)
+LOG(1CON),1,log(1/CON)
+LOG(1C50),1,log(1/C50)
+LOG(1BC),1,log(1/BC)
+LOG(10^6IC50),1,log(10^6/IC50)
+LOG(10'6IC50),1,log(10'6/IC50)
+LOG(10'3IC50),1,log(10'3/IC50)
+LOG(%),1,log(%)
+LOG%ABS,1,log%Abs
+LOG,1,Log
+LOCOMOTORACTIVITY,1,Locomotor activity
+LOCOMOTOR,1,Locomotor
+LOCOMOTION,1,Locomotion
+LOG(IA),1,log(IA)
+LOG(ACTIVITY),1,log(activity)
+LOG(43000KI),1,log(43000/Ki)
+LOG(1SD90),1,log(1/SD90)
+LOG(1MLD),1,log(1/MLD)
+LOG(1MIC>90),1,log(1/MIC>90)
+LOG(1MIC),1,log(1/MIC)
+LOG(1MED),1,log(1/MED)
+LOG(1MEC),1,log(1/MEC)
+LOG(1LD50),1,log(1/LD50)
+LOG(1LC50),1,log(1/LC50)
+LOG(1KM),1,log(1/Km)
+LOG(1K),1,log(1/K)
+LOG(1ID50),1,log(1/ID50)
+LOG(1IC50),1,log(1/IC50)
+LOG(1I50),1,log(1/I50)
+LOG10CFUG,1,log10CFU/g
+LOG10CFUDAY,1,log10cfu/day
+LOG10CELLKILL,1,Log 10 cell kill
+LOG10CCID50G,1,Log10CCID50/g
+LOG10CCID50,1,log10CCID50
+LOG10(%HIA+10),1,log10(%HIA +10)
+LOG(TAUKA),1,log(Tau/KA)
+LOG(RBA),1,log(RBA)
+LOG(RATIOKI),1,log(ratioKi)
+LOG(RATIOIC50),1,log(RatioIC50)
+LOG(RATIO),1,log(ratio)
+LOG(PERMEABILITY),1,log(permeability)
+LOG(PB),1,log(PB)
+LOG(M50),1,log(M50)
+LOG(KINETICSOLUBILITY),1,log(Kinetic_solubility)
+LOG(ILSMAX),1,log(ILSmax)
+LOG1C,1,Log 1/C
+LOG1B5,1,Log 1/B.5
+LOG1B+100,1,Log 1/B+100
+LOG1B+1,1,Log 1/B+1
+LOG1ACTIVITY,1,log1/activity
+LOG10TCID50,1,log10 TCID50
+LOG10REDUCTION,1,Log10 reduction
+LOG10PFUML,1,log10PFU/ml
+LOG10PFU,1,log10PFU
+LOG10LT50,1,log10LT50
+LOG10LC50,1,Log 10 LC50
+LOG10FFU,1,log10FFU
+LOG10EID50G,1,log10EID50/g
+LOG10ED50,1,Log10ED50
+LOG10CFUMLDAY,1,log10CFU/ml/day
+LOG10CFUML,1,log10CFU/ml
+LOG1EDMES(25),1,Log 1/EDMES(2.5)
+LOG1ED50,1,Log 1/ED50
+LOG1ED40,1,Log 1/ED40
+LOG1ED30,1,Log 1/ED30
+LOG1EC50,1,Log 1/EC50
+LOG1E50,1,Log 1/E50
+LOG1E100,1,Log 1/E100
+LOG1DELTACA,1,Log 1/delta/Ca
+LOG1D50,1,Log 1/D50
+LOG1D40,1,Log 1/D40
+LOG1D125(MMKG-1),1,Log 1/D125 (mM kg-1)
+LOG1D125(L1210)(MMKG-1),1,Log 1/D125 (L1210) (mM kg-1)
+LOG1CONC(MMMIN-1L-1),1,Log 1/conc (mM min-1 L-1)
+LOG1CMC,1,log1/CMC
+LOG1CLD50,1,log1/CLD50
+LOG1CED90,1,log1/CED90
+LOG1MEC,1,Log 1/MEC
+LOG1M,1,Log 1/M
+LOG1LD50(MMKG-1),1,Log 1/LD50 (mM kg-1)
+LOG1LD50,1,Log 1/LD50
+LOG1LD10,1,Log 1/LD10
+LOG1KM,1,Log 1/Km
+LOG1KL,1,Log 1/KL
+LOG1KIAPP,1,Log 1/Ki app
+LOG1KI,1,log1/Ki
+LOG1KD,1,Log 1/Kd
+LOG1K,1,Log 1/K
+LOG1ISA,1,Log 1/ISA
+LOG1ID75(UML-1),1,Log 1/ID75 (uM L-1)
+LOG1ID50,1,Log 1/ID50
+LOG1IC90,1,Log 1/IC90
+LOG1I50,1,Log 1/I50
+LOGACTIVITY,1,Log activity
+LOGAC50,1,Log AC50
+LOGA50,1,Log A50
+LOGA,1,Log A
+LOG2MIC,1,Log2 MIC
+LOG2FC,1,log2FC
+LOG2(RATIO),1,log2(ratio)
+LOG2,1,Log2
+LOG1TH+200,1,Log 1/Th+200
+LOG1T,1,Log 1/T
+LOG1S0,1,log1/S0
+LOG1S,1,log1/S
+LOG1RATIO,1,Log 1/ratio
+LOG1MMIC,1,Log 1/MMIC
+LOG1MIC(MML-1),1,Log 1/MIC (mM L-1)
+LOG1MIC,1,Log 1/MIC
+LOGCHANGE,1,Log change
+LOGCFUGOFTISSUE,1,Log cfu/g of tissue
+LOGCFUG,1,Log cfu/g
+LOGCFU,1,Log CFU
+LOGCELLKILL,1,Log cell kill
+LOGCDQR,1,Log CDQR
+LOGCDGH,1,Log CDGH
+LOGCC50,1,logCC50
+LOGC50,1,logC50
+LOGC,1,Log C
+LOGBR,1,Log BR
+LOGBF,1,Log B/F
+LOGBETA3,1,Log beta3
+LOGBETA,1,Log beta
+LOGAPA,1,Log APA
+LOGAP,1,Log AP
+LOGESA,1,Log ESA
+LOGEMAX,1,logEmax
+LOGEFFECT,1,Log effect
+LOGEC50(UM),1,Log EC50(uM)
+LOGDSF,1,Log DSF
+LOGDMAX,1,Log Dmax
+LOGDIAM,1,logD IAM
+LOGDELTA(1T2),1,Log delta (1/T2)
+LOGD75,1,logD7.5
+LOGD74,1,LogD7.4
+LOGD65,1,LogD6.5
+LOGD55,1,LogD5.5
+LOGCR,1,Log CR
+LOGCONCENTRATION,1,Log concentration
+LOGCMC,1,logCMC
+LOGCL,1,logCL
+30DAYSURVIVORS,1,30 day survivors
+LOGK-1,1,Log K-1
+LOGK(LUNG),1,logK(lung)
+LOGK(BLOOD),1,logK(blood)
+LOGK'O,1,Log k'o
+LOGK'IAM,1,Log K' IAM
+LOGITP(CONC),1,Logit_p(conc)
+LOGITBIOAVAILABILITY,1,Logit bioavailability
+LOGINHIBITION,1,Log inhibition
+LOGILSMAX,1,Log ILS max
+LOGII50,1,Log II50
+LOGIC50(UM),1,Log IC50(uM)
+LOGGTI,1,Log GTI
+LOGGEOMETRICMEAN,1,Log geometric mean
+LOGFU,1,logFu
+LOGFC,1,LogFC
+LOGK1,1,Log K1
+A0,1,A0
+A-SELECTIVITY,1,A-selectivity
+A,1,A
+88Y-SERUM,1,88Y-serum
+7-DAYWEIGHTCHANGE,1,7-day weight change
+60-DAYSURVIVORS,1,60-day survivors
+50%NAPROXENFORMED,1,50% naproxen formed
+5-HTSYNDROME,1,5-HT syndrome
+5-HTPACCUMULATION,1,5-HTP accumulation
+5-HTLEVEL,1,5-HT Level
+3LOGKILL,1,3 log kill
+3H-TDRINCORPOLATION,1,3H-TdR incorpolation
+3DPSA,1,3D PSA
+36CL-UPTAKE,1,36Cl- uptake
+33,1,3.3
+LOGKOH-,1,Log kOH-
+LOGKOFF,1,Log koff
+LOGKOBS,1,Log Kobs
+LOGKOA,1,log KOA
+LOGKO,1,Log Ko
+LOGKMEMB,1,Log Kmemb
+LOGKL,1,Log KL
+LOGKH,1,Log KH
+LOGKGSH(S-1),1,Log k GSH (s-1)
+LOGKE,1,Log Ke
+LOGKDELTA,1,Log K delta
+LOGKCAT,1,logKcat
+LOGKAT,1,Log KAT
+LOGK4,1,Log K4
+LOGK3,1,Log K3
+LOGK2,1,Log K2
+LOGP(LUNG),1,logP(lung)
+LOGP(100-P),1,Log P/(100-P)
+LOGP',1,Log P'
+LOGOFINHIBITORYZONE,1,Log of inhibitory zone
+LOGNETCELLKILL,1,Log net cell kill
+LOGMRI,1,Log MrI
+LOGMIC,1,logMIC
+LOGMEC,1,logMEC
+LOGMBC,1,Log MBC
+LOGM50,1,Log M50
+LOGM,1,Log M
+LOGLC50,1,Log LC50
+LOGKZ,1,Log KZ
+LOGKS,1,log Ks
+LOGKP,1,log Kp
+LOGKON,1,Log kon
+LOGPN,1,Log Pn
+LOGPMW,1,Log Pmw
+LOGPMIC,1,Log Pmic
+LOGPM,1,logPm
+LOGPLOGD,1,Log P/Log D
+LOGPION,1,Log Pion
+LOGPHEP,1,Log Phep
+LOGPF,1,logPF
+LOGPEFF,1,logPeff
+"LOGPE,MAX",1,"Log Pe,max"
+LOGPDODN,1,Log Pdod N
+LOGPCYC,1,Log Pcyc
+LOGPC18,1,Log Pc18
+LOGPC,1,logPc
+LOGPALK,1,Log Palk
+LOGP16,1,Log P16
+LOGPOCTA,1,Log Poct A
+30DAYSSURVIVORS,1,30 days survivors
+2XTT,1,2x TT
+2XTG,1,2x TG
+2XAPPT,1,2x aPPT
+2TT,1,2TT
+2T11,1,2T11
+2PT,1,2PT
+2DGUPTAKE,1,2DG uptake
+2APTT,1,2aPTT
+2-DGUPTAKESTIMULATION,1,2-DG uptake stimulation
+2*APTT,1,2*APTT
+1VMAX,1,1/Vmax
+1N,1,1/n
+LOGPO,1,Log Po
+LOGPNALK,1,Log PNalk
+LOGSOSIP,1,Log SOSIP
+LOGSI,1,logSI
+LOGSENSITIVITY,1,Log sensitivity
+LOGS0,1,logS0
+LOGRELATIVEK',1,Log relative k'
+LOGRATIO,1,Log ratio
+LOGRATECONSTANT,1,Log rate constant
+LOGRATE,1,Log rate
+LOGRAI,1,Log RAI
+LOGPTA,1,Log PTA
+LOGPR,1,Log PR
+LOGPOTENCYRATIO,1,Log potency ratio
+LOGPOTENCY,1,Log potency
+LOGPOCTZ,1,Log Poct Z
+LOGPOCTN,1,Log Poct N
+LOGPOCTC,1,Log Poct C
+LOG[-9],1,Log [-9]
+LOG[-8],1,Log [-8]
+LOG[-7],1,Log [-7]
+LOG[-6],1,Log [-6]
+LOG[-5],1,Log [-5]
+LOG[-10],1,Log [-10]
+LOGY,1,Log Y
+LOGTUMORCELLKILL,1,Log tumor cell kill
+LOGTGI,1,Log TGI
+LOGTCID50MG,1,Log TCID50/mg
+LOGTCID50,1,Log TCID50
+LOGTCI,1,Log TCI
+LOGTA98,1,Log TA98
+LOGTA100,1,Log TA100
+LOGSWEETBITTER,1,Log sweet/bitter
+LOGSP,1,Log SP
+LS,1,LS
+LRR,1,LRR
+LPS,1,LPS
+LOWESTEFFECTIVEDOSE,1,Lowest effective dose
+LOWESTEFFECTIVECONCENTRATION,1,Lowest effective concentration
+LOWERINGACTIVITY,1,Lowering activity
+LOWERING,1,Lowering
+LOW,1,Low
+LOSSOFRIGHTINGREFLEX,1,Loss of righting reflex
+LOSSOFINACTIVATION,1,Loss of inactivation
+LOSSOFCELLS,1,Loss of cells
+LOSSOFAFFINITY,1,Loss of affinity
+LOSSOFACTIVITY,1,Loss of activity
+LOSS,1,Loss
+LONG-TERMSURVIVORS,1,Long-term survivors
+LOG[MRI],1,Log [MrI]
+LVDPDTMAX(DELTA),1,LV dP/dTmax(delta)
+LVDPDTMAX,1,LV dP/dtmax
+LV,1,LV
+LUNGWEIGHT,1,Lung weight
+LUI,1,LUI
+LUCIFERASEINFECTIONASSAY-IC90,1,LUCIFERASE INFECTION ASSAY - IC90
+LUCIFERASEINFECTIONASSAY-IC50,1,LUCIFERASE INFECTION ASSAY - IC50
+LUCIFERASEEXPRESSIONCONTROL-IC90,1,LUCIFERASE EXPRESSION CONTROL - IC90
+LUCIFERASEEXPRESSIONCONTROL-IC50,1,LUCIFERASE EXPRESSION CONTROL - IC50
+LUCIFERASEACTIVITY,1,Luciferase activity
+LTS,1,LTS
+LTKBBDDILISEVERITYSCORE,1,LTKB_BD DILI severity score
+LTC,1,LTC
+LT999,1,LT99.9
+LT50,1,LT50
+LSD,1,LSD
+M50,1,M50
+M-AGONISTINDEX,1,M-agonist index
+LZ,1,LZ
+LYSOZYMERELEASE,1,Lysozyme release
+LYSISTIME,1,Lysis time
+LYSISDIAMETER,1,Lysis diameter
+LYSISAREA,1,Lysis area
+LYSIS,1,Lysis
+LYMLE,1,LYMLE
+LYM,1,LYM
+LWI,1,LWI
+LWBW,1,Lw/Bw
+LVP,1,LVP
+LVFRP,1,LV FRP
+LVEDP,1,LVEDP
+LVDRXHR,1,LV DRxHR
+MAX,1,Max
+MAT,1,MAT
+MASSINDEX,1,Mass index
+MARROWAREA,1,Marrow area
+MARGINBEFOREONSETOFTACHYCARDIA,1,Margin before onset of tachycardia
+MARGINBEFOREONSETOFHYPOKALEMIA,1,Margin before onset of hypokalemia
+MAPD90,1,MAPD90
+MAP,1,MAP
+MAODEAMINATION,1,MAO deamination
+MACROPHAGECYTOTOXICITY,1,Macrophage cytotoxicity
+MACROPHAGEACTIVATION,1,Macrophage activation
+MACREDUCTION,1,MAC reduction
+MAC,1,MAC
+MABPCHANGE,1,MABP change
+MABP,1,MABP
+MA,1,MA
+MAXCHANGE,1,Max change
+MAXCFRESPONSE,1,Max CF response
+MAXCAMP,1,Max cAMP
+MAXBSR,1,Max BSR
+MAXBLOODPRESSUREFALL,1,Max blood pressure fall
+MAXBINDING,1,Max binding
+MAXAVERAGE,1,Max/average
+MAXAPD95,1,Max APD95
+MAXAPD90(DELTA),1,Max APD90 (delta)
+MAXAGONISTRESPONSE,1,Max agonist response
+MAXAGONISTACTIVITY,1,Max agonist activity
+MAXAGGREGATIONRESPONSE,1,Max aggregation response
+MAXAGGREGATION,1,Max aggregation
+MAXACTIVITYCONCENT,1,Max_Activity_Concent
+MAXACTIVITY,1,Max_Activity
+MAXACHIEVABLEBIOAVAILABILITY,1,Max Achievable Bioavailability
+MAXDELTAHR,1,Max delta HR
+MAXDELTAFRP,1,Max delta FRP
+MAXDELTAFC,1,Max delta FC
+MAXDELTABP,1,Max delta BP
+MAXDELTAAPD95,1,Max delta APD95
+MAXDELTA,1,Max delta
+MAXDECREASEINHEARTRATE,1,Max decrease in heart rate
+MAXDECREASEINBLOODPRESSURE,1,Max decrease in blood pressure
+MAXDECREASE,1,Max decrease
+MAXCONTRACTION,1,Max contraction
+MAXCONTRACTILITY,1,Max contractility
+MAXCONTRACTILEFORCE,1,Max contractile force
+MAXCONTRACTILEACTIVITY,1,Max contractile activity
+MAXCONCENTRATION,1,Max_Concentration
+MAXCOLLATERALINDEX,1,Max collateral index
+MAXCHANGEINBLOODPRESSURE,1,Max change in blood pressure
+MAXFOLDINCREASE,1,Max fold increase
+MAXFALLINMAP,1,Max fall in MAP
+MAXFALLINIOP,1,Max fall in IOP
+MAXFALLINBLOODPRESSURE,1,Max fall in blood pressure
+MAXFALL,1,Max fall
+MAXENHANCEMENT,1,Max enhancement
+MAXEFFICACY,1,Max efficacy
+MAXEFFECT,1,Max effect
+MAXDVDT,1,Max dV/dt
+MAXDROP,1,Max drop
+MAXDOSE,1,Max dose
+MAXDISPLACEMENT,1,Max displacement
+MAXDELTAVMAX,1,max Delta Vmax
+MAXDELTATM,1,Max_Delta_Tm
+MAXDELTAMAP,1,Max delta MAP
+MAXDELTAMABP,1,Max delta MABP
+MAXINCREASE,1,Max increase
+MAXIMUMTMAX,1,Maximum Tmax
+MAXIMUMTESTCONCENTRATIONTHATDIDNOTEXHIBITCYTOTOXICITY,1,Maximum test concentration that did not exhibit cytotoxicity
+MAXIMUMRESPONSE,1,Maximum response
+MAXIMUMINHIBITION,1,Maximum inhibition
+MAXIMALRELAXATION,1,Maximal relaxation
+MAXIMALNON-TOXICDOSE50,1,Maximal non-toxic dose 50
+MAXIMALEFFICACY,1,Maximal efficacy
+MAXIMALEFFECT,1,Maximal effect
+MAXIMALDECREASEINIOP,1,Maximal decrease in IOP
+MAXIMALCHANGE,1,Maximal change
+MAXIMALBINDING,1,Maximal binding
+MAXIMALACTIVATION,1,Maximal activation
+MAXI-KCURRENT,1,Maxi-K current
+MAXHYPOTENSION,1,Max hypotension
+MAXHEMORRHAGE,1,Max hemorrhage
+MAXPROTECTION,1,Max protection
+MAXPOSSIBLEEFFECT,1,Max possible effect
+MAXPLATELETRESPONSE,1,Max platelet response
+MAXPLASMALEVEL,1,Max plasma level
+MAXPI,1,Max PI
+MAXNON-TOXICDOSE,1,Max non-toxic dose
+MAXMEANWEIGHTLOSS,1,Max mean weight loss
+MAXMBP,1,Max MBP
+MAXLOWERINGMABP,1,Max lowering MABP
+MAXLOWERING,1,Max lowering
+MAXJUMPINGRATE,1,Max jumping rate
+MAXIOPREDUCTION,1,Max IOP reduction
+MAXINTENSITY,1,Max intensity
+MAXINHIBITORYEFFECT,1,Max inhibitory effect
+MAXINHIBITIONCONCENTRATION,1,Max inhibition concentration
+MAXINCREASEINCORONARYFLOW,1,Max increase in coronary flow
+MAXTEMPERATUREDECREASE,1,Max temperature decrease
+MAXTC,1,Max T/C
+MAXSUPPRESSION,1,Max suppression
+MAXSCORE,1,Max score
+MAXSBP,1,Max SBP
+MAXSALTTOLERANCE,1,Max salt tolerance
+MAXREVERSINGRATE,1,Max reversing rate
+MAXREVERSAL,1,Max reversal
+MAXREV,1,Max rev
+MAXRESPOSE,1,Max respose
+MAXRESPONSE,1,Max response
+MAXRELEASE,1,Max release
+MAXRELAXATION,1,Max relaxation
+MAXREDUCTIONINMEANARTERIALPRESSURE,1,Max reduction in mean arterial pressure
+MAXREDUCTION,1,Max reduction
+MAXPROTECTIVEEFFECT,1,Max protective effect
+MBC<=999,1,MBC<=99.9
+MBC9999,1,MBC99.99
+MBC999,1,MBC99.9
+MBC995,1,MBC99.5
+MBC99,1,MBC99
+MBC90,1,MBC90
+MBC50,1,MBC50
+MBC100,1,MBC100
+MBC,1,MBC
+MBBC,1,MBBC
+MAXWEIGHTLOSS,1,Max weight loss
+MAXVASOCONSTRICTION,1,Max vasoconstriction
+MAXUTEROTONICRESPONSE,1,Max uterotonic response
+MAXUTERINEWEIGHT,1,Max uterine weight
+MAXUOSM,1,Max Uosm
+MAXTOLERATEDDOSE,1,Max tolerated dose
+MBP,1,MBP
+MBIC=>90,1,MBIC=>90
+MBIC90,1,MBIC90
+MBIC80,1,MBIC80
+MBIC50,1,MBIC50
+MBIC100,1,MBIC100
+MBIC,1,MBIC
+MBEC999,1,MBEC99.9
+MBEC90,1,MBEC90
+MBEC80,1,MBEC80
+MBEC50,1,MBEC50
+MBEC2,1,MBEC2
+MBEC,1,MBEC
+MBC>999,1,MBC>99.9
+MBC=>999,1,MBC=>99.9
+MBC=>99,1,MBC=>99
+MDHREACTIVATION,1,MDH Reactivation
+MDD50,1,MDD50
+MDD,1,MDD
+MDACONTENT,1,MDA content
+MD,1,MD
+MCV,1,MCV
+MCT,1,MCT
+MCPHAILINDEX,1,McPhail index
+MCHC,1,MCHC
+MCH,1,MCH
+MCD,1,MCD
+MCCD,1,MCCD
+MCC50,1,MCC50
+MCC,1,MCC
+MC100,1,MC100
+MBP(DELTA),1,mBP(delta)
+MEANACTIVITYCOUNTS,1,Mean activity counts
+MEANACTIVITY,1,Mean activity
+MEAN%OFCONTROL,1,mean % of control
+MEAN%GROWTH(N=2)FOR10ΜMPROBECONCENTRATION,1,Mean % growth (n = 2) for 1.0 µM probe concentration
+MEAN%GROWTH(N=2)FOR100ΜMPROBECONCENTRATION,1,Mean % growth (n = 2) for 10.0 µM probe concentration
+MEAN%GROWTH(N=2)FOR1000ΜMPROBECONCENTRATION,1,Mean % growth (n = 2) for 100.0 µM probe concentration
+MEAN%GROWTH(N=2)FOR01ΜMPROBECONCENTRATION,1,Mean % growth (n = 2) for 0.1 µM probe concentration
+MEAN%GROWTH(N=2)FOR001ΜMPROBECONCENTRATION,1,Mean % growth (n = 2) for 0.01 µM probe concentration
+MEAN,1,Mean
+MEAIBUPTAKE,1,MeAIB uptake
+ME,1,ME
+MDS,1,MDS
+MDRRATIO,1,MDR ratio
+MDR,1,MDR
+MDL50,1,MDL50
+MDL,1,MDL
+MEANED50,1,Mean ED50
+MEANDURATION,1,Mean duration
+MEANDECREASE,1,Mean decrease
+MEANDAYSURVIVAL,1,Mean day survival
+MEANDAYOFDEATHFORTOTALDEAD,1,Mean day of death for total dead
+MEANDAYOFDEATH,1,Mean day of death
+MEANDAYAPPEARANCEOFLESIONS,1,Mean day appearance of lesions
+MEANDAY,1,Mean day
+MEANCHANGE,1,Mean change
+MEANBODYWEIGHT,1,Mean body weight
+MEANBLOODPRESSURE,1,Mean blood pressure
+MEANAXONALAREA,1,Mean axonal area
+MEANAUC,1,Mean AUC
+MEANARTERIALBLOODPRESSURE,1,Mean arterial blood pressure
+MEANAORTICFLOW,1,Mean aortic flow
+MEANAORTICBLOODPRESSURE,1,Mean aortic blood pressure
+MEANINCREASEINSURVIVAL,1,Mean increase in survival
+MEANINCREASEDLIFESPAN,1,Mean increased life span
+MEANIC70,1,Mean IC70
+MEANIC50,1,Mean IC50
+MEANHR,1,Mean HR
+MEANHEMAGGLUTINATIONTITERS,1,Mean hemagglutination titers
+MEANGRAPHMIDPOINT,1,Mean graph mid point
+MEANGRAFTSURVIVAL,1,Mean graft survival
+MEANFREEPLASMACONCENTRATION,1,Mean free plasma concentration
+MEANFOLDSTIMULATION,1,Mean fold stimulation
+MEANEXCRETIONOFNA+,1,Mean excretion of Na+
+MEANEXCRETIONOFK+,1,Mean excretion of K+
+MEANEXCRETIONOFCL-,1,Mean excretion of Cl-
+MEANENHANCEMENTOFBINDING,1,Mean enhancement of binding
+MEANEFFECTIVEDOSE,1,Mean effective dose
+MEANEFFECT,1,Mean effect
+MEANNOOFREVERTANTS,1,Mean no. of revertants
+MEANNOOFLUNGCOLONIES,1,Mean no. of lung colonies
+MEANNOOFDAYSPOST-INFECTIONTODEATH,1,Mean no. of days post-infection to death
+MEANNOCOLONIES,1,Mean no. colonies
+MEANMAXIMUMTEMPDROP,1,Mean maximumtemp drop
+MEANLOGLC50,1,Mean log LC50
+MEANLOGGI50,1,Mean log GI50
+MEANLOGD,1,mean log D
+MEANLOGCONCENTRATIONRATIO,1,Mean log concentration ratio
+MEANLIFEEXTENSION,1,Mean life extension
+MEANLATENCY,1,Mean latency
+MEANLAF,1,Mean LAF
+MEANKD,1,Mean KD
+MEANINJECTEDDOSEG,1,Mean injected dose/g
+MEANINHIBITION,1,Mean inhibition
+MEANINDEX,1,Mean index
+MEANSURVIVALINDAYS,1,Mean survival in days
+MEANSURVIVALDAYS,1,Mean survival days
+MEANSURVIVAL,1,Mean survival
+MEANSCORE,1,Mean score
+MEANRESPONSEMIN,1,Mean response/min
+MEANRESPONSE,1,Mean response
+MEANRELATIVESURVIVINGFRACTION,1,Mean relative surviving fraction
+MEANRELATIVEPOTENCY,1,Mean relative potency
+MEANREACTION,1,Mean reaction
+MEANRBF,1,Mean RBF
+MEANRATECONSTANT,1,Mean rate constant
+MEANPITSIZE,1,Mean pit size
+MEANPEAKAPTT,1,Mean peak APTT
+MEANPAWDIAMETER,1,Mean paw diameter
+MEANNUMBEROFPARASITES,1,Mean number of parasites
+MEANNOOFSHOCKS,1,Mean no. of shocks
+MEC,1,MEC
+MEANWEIGHT,1,Mean weight
+MEANVOLUMEOFHINDPAWS,1,Mean volume of hind paws
+MEANVESICLESCORE,1,Mean vesicle score
+MEANVALUE,1,Mean value
+MEANUTERINEWEIGHT,1,Mean uterine weight
+MEANURINEVOLUME,1,Mean urine volume
+MEANULCERINDEX,1,Mean ulcer index
+MEANTUMORVOLUME,1,Mean tumor volume
+MEANTUMORDELAY,1,Mean tumor delay
+MEANTUMORATENCY,1,Mean tumor atency
+MEANTOTALRESORPTION,1,Mean total resorption
+MEANTOTALPLASMACONCENTRATION,1,Mean total plasma concentration
+MEANTIMETOSEIZURE,1,Mean time to seizure
+MEANTIMETODEATH,1,Mean time to death
+MEANSURVIVALTIME,1,Mean survival time
+MED999,1,MED99.9
+MED99,1,MED99
+MED98,1,MED98
+MED90,1,MED90
+MED50,1,MED50
+MED25,1,MED25
+MED20,1,MED20
+MED100,1,MED100
+MED10,1,MED10
+MED,1,MED
+MECHANISTICREFERENCE,1,Mechanistic reference
+MECHANISMBASEDINHIBITION,1,mechanism based inhibition
+MEC50,1,MEC50
+MEC20,1,MEC2.0
+MEC2,1,MEC2
+MEC15,1,MEC1.5
+MEDIANTUMORALVOLUME,1,Median tumoral volume
+MEDIANTUMOR,1,Median tumor
+MEDIANTOXICITY,1,Median toxicity
+MEDIANTC,1,Median T/C
+"MEDIANSURVIVALTIME,DAYS",1,"median survival time, days"
+MEDIANSURVIVALTIME,1,Median survival time
+MEDIANSURVIVALDAY,1,Median survival day
+MEDIANSURVIVAL,1,Median survival
+MEDIANRETENSIONLATENCY,1,Median retension latency
+MEDIANLIFESPAN,1,Median life span
+MEDIANDAYOFSURVIVAL,1,Median day of survival
+MEDIANDAYOFDEATH,1,Median day of death
+MEDIAN,1,Median
+MEDIAAREA,1,Media area
+MED>50,1,MED>50
+MED=>50,1,MED=>50
+METABOLICTURNOVER,1,Metabolic turnover
+METABOLICSTABILITY,1,Metabolic stability
+METABOLICRATE,1,Metabolic rate
+MET,1,MET
+MESTEST,1,MES/TEST
+MESED50,1,MES ED50
+MES,1,MES
+MEQUIVOFNA+KG,1,mequiv of Na+/kg
+MEQUIVOFHCL,1,mequiv of HCl
+MEMREC,1,Mem Rec
+MEMBRANEINTEGRITY,1,Membrane integrity
+MELANOTROPICPOTENCY,1,Melanotropic potency
+MELANOTROPICACTIVITY,1,Melanotropic activity
+MEINCREASE,1,ME increase
+MEDTUMORWEIGHT,1,Med tumor weight
+MEDTUMORAREA,1,Med tumor area
+MFED,1,MFED
+MFC>99,1,MFC>99
+MFC<=999,1,MFC<=99.9
+MFC999,1,MFC99.9
+MFC995,1,MFC99.5
+MFC99,1,MFC99
+MFC90,1,MFC90
+MFC50,1,MFC50
+MFC100,1,MFC100
+MFC,1,MFC
+MF,1,MF
+METHEMOGLOBIN,1,Methemoglobin
+METD,1,METD
+METABOLITELEVELS,1,Metabolite levels
+METABOLITELEVEL,1,Metabolite level
+METABOLISM,1,Metabolism
+MIC100,1,MIC100
+MIC+MIC-,1,MIC+/MIC-
+MIC,1,MIC
+MI50,1,MI50
+MI20,1,MI20
+MI100,1,MI100
+MI05,1,MI0.5
+MI,1,MI
+MHPGSO4,1,MHPG_SO4
+MHC10,1,MHC10
+MHC,1,MHC
+MGMID,1,MG MID
+MGM,1,MGM
+MGDHGI50,1,MGDH GI50
+MGC,1,MGC
+MG-MID,1,MG-MID
+MIC=<80,1,MIC=<80
+MIC=<50,1,MIC=<50
+MIC999,1,MIC99.9
+MIC99,1,MIC99
+MIC98,1,MIC98
+MIC97,1,MIC97
+MIC95,1,MIC95
+MIC90,1,MIC90
+MIC82,1,MIC82
+MIC80,1,MIC80
+MIC75,1,MIC75
+MIC70,1,MIC70
+MIC65,1,MIC65
+MIC60,1,MIC60
+MIC50MIC90,1,MIC50/MIC90
+MIC50,1,MIC50
+MID,1,MID
+MICROSOMALSTABILITY,1,Microsomal stability
+MICEWITHLESIONS,1,Mice with lesions
+MICEINFI,1,Mice In. / Fi.
+MICE,1,Mice
+MIC>99,1,MIC>99
+MIC>98,1,MIC>98
+MIC>95,1,MIC>95
+MIC>90,1,MIC>90
+MIC>85,1,MIC>85
+MIC>80,1,MIC>80
+MIC=>95,1,MIC=>95
+MIC=>90,1,MIC=>90
+MIC=>80,1,MIC=>80
+MIC=>50,1,MIC=>50
+MIC=<90,1,MIC=<90
+MINLETHALDOSE,1,Min lethal dose
+MINIMUMTMAX,1,Minimum Tmax
+MINIMUMSINGLEDOSE,1,Minimum single dose
+MINIMALDOSE,1,Minimal dose
+MINIMALBACTERIOSTATICCONCENTRATION,1,Minimal bacteriostatic concentration
+MINID,1,Min ID
+MINERALIZINGAPPOSITIONRATE,1,Mineralizing apposition rate
+MINERALAPPOSITIONRATE,1,Mineral apposition rate
+MINEFFECTIVEDOSE,1,Min effective dose
+MINED,1,Min ED
+MINCONCENTRATION,1,Min concentration
+MINANTIVIRALCONCENTRATION,1,Min antiviral concentration
+MIGRATIONINDEX,1,Migration index
+MIGRATION,1,Migration
+MIDPOINTDOSE,1,Midpoint dose
+MIDLOGLC50,1,MID log LC50
+MNCC,1,MNCC
+MMC,1,MMC
+MLS,1,MLS
+MLD50,1,MLD50
+MLD,1,MLD
+MLC50,1,MLC50
+MLC,1,MLC
+MIW,1,MIW
+MITOTICINDEX,1,Mitotic index
+MITOTICFIGURES,1,Mitotic figures
+MITOGENICEFFECT,1,Mitogenic effect
+MITC95,1,MITC95
+MISSTC,1,MISS T/C
+MINPLAGUEINHIBITORY,1,Min plague Inhibitory
+MINORALDOSE,1,Min oral dose
+MINLYTICCONCENTRATION,1,Min lytic concentration
+MOLARCONTENT,1,Molar content
+MODULATIONFACTOR,1,Modulation factor
+MODIFICATIONOFHEMOGLOBIN,1,Modification of hemoglobin
+MODIFICATIONOFADSORBEDDRUG,1,Modification of adsorbed drug
+MODIFICATION,1,Modification
+MOBILIZATION,1,Mobilization
+MNTT,1,M/NTT
+MNTD>90,1,MNTD>90
+MNTD>75,1,MNTD>75
+MNTD90,1,MNTD90
+MNTD70,1,MNTD70
+MNTD50,1,MNTD50
+MNTD,1,MNTD
+MNTC,1,MNTC
+MNEC,1,MNEC
+MND,1,MND
+MORTALITYNUMBER,1,Mortality number
+MORTALITYINHIBITION,1,Mortality inhibition
+MORPHOLOGY,1,Morphology
+MORBIDITY,1,Morbidity
+MONOMER,1,Monomer
+MONOLE,1,MONOLE
+MONOCATIONSPECIES,1,Monocation species
+MONOAMINELEVEL,1,Monoamine level
+MONO,1,MONO
+MOLEFRACTION,1,Mole fraction
+MOLECULARELLIPTICITY,1,molecular ellipticity
+MOLARRATIO,1,Molar ratio
+MOLARPRIMAQUINEINDEX,1,Molar primaquine Index
+MOLARPOTENCY,1,Molar potency
+MOLARITY,1,Molarity
+MOLAREQUIVALENCEBOUND,1,Molar equivalence bound
+MPE,1,MPE
+MPD,1,MPD
+MPCMIC,1,MPC/MIC
+MPC8,1,MPC8
+MPC4,1,MPC4
+MPC,1,MPC
+MPA,1,MPA
+MP,1,MP
+MOUSEBEHAVIORACTIVITY,1,Mouse behavior activity
+MOTORACTIVITY,1,Motor activity
+MOTILITYREDUCTIONCYTOTOXICITY,1,MOTILITY REDUCTION/CYTOTOXICITY
+MOTILITY,1,Motility
+MOT,1,MOT
+MORTALITYTHRESHOLD,1,Mortality threshold
+MORTALITYRATIO,1,Mortality ratio
+MORTALITYRANGE,1,Mortality range
+MST,1,MST
+MSIC,1,MSIC
+MSD,1,MSD
+MSC,1,MSC
+MRTV,1,MRTV
+MRTLAST,1,MRTlast
+MRTINF,1,MRTinf
+MRT(T),1,MRT(t)
+MRT,1,MRT
+MRP,1,MRP
+MRF,1,MRF
+MRD,1,MRD
+MRC,1,MRC
+MPR,1,MPR
+MPORELEASE,1,MPO release
+MPE50,1,MPE50
+MTS50,1,MTS50
+MTS,1,MTS
+MTL,1,MTL
+MTDTGI50,1,MTD/ TGI50
+MTDRATIO,1,MTD ratio
+MTD8,1,MTD/8
+MTD50,1,MTD50
+MTD4,1,MTD/4
+MTD2,1,MTD/2
+MTD16,1,MTD/16
+MTD,1,MTD
+MTC50,1,MTC50
+MTC,1,MTC
+MTA,1,MTA
+MT,1,M/T
+MSTINCREASE,1,MST increase
+MYRISTOYLCOA,1,MyristoylCoA
+MYOBLASTWITHPARASITES,1,Myoblast with parasites
+MYOBLASTSWITHPARASITES,1,Myoblasts with parasites
+MYDRIASIS,1,Mydriasis
+MYCELIALGROWTH,1,Mycelial growth
+MUTATIONFREQUENCY,1,Mutation frequency
+MUTAGENICITY,1,Mutagenicity
+MUSCARINICRECEPTORAFFINITY,1,Muscarinic receptor affinity
+MUSCARINICAGONISTINDEX,1,Muscarinic agonist index
+MUKAPPARATIO,1,Mu/kappa ratio
+MUDELTARATIO,1,Mu/delta ratio
+MUD,1,MUD
+MTXRATIO,1,MTX ratio
+MTXEQUIVALENT,1,MTX equivalent
+MTTREDUCTION,1,MTT reduction
+MTT,1,MTT
+NADCONTENT,1,NAD content
+NAD+LEVEL,1,NAD+ level
+NAD+CONTENT,1,NAD+ content
+NAD,1,NAD
+NACLCONCENTRATION,1,NaCl concentration
+NA+RESTORATION,1,Na+ restoration
+NA+RATIO,1,Na+ ratio
+NA+OUTPUT,1,Na+ output
+NA+K+,1,Na+/K+
+NA+IONCONTENT,1,Na+ ion content
+NA+INACTIVATION,1,Na+ inactivation
+NA+EXCRETION,1,Na+ excretion
+NA,1,Na
+N50E,1,n50e
+N20FORMED,1,N20 formed
+MYRISTOYLPEPTIDE,1,Myristoylpeptide
+ND50,1,ND50
+NCOR1RECRUITMENT,1,NcoR1_recruitment
+NCC,1,NCC
+NC,1,NC
+NBTREDUCTION,1,NBT reduction
+NBTPOSITIVITY,1,NBT positivity
+NBTPOSITIVECELLS,1,NBT positive cells
+NB,1,NB
+NATURE,1,Nature
+NATRIURETICACTIVITY,1,Natriuretic activity
+NAPROXENPRODUCED,1,Naproxen produced
+NADPHOXIDATION,1,NADPH oxidation
+NADHOXIDN,1,NADH oxidn
+NADHOXIDIZED,1,NADH oxidized
+NADHOXIDATION,1,NADH oxidation
+NADHCONTENT,1,NADH content
+NETLOGCELLKILL,1,Net log cell kill
+NETGRAINCOUNTS,1,Net grain counts
+NETDRYWEIGHT,1,Net dry weight
+NETCELLKILL,1,Net cell kill
+NETBODYWEIGHTDELTA,1,Net body weight delta
+NETACCUMULATION,1,Net accumulation
+NEPHROTOXICITY,1,Nephrotoxicity
+NEOSTIGMINEREVERSAL,1,Neostigmine reversal
+NEGATIVEIONOTROPICACTIVITY,1,Negative ionotropic activity
+NEGATIVECHRONOTROPICACTIVITY,1,Negative chronotropic activity
+NEGATION,1,Negation
+NED,1,NED
+NECROSISRESPONSE,1,Necrosis response
+NECROSIS,1,Necrosis
+NEA,1,NEA
+NE,1,NE
+NITRATE,1,Nitrate
+NI,1,NI
+NHILL,1,nHill
+NH,1,nH
+NGRATIO,1,NG ratio
+NEWTUMORS,1,New tumors
+NEUTSG,1,NEUTSG
+NEUTROPHILS,1,Neutrophils
+NEUTLE,1,NEUTLE
+NEUROTOXICITY,1,Neurotoxicity
+NEUROPROTECTION,1,Neuroprotection
+NEURITEBEARINGCELLSTOTALCELLS,1,Neurite bearing cells/total cells
+NETTURNSMIN,1,Net turns/min
+NETSWELLING,1,Net Swelling
+NETLOGKILL,1,Net log kill
+NETLOGCHANGEINTUMORBURDEN,1,Net log change in tumor burden
+NODEATHSTREATED,1,No. deaths/treated
+NOCURES,1,No_cures
+NOCUREDTOTAL,1,No. cured/total
+NOCURED,1,No. cured
+NOCHANGE,1,No change
+NOAEL,1,NOAEL
+NOACTIVE,1,No. active
+NO2-(MOLMOL),1,NO2- (mol/mol)
+NNOSACTIVITY,1,nNOS activity
+NN,1,n/N
+NMDAEFFECT,1,NMDA effect
+NM,1,NM
+NLCK,1,NLCK
+NKA,1,nKa
+NITRITE,1,Nitrite
+NITRICOXIDE,1,Nitric oxide
+NOOFANIMALSPROTECTED,1,No. of animals protected
+NOOFANIMALSEXHIBITINGTOXICITYNUMBEROFANIMALSTESTED,1,No. of animals exhibiting toxicity / Number of animals tested
+NOOFANIMALSALIVE,1,No. of animals alive
+NOOFANIMALS,1,No. of animals
+NOOFACTIVENOOFTESTED,1,No. of active/no. of tested
+NONRGS-EC50(UM),1,NonRGS-EC50 (uM)
+NON-SPECIFICBINDING,1,Non-specific binding
+NON-HDL-C,1,Non-HDL-C
+NOL,1,NOL
+NOHA,1,NOHA
+NOFORMATION,1,NO formation
+NOEL,1,NOEL
+NOEFFECTIVENOTESTED,1,No effective/ no. tested
+NOEFFECTIVE,1,No. effective
+NOEFFECTDOSE,1,No effect dose
+NOEC,1,NOEC
+NOOFCROSSES,1,No. of crosses
+NOOFCOUNTS,1,No. of counts
+NOOFCOLONYFORMINGUNITS,1,No. of Colony forming Units
+NOOFCIRCLINGS,1,No. of circlings
+NOOFCHICKS,1,No. of chicks
+NOOFCELLS,1,No. of cells
+NOOFCANINE,1,No. of canine
+NOOFAXONALPOINTS,1,No. of axonal points
+NOOFAVOIDANCE,1,No. of avoidance
+NOOFANIMALSWITHLIVERNECROSIS,1,No. of animals with liver necrosis
+NOOFANIMALSWITHDAMAGE,1,No. of animals with damage
+NOOFANIMALSSURVIVED,1,No. of animals survived
+NOOFANIMALSRESPONDINGANIMALSRECEIVINGDRUG,1,No. of animals responding/animals receiving drug
+NOOFANIMALSPROTECTEDNUMBEROFANIMALSTESTED,1,No. of animals protected/number of animals tested
+NOOFANIMALSPROTECTEDNOANIMALSTESTED,1,No. of animals protected / no animals tested
+NOOFANIMALSPROTECTEDANIMALSTESTED,1,No. of animals protected/animals tested
+NOOFCUREDMICE,1,No. of cured mice
+NOOFCURED,1,No. of cured
+1MIC,1,1/MIC
+1KREL,1,1/krel
+1KOBSD-KA,1,1/kobsd-ka
+1KMAX,1,1/kmax
+1KM,1,1/Km
+1KI,1,1/Ki
+1IC50,1,1/IC50
+135,1,135
+12KCATKM,1,1/2Kcat/Km
+1-LOGKI,1,1-logKi
+-TDELTAS,1,-TdeltaS
+-LOGSW,1,-Log Sw
+-LOGLC50,1,-Log LC50
+-LOGKI,1,-Log Ki
+NOOFFOCIPERDISH,1,No. of foci per dish
+NOOFFERRETS,1,No. of ferrets
+NOOFFALLS,1,No. of falls
+NOOFESCAPEFAILURES,1,No. of escape failures
+NOOFESCAPEFAILURE,1,No. of escape failure
+NOOFERRORS,1,No. of errors
+NOOFENTRIES,1,No. of entries
+NOOFEMETICEPISODES,1,No. of emetic episodes
+NOOFDOGSUSED,1,No. of dogs used
+NOOFDOGSREVERTED,1,No. of dogs reverted
+NOOFDEPOLARIZATIONS,1,No. of depolarizations
+NOOFDEATHSMICEINJECTED,1,No. of deaths/mice injected
+NOOFDEATHS,1,No. of deaths
+NOOFDEADMICE,1,No. of dead mice
+NOOFDEADANIMALS,1,No. of dead animals
+NOOFCURES,1,No. of cures
+NOOFMICECURED,1,No. of mice cured
+NOOFMICEALIVE,1,No. of mice alive
+NOOFMICE,1,No. of mice
+NOOFMETASTASES,1,No. of metastases
+NOOFMALESMATED,1,No. of males mated
+NOOFMALESFERTILE,1,No. of males fertile
+NOOFMALESCOHABITED,1,No. of males cohabited
+NOOFLUNGMETASTASIS,1,No. of lung metastasis
+NOOFLUNGLESIONS,1,No. of lung lesions
+NOOFLUNGCOLONIES,1,No. of lung colonies
+NOOFLIVINGCELLS,1,No. of living cells
+NOOFKILLEDORPARALYZED,1,No. of killed or paralyzed
+NOOFINVADEDCELLS,1,No. of invaded cells
+NOOFINFECTEDCELLS,1,No. of infected cells
+NOOFIMPLANTSPREGNANCY,1,No. of implants/pregnancy
+NOOFGUINEAPIGSPROTECTED,1,No. of guinea pigs protected
+NOOFOPENARMENTRIES,1,No. of openarm entries
+NOOFOCCLUSIONS,1,No. of occlusions
+NOOFNONPREGNANTTREATED,1,No. of nonpregnant/treated
+NOOFNEWTUMORS,1,No. of new tumors
+NOOFMOUSEPROTECTED,1,No. of mouse protected
+NOOFMONKEYS,1,No of monkeys
+NOOFMICEWITHOUTTUMORS,1,No. of mice without tumors
+NOOFMICESURVIVING>6MONTHS,1,No. of mice surviving >6 months
+NOOFMICESURVIVED,1,No. of mice survived
+NOOFMICERECEOVERED,1,No. of mice receovered
+NOOFMICEPROTECTEDTESTED,1,No. of mice protected/tested
+NOOFMICEPROTECTED,1,No. of mice protected
+NOOFMICEINFECTEDTOTAL,1,No. of mice infected /total
+NOOFMICEEFFECTEDNOOFTREATED,1,No. of mice effected/No. of treated
+NOOFMICEDEADDAYDIED,1,No. of mice dead/day died
+NOOFMICEDEAD,1,No. of mice dead
+NOOFRATSWITHLESIONS,1,No. of rats with lesions
+NOOFRATSWITH5-HTSYNDROME,1,No. of rats with 5-HT syndrome
+NOOFRATSOVULATED,1,No. of rats ovulated
+NOOFRATSDISPLAYINGDASYNDROME,1,No. of rats displaying DA syndrome
+NOOFRATSDIED,1,No. of rats died
+NOOFRATS,1,No. of rats
+NOOFRABBITSCONVULSED,1,No. of rabbits convulsed
+NOOFPROTECTEDTESTED,1,No. of protected/tested
+NOOFPROTECTEDANIMALSTOTAL,1,No. of protected animals/total
+NOOFPOSRXNS,1,No. of pos rxns
+NOOFPOSITIVECASES,1,No. of positive cases
+NOOFPOSITIVEANIMALS,1,No. of positive animals
+NOOFPLATELETS,1,No. of platelets
+NOOFPLAQUES,1,No. of plaques
+NOOFPITSSLICE,1,No. of pits/slice
+NOOFPITS,1,No. of pits
+NOOFTOXICDEATHS,1,No. of toxic deaths
+NOOFSURVIVORSTOTAL,1,No. of survivors/total
+NOOFSURVIVORS,1,No. of survivors
+NOOFSURVIVALS,1,No. of survivals
+NOOFSUNCUSVOMITED,1,No. of suncus vomited
+NOOFSTRAINS,1,No. of strains
+NOOFSPIKES,1,No. of spikes
+NOOFSHOCKSACCEPTED5MIN,1,No. of shocks accepted/5 min
+NOOFSHOCKS,1,No. of shocks
+NOOFSENSITIVEANIMALS,1,No. of sensitive animals
+NOOFSENSITIVE,1,No. of sensitive
+NOOFSCRATCHES,1,No. of scratches
+NOOFROSETTES100JURKATTCELLS,1,No. of rosettes/100 Jurkat T cells
+NOOFREVERTANTSPERPLATE,1,No. of revertants per plate
+NOOFRETCHES,1,No. of retches
+NOOFRELAPSES,1,No. of relapses
+NOPROTECTEDTESTED,1,No. protected/tested
+NOPROTECTEDNODOSED,1,No. protected/ No.dosed
+NOPREGNANTMATED,1,No. pregnant/mated
+NOPOSITIVECASESTESTED,1,No. positive cases/tested
+NOPARTIAL,1,No. partial
+NOOFWRITHINGS,1,No. of writhings
+NOOFWRITHES,1,No. of writhes
+NOOFWDS60MIN,1,No. of WDS/60 min
+NOOFVOMITINGEPISODES,1,No. of vomiting episodes
+NOOFVIRUSFREEMICE,1,No. of virus free mice
+NOOFUPTAKESITES,1,No. of uptake sites
+NOOFUNTREATEDCELLS,1,No. of untreated cells
+NOOFTUMOURS,1,No. of tumours
+NOOFTUMORSMOUSE,1,No. of tumors/mouse
+NOOFTUMORS,1,No. of tumors
+NOOFTRANSFERS,1,No. of transfers
+NSB,1,NSB
+NS,1,NS
+NRN,1,Nr/N
+NRD,1,NRD
+NR,1,NR
+NOTOXICITYTESTED,1,No. toxicity/tested
+NOTOTAL,1,No. total
+NOSURVIVED,1,No. survived
+NORMALWEIGHTGAIN,1,Normal weight gain
+NORMALIZEDABUNDANCESFORDMSO,1,Normalized abundances for DMSO
+NORMALIZEDABUNDANCESFORCOMPOUND,1,Normalized abundances for compound
+NORMALIZATION,1,Normalization
+NORMALBEATS,1,Normal beats
+NORMAL,1,Normal
+NORESPANIMALSTOTAL,1,No. resp animals / Total
+NORELEASE,1,NO release
+OCC50,1,Occ50
+OCC,1,Occ
+OBSERVED[PT],1,Observed [pt]
+OBSERVEDRELAXIVITY,1,Observed relaxivity
+OBSERVEDLOGAPA,1,Observed log APA
+OBSERVEDAT,1,Observed at
+O2PRODUCTION,1,O2 production
+O2CONSUMPTION,1,O2 consumption
+NUMBER,1,Number
+NUCLEICACIDS,1,Nucleic acids
+NUCLEARCATARACT,1,Nuclear cataract
+NTD50,1,NTD50
+NTD,1,NTD
+NSVT,1,NSVT
+NSRSURVIVALRATE,1,NSR survival rate
+NSR,1,NSR
+OFHDL-C,1,Of HDL-C
+OFFSETTIME,1,Offset time
+OFF-RATE,1,Off-rate
+OFDOSEEXCRETED,1,Of dose excreted
+OFCONTROL,1,Of control
+ODMAX,1,OD max
+ODC,1,ODC
+OD(540NM),1,OD(540nm)
+OD,1,OD
+OCCUPANCY,1,Occupancy
+OCCULATIONS,1,Occulations
+OCCLUSIONTIME,1,Occlusion time
+OCCLUSIONS,1,Occlusions
+OCCED50,1,Occ ED50
+OCC90,1,Occ90
+OCC80,1,Occ80
+OPSINSHIFTACTIVITY,1,Opsin shift activity
+ONSETTIME,1,Onset time
+ONSETSEIZURE,1,Onset seizure
+ONSETOFBLOCK,1,Onset of block
+ONSETOFACTION,1,Onset of action
+"ONSETFORSLEEP,MIN",1,"Onset for sleep, min"
+ONSETFORSLEEP,1,Onset for sleep
+ONSET,1,Onset
+ONCOSTATICINDEX,1,Oncostatic index
+OMNIMED,1,OMNI med
+OLIGOSHIFTED,1,Oligo shifted
+OLIGOMODIFIED,1,Oligo modified
+OFVIABILITY,1,Of viability
+OFTUMORS,1,Of tumors
+OFRATSTURNING,1,Of rats turning
+OFNON-HDL-C,1,Of non-HDL-C
+OT,1,OT
+OSMOLALITY,1,Osmolality
+OSAV,1,OSAV
+ORIGINALAMPLITUDE,1,Original amplitude
+ORGANWEIGHTRATIO,1,Organ weight ratio
+ORGANWEIGHT,1,Organ weight
+ORGANDISTRIBUTION,1,Organ distribution
+ORALDURATION,1,Oral duration
+ORALDOSE,1,Oral dose
+ORALDIURETICACTIVITY,1,Oral diuretic activity
+ORALACTIVITY,1,Oral activity
+OPTIMUMTC,1,Optimum T/C
+OPTIMALDOSE,1,Optimal dose
+OPTIMALDOSAGE,1,Optimal dosage
+OPTIMALCONCENTRATION,1,Optimal concentration
+OPTICALDENSITY,1,Optical density
+P(1MIC),1,p(1/MIC)
+P,1,P
+OXYTOCICACTIVITY,1,Oxytocic activity
+OXYGENUPTAKE,1,Oxygen uptake
+OXYGENCONSUMPTIONRATE,1,Oxygen consumption rate
+OXYGENCONSUMED,1,Oxygen consumed
+OXIDATIONRATE,1,Oxidation rate
+OXIDATION,1,Oxidation
+OVULATINGRATS,1,Ovulating rats
+OVRATTOTAL,1,ov. rat/total
+OVERTBEHAVOIUR,1,Overt behavoiur
+OUABAINDOSE,1,Ouabain dose
+OUABAIN,1,Ouabain
+OTINTERVAL,1,OT interval
+OTHERS,1,Others
+OTHER,1,Other
+PA2,1,pA2
+PA10,1,pA10
+PA1,1,pA1
+P74,1,P7.4
+P50E,1,P50e
+P50DP50C,1,P50d/P50c
+P50D,1,P50d
+P50,1,P50
+P2UPTAKE,1,P2 uptake
+P24SYNTHESIS,1,p24 synthesis
+P24CONCENTRATION,1,P24 concentration
+P24,1,p24
+P10MIC,1,p10 MIC
+P-VALUE,1,P-value
+P-450LOSS,1,P-450 loss
+P(EI),1,P (Ei)
+PANCREATICRESPONSE,1,Pancreatic response
+PALPHAKA,1,p alphaKa
+PALMITOYL-COAOXID,1,Palmitoyl-CoA oxid
+PAI50,1,pAI50
+PAH50,1,pAH50
+PAH,1,pAh
+PAFC50,1,pAFC50
+PAE,1,PAE
+PAD,1,pAD
+PACTIVITY,1,PActivity
+PACKEDCELLVOLUME,1,packed cell volume
+PABC,1,P ABC
+PA50,1,pA50
+PA2PKB,1,pA2/pKB
+PA2APP,1,pA2 app
+PA2(APP),1,pA2(app)
+PARASITEMIA,1,Parasitemia
+PARASITECLEARANCETIME,1,Parasite_Clearance_time
+PARASITECLEARANCE,1,Parasite_Clearance
+PARASITAEMIA,1,Parasitaemia
+PARAPARETICMICE,1,Paraparetic mice
+PARALYSIS,1,Paralysis
+PAR,1,PAR
+PAPPS,1,Papps
+PAPPE-6,1,Papp e-6
+PAPPBTOAPLUSINHIBITOR(MEAN),1,Papp B to A plus inhibitor (mean)
+PAPPBTOA(MEAN),1,Papp B to A (mean)
+PAPPATOBPLUSINHIBITOR(MEAN),1,Papp A to B plus inhibitor (mean)
+PAPPATOB(MEAN),1,Papp A to B (mean)
+PAPP,1,Papp
+PAP,1,PAP
+PAOACTIVITY,1,PAO activity
+PB,1,PB
+PAWWEIGHTINCREASE,1,Paw weight increase
+PAWWEIGHT,1,Paw weight
+PAWVOLUME,1,Paw volume
+PAWSWELLING,1,Paw swelling
+PAWEDEMA,1,Paw edema
+PASSIVITY,1,Passivity
+PARTITIONCOEFFICIENT,1,Partition coefficient
+PARTIALREMISSION,1,Partial remission
+PARENTREMAININGATTIME,1,Parent remaining at time
+PARENTCOMPOUND,1,Parent compound
+PARASITESUPPRESSION,1,Parasite suppression
+PARASITESNOPER100MYOBLASTS,1,Parasites no. per 100 Myoblasts
+PARASITES,1,Parasites
+PARASITEMIACLEARANCEAFTERTREATMENT,1,Parasitemia clearance after treatment
+PARASITEMIACLEARANCEAFTERIMMUNOSUPPRESSION,1,Parasitemia clearance after immunosuppression
+PCASHIFT,1,PCA shift
+PCACO2,1,Pcaco2
+PCACO-2,1,PCaco-2
+PCA,1,PCA
+PC95,1,PC95
+PC60,1,pC60
+PC50,1,PC50
+PC30,1,pC30
+PC3,1,pC3
+PC2A,1,pC2A
+PC25,1,pC25
+PC20,1,pC20
+PC100,1,PC100
+PC1,1,pC1
+PBI,1,PBI
+PBBB,1,pBBB
+PDC,1,PDC
+PD2APP,1,pD2 app
+PD200,1,PD200
+PD100,1,PD100
+PD10,1,pD10
+PCY,1,PCY
+PCRCURERATE,1,PCR cure rate
+PCPACTIVITY,1,PCP activity
+PCOCT,1,PCoct
+PCMAANTAGONISM,1,PCMA antagonism
+PCHANGE,1,pChange
+PCF,1,pCF
+PCD,1,pCD
+PCC50,1,pCC50
+PCB50,1,pCB50
+PCB,1,pCB
+PEAKGH,1,Peak GH
+PEAKEFFECTTIME,1,Peak effect time
+PEAKEFFECT,1,Peak effect
+PEAKDELTAMAP,1,Peak deltaMAP
+PEAKDELTAHR,1,Peak deltaHR
+PEAKCURRENT,1,Peak current
+PEAKCONCENTRATION,1,Peak concentration
+PE,1,Pe
+PDR,1,PDR
+PDK,1,PDK
+PDI,1,PDI
+PDHACTIVEPDHTOTAL,1,PDH active/PDH total
+PDELTAIOP,1,pDelta IOP
+PDEINHIBITION,1,PDE inhibition
+PDD50,1,PDD50
+PDC50,1,pDC50
+PEC90,1,pEC90
+PEC50DISS,1,pEC50 diss
+PEC50,1,pEC50
+PEC5,1,pEC5
+PEC200,1,pEC200
+PEC20,1,pEC20
+PEC170,1,pEC170
+PEC15,1,pEC15
+PEC100,1,pEC100
+"PEC05,DISS",1,"pEC0.5,diss"
+PEC05,1,pEC0.5
+PEAKTIME,1,Peak time
+PEAKSTRIATALUPTAKE,1,Peak striatal uptake
+PEAKRHGH,1,Peak rhGH
+PEAKRADIOACTIVITYINBLOOD,1,Peak radioactivity in blood
+PEAKINHIBITION,1,Peak inhibition
+PED40,1,pED40
+PEC99,1,pEC99
+-LOGKDISS,1,-Log Kdiss
+-LOGKD50,1,-Log KD50
+-LOGKD,1,-Log KD
+-LOGK05,1,-Log K0.5
+-LOGK,1,-Log K
+-LOGID50,1,-Log ID50
+-LOGIC50IC50,1,-Log IC50/IC50
+-LOGIC50,1,-Log IC50
+-LOGIC25,1,-Log IC25
+-LOGI50,1,-Log I50
+-LOGED50,1,-Log ED50
+-LOGEC50,1,-Log EC50
+-LOGEC20,1,-Log EC20
+-LOGCONCENTRATION,1,-Log concentration
+PERMEATED,1,Permeated
+PERMEABILITYRATE,1,Permeability rate
+PERMEABILITYLIMITED,1,Permeability limited
+PERMEABILITYINDEX,1,Permeability index
+PERMEABILITYCOEFFICIENT,1,Permeability coefficient
+PERIPHERALRESTRICTIONINDEX,1,Peripheral restriction index
+PERIOSTEALMINERALIZINGSURFACE,1,Periosteal mineralizing surface
+PERIOSTEALMINERALAPPOSITIONRATE,1,Periosteal mineral apposition rate
+PERFORMANCE,1,Performance
+PERCENTREMAINING,1,Percent remaining
+PERCENTEFFECT,1,Percent Effect
+PENETRATION,1,Penetration
+PEMR,1,pEMR
+PEI,1,PEI
+PEFF,1,Peff
+PED50,1,pED50
+PGI,1,PGI
+PGE2LEVEL,1,PGE2 Level
+PGC50,1,pGC50
+PG,1,PG
+PFUML,1,PFU/ml
+PFU,1,PFU
+PFE3+,1,pFe3+
+PFE3,1,pFe3
+PFCSPLLEEN,1,PFC/splleen
+PFCSPLEEN,1,PFC/spleen
+PFC,1,PFC
+PFA,1,PFA
+PF50,1,PF50
+PF,1,PF
+PERTURBATIONS,1,Perturbations
+PEROXIDASERATE,1,Peroxidase rate
+PHOSPHOLIPIDOSISINDEX,1,Phospholipidosis_index
+PHOSPHOLIPIDOSISAS%OFPOSITIVECONTROL,1,Phospholipidosis as % of positive control
+PHOSPHOLIPIDOSIS,1,Phospholipidosis
+PHOSLPDCHANGE,1,PHOSLPD_CHANGE
+PHOSLPD,1,PHOSLPD
+PHOS,1,PHOS
+PHORBOLDISPLACEMENT,1,Phorbol displacement
+PHDEPENDENCE,1,pH dependence
+PHARMACOKINETIC,1,Pharmacokinetic
+PHAGOCYTOSIS,1,Phagocytosis
+PHA,1,PHA
+PH50,1,pH50
+PH12,1,pH1/2
+PH,1,pH
+PGPABAANALOGUERATIO,1,Pgp AbA/analogue ratio
+PGI50,1,pGI50
+PIC100,1,pIC100
+PI50,1,pI50
+PHYTOTOXICITY,1,Phytotoxicity
+PHYSICALDEPENDENCECAPACITY,1,Physical dependence capacity
+PHOTOXICREACTION,1,Photoxic reaction
+PHOTOTOXICITY,1,Phototoxicity
+PHOTOTOXICEFFECT,1,Phototoxic effect
+PHOTOSENSITIZATION,1,Photosensitization
+PHOTOLYSIS,1,Photolysis
+PHOTO-CROSS-LINKINGOFDNA,1,Photo-cross-linking of DNA
+PHOSPHORYLATIONRATE,1,Phosphorylation rate
+PHOSPHORYLATION,1,Phosphorylation
+PHOSPHORYLATINGACTIVITY,1,Phosphorylating activity
+PHOSPHOROLYSIS,1,Phosphorolysis
+PHOSPHOR,1,Phosphor
+PHOSPHOLIPIDOSISMEC,1,Phospholipidosis_MEC
+PIMETABOLISM,1,PI metabolism
+PIHYDROLYSIS,1,PI hydrolysis
+PIGMENTINDUCTION,1,Pigment induction
+PIGMENTBINDING,1,Pigment binding
+PIGMENTATIONCAPACITY,1,Pigmentation capacity
+PID50,1,pID50
+PICSEIZURE,1,PIC seizure
+PICOEQUIVALENTSOFAMINE10E6CELLS,1,Picoequivalents of amine/10e6 cells
+PIC90,1,pIC90
+PIC50(MM),1,pIC50(mM)
+PIC50(CALC),1,pIC50(calc)
+PIC50(APP),1,pIC50(app)
+PIC50,1,pIC50
+PIC35,1,pIC35
+PIC30,1,pIC30
+PIC25,1,pIC25
+PKA3,1,pKa3
+"PKA,2",1,"pKa,2"
+"PKA,1",1,"pKa,1"
+PKA(1),1,pKa(1)
+PK50,1,pK50
+PK4,1,pK4
+PK3',1,pK3'
+PK3,1,pK3
+PK2,1,pK2
+PK1D,1,pK1d
+PK1B,1,pK1b
+PK1A,1,pK1a
+PK1,1,pK1
+PK,1,pK
+PITURNOVER,1,PI turnover
+PINCREASE,1,P Increase
+PKAPP,1,pKapp
+PKAE2,1,pKa E2
+PKADECREASE,1,pKa_decrease
+PKACT,1,pKact
+PKABN,1,pKa BN
+PKAB3,1,pKa_B3
+PKAB2,1,pKa_B2
+PKAB1,1,pKa_B1
+PKAAZ,1,pKa AZ
+PKAAPP,1,pKa app
+PKAAN,1,pKa AN
+PKAA2,1,pKa_A2
+PKAA1,1,pKa_A1
+PKA6,1,pKa6
+PKA5,1,pKa5
+PKA4,1,pKa4
+PKL,1,pKL
+PKIRATIO,1,pKi ratio
+PKINC,1,pKinc
+PKINACT,1,pKinact
+PKIL,1,pKiL
+PKIH,1,pKiH
+PKIC,1,pKic
+PKI1-PKI2,1,pKi1-pKi2
+PKI(UM),1,pKi(uM)
+PKI,1,pKi
+PKHB,1,pKHB
+PKH,1,pKH
+PKC,1,PKC
+PKB(APP),1,pKb(app)
+PKAVALUE,1,pKa value
+PKAPY,1,pKapy
+PLASMACONTENT,1,Plasma content
+PLASMACONC,1,Plasma conc
+PLASMACLEARANCE,1,Plasma clearance
+PLASMACA2+,1,Plasma Ca2+
+PLASMAALTAT24H,1,Plasma ALT at 24 h
+PLASMA-E2CONCENTRATION,1,Plasma-E2 concentration
+PLASMA,1,Plasma
+PLAQUEREDUCTION,1,Plaque reduction
+PLAQUEINHIBITIONRESULT,1,Plaque inhibition result
+PLAQUEACCUM,1,Plaque accum
+PL-017SHIFT,1,PL-017 shift
+PL,1,PL
+PKX,1,pKx
+PKRED,1,pKred
+PKR+,1,pKR+
+PKM,1,pKm
+-LOGC,1,-Log C
+-LOGALPHA,1,-Log alpha
+-LOGACTIVITY,1,-Log activity
+-LOG1KB,1,-Log 1/Kb
+-LOG(SOLUBILITY),1,-log(solubility)
+-LOG(RATIOIC50),1,-log(RatioIC50)
+-LOG(INH100-INH),1,-log(inh/100-inh)
+-LOG(1MKC),1,-log(1/MKC)
+-LOG(1MIC),1,-log(1/MIC)
+-LOG(1MED),1,-log(1/MED)
+-LOG(1HC50),1,-log(1/HC50)
+-LOG(1EC50),1,-log(1/EC50)
+-LOG(1AD50),1,-log(1/AD50)
+-LNK,1,-ln K
+-LN(MIC),1,-ln (MIC)
+-DELTAGOBS,1,-Delta G obs
+PLASMANEFA,1,Plasma_NEFA
+PLASMAMIC,1,Plasma MIC
+PLASMAMAGNESIUMCHANGEBY,1,Plasma magnesium_CHANGE_BY
+PLASMALIPIDS,1,Plasma lipids
+PLASMALIPIDLEVEL,1,Plasma lipid level
+PLASMALEVELS,1,Plasma levels
+PLASMALEPTIN,1,Plasma_leptin
+PLASMAINTEGRAL,1,Plasma integral
+PLASMAIL-6,1,Plasma_IL-6
+PLASMAHISTAMINE,1,Plasma histamine
+PLASMAHALFLIFE,1,Plasma half life
+PLASMAHALF-LIFE,1,Plasma half-life
+PLASMAGLUCOSELEVEL,1,Plasma glucose level
+PLASMAGHRELEASE,1,Plasma GH release
+PLASMAGH,1,Plasma GH
+PLASMACORTICOSTERONE,1,Plasma corticosterone
+PLEURALVOLUME,1,Pleural volume
+PLEURALFLUID,1,Pleural fluid
+PLD50,1,pLD50
+PLC50,1,pLC50
+PLATELETSX10E-3,1,Platelets x10e-3
+PLATELETCOUNTUL,1,Platelet count/ul
+PLATELETCOUNT,1,Platelet count
+PLATELETAGGREGATION,1,Platelet aggregation
+PLATELET,1,Platelet
+PLAT,1,PLAT
+PLASMA[5-FU],1,Plasma_[5-FU]
+PLASMA[14C]CHOLESTEROL,1,Plasma [14C] cholesterol
+PLASMATOTALCHOLESTEROL,1,Plasma total cholesterol
+PLASMATG,1,Plasma TG
+PLASMATC,1,Plasma TC
+PLASMASELECTIVITY,1,Plasma selectivity
+POLYAMINEPOOLS,1,Polyamine pools
+POLYAMINELEVEL,1,Polyamine level
+POLYAMINECONTENT,1,Polyamine content
+POLYAMINE,1,Polyamine
+POESCORE,1,POE score
+POCT,1,Poct
+PO2,1,PO2
+PNMED,1,p nMED
+PNF,1,pNF
+PMLD,1,pMLD
+PMIC50,1,pMIC50
+PMIC,1,pMIC
+PMED,1,pMED
+PMEC,1,pMEC
+PMA,1,PMA
+PLT,1,PLT
+POSSIBLERESPONSE,1,Possible response
+POSITIVEPAWS,1,Positive paws
+POSITIVECONTROL,1,Positive control
+POSITIVECELLS,1,Positive cells
+POSITIVE,1,Positive
+POPULATIONTUBULIN-DIFFERENT-PHENOTYPE(%),1,Population Tubulin-Different-Phenotype (%)
+POPULATIONPYKNOSEDNUCLEI(%),1,Population Pyknosed Nuclei (%)
+POPULATIONNORMAL(%),1,Population Normal (%)
+POPULATIONMITOTICCELLS(%),1,Population Mitotic Cells (%)
+POPULATIONMITOCHONDRIADIFFERENT-PHENOTYPE(%),1,Population Mitochondria Different-Phenotype (%)
+POPULATIONMEMBRANEPERMEABLE-PHENOTYPE(%),1,Population Membrane Permeable-Phenotype (%)
+POPULATIONHOECHSTHIGHINTENSITYOBJECTS(%),1,Population Hoechst High Intensity Objects (%)
+POPULATIONHEALTHYNUCLEI(%),1,Population Healthy Nuclei (%)
+POPULATIONFRAGMENTEDNUCLEI(%),1,Population Fragmented Nuclei (%)
+POPULATIONAPOPTOTIC(%),1,Population Apoptotic (%)
+POLYMORPHONUCLEARCELLS,1,Polymorphonuclear cells
+POTENCYINDEX,1,Potency index
+POTENCYDYRK1BUM,1,Potency_Dyrk1b_uM
+POTENCYDYRK1AUM,1,Potency_Dyrk1a_uM
+POTENCYCLK4UM,1,Potency_Clk4_uM
+POTENCYCLK3UM,1,Potency_Clk3_uM
+POTENCYCLK2UM,1,Potency_Clk2_uM
+POTENCY,1,Potency
+POTASSIUM,1,POTASSIUM
+POT,1,POT
+POSTSYNAPTICANTAGONIST,1,Postsynaptic antagonist
+POSTJUNCTIONALANTAGONISTPOTENCY,1,Postjunctional antagonist potency
+POSTJUNCTIONALAGONISTPOTENCY,1,Postjunctional agonist potency
+POSTDRUGBLOODPRESSURE,1,Post drug blood pressure
+POSTDRUG,1,Postdrug
+POSTANTIBIOTICEFFE,1,Post Antibiotic Effe
+POSTANITBIOTICEFFECT,1,Post anitbiotic effect
+PRA2,1,pRA2
+PRA1,1,pRA1
+PRA,1,pRA
+PR,1,PR
+PPM,1,PPM
+PPKB,1,ppKb
+PPB,1,PPB
+PP2ASELECTIVITY,1,PP2A Selectivity
+POW,1,Po/w
+POTVIGILANCE,1,POT vigilance
+POTENTIATIONINFLECTIONPOINT,1,Potentiation inflection point
+POTENTIATION,1,Potentiation
+POTENTIAL,1,Potential
+POTENTATION,1,Potentation
+POTENCYVSEKC,1,Potency vs EKC
+POTENCYMEAN,1,Potencymean
+PRIMARYTUMORWEIGHT,1,Primary tumor weight
+PRIMARYRESPONSE,1,Primary response
+PREVENTIVEINDEX,1,Preventive_index
+PRESYNAPTICANTAGONISM,1,Presynaptic antagonism
+PRESUMEDDRUG-RELATEDDEATHS,1,Presumed drug-related deaths
+PRESSURERESPONSE,1,Pressure response
+PRESSURE,1,Pressure
+PRESSORRESPONSE,1,Pressor response
+PRESSORACTIVITY,1,Pressor activity
+PREJUNCTIONALANTAGONISTPOTENCY,1,Prejunctional antagonist potency
+PREJUNCTIONALAGONISTPOTENCY,1,Prejunctional agonist potency
+PREGNANT,1,Pregnant
+PREGNANCYINDEX,1,Pregnancy index
+PREDRUG,1,Predrug
+PRECURSORINHIBITION,1,Precursor inhibition
+PRCF,1,PRCF
+PROLIFERATION,1,Proliferation
+PROLACTINTREATMENT,1,Prolactin treatment
+PROLACTINRELEASERATE,1,Prolactin release rate
+PROLACTINRELEASE,1,Prolactin release
+PROLACTINCONTROL,1,Prolactin control
+PROGRESSEDTUMORS,1,Progressed tumors
+PROGRESSEDREMISSION,1,Progressed remission
+PROGESTERONEPRODUCTION,1,Progesterone production
+PROFILE,1,Profile
+PRODUCTION,1,Production
+PRODRUGREMAINS,1,Prodrug remains
+PRODRUGREDUCTION,1,Prodrug reduction
+PRODRUGRECONVERSION,1,Prodrug reconversion
+PROCONVULSANTACTION,1,Proconvulsant action
+PROBABILITY,1,Probability
+PRL,1,PRL
+PROTECTION,1,Protection
+PROTECTEDMICE,1,Protected mice
+PROTECTED,1,Protected
+PROT,1,PROT
+PROSTAGLANDINE2LEVEL,1,Prostaglandin E2 level
+PROPORTIONOFSURVIVORS,1,Proportion of survivors
+PROPIOALDEHYDEGENERATED,1,Propioaldehyde generated
+PROPERTY,1,Property
+PROOFOFPRINCIPLE,1,proof of principle
+PROMINENZ,1,Pro/Min/Enz
+PROLONGEDVRP,1,Prolonged VRP
+PROLONGEDQT,1,Prolonged QT
+PROLONGEDARP,1,Prolonged ARP
+PROLONGATIONEFFECT,1,Prolongation effect
+PROLONGATION,1,Prolongation
+PROLIFERATIVERESPONSE,1,Proliferative response
+PSYCHOTROPICEFFECT,1,Psychotropic Effect
+PSI,1,pSI
+PSA,1,PSA
+PS,1,PS
+PROTONATED,1,Protonated
+PROTEININTERACTIONENERGY,1,Protein interaction energy
+PROTEINCONTENT,1,Protein content
+PROTEINBOUND,1,Protein bound
+PROTEIN-DNACOMPLEXFORMATION,1,Protein-DNA complex formation
+PROTEIN,1,Protein
+PROTECTIVERATIO,1,Protective ratio
+PROTECTIVEEFFECT,1,Protective effect
+PROTECTIVEDOSE,1,Protective dose
+PROTECTIVEACTIVITY,1,Protective activity
+PROTECTIONRATIO,1,Protection ratio
+PROTECTIONINDEX,1,Protection index
+PXI50,1,pXI50
+PWT,1,PWT
+PWEIGHTCHANGE,1,pWeight change
+PW,1,Pw
+PVCS,1,PVCs
+PUPILSIZE,1,Pupil size
+PUNISHMENTTESTMSAD,1,Punishment test msad
+PUNCHWEIGHTMPOACTIVITY,1,Punch weight/MPO activity
+PTZSEIZURE,1,PTZ seizure
+PTZPROTECTION,1,PTZ protection
+PTZ,1,PTZ
+PTI,1,pTI
+PTGI,1,pTGI
+PTEXTENSION,1,PT extension
+PTCD50,1,pTCD50
+PTC50,1,pTC50
+QUENCH,1,Quench
+QUANTITY,1,Quantity
+QTINTERVAL,1,QT interval
+QTCDELTA,1,QTc delta
+QT,1,QT
+QMAX,1,Qmax
+QKD,1,qKD
+QH,1,QH
+QA,1,QA
+Q50,1,Q50
+Q12,1,Q1/2
+Q,1,Q
+P[BH+50],1,p[BH+50]
+P[A]50,1,p[A]50
+P[A50],1,p[A50]
+PYROGENICEFFECT,1,Pyrogenic effect
+RADIOACTIVITYLEVEL,1,Radioactivity level
+RADIOACTIVITYINURINE,1,Radioactivity in urine
+RADIOACTIVITY,1,Radioactivity
+RADIOACTIVECONSTITUENTS,1,Radioactive constituents
+RADIOACTIVEABSORPTION,1,Radioactive absorption
+RADIATIONPROT,1,Radiation prot
+RADIATIONEQUIVALENT,1,Radiation equivalent
+RADIALGROWTHINHIBITIONOFFUNGI(Ā)(MM),1,Radial growth inhibition of fungi (Ā) (mm)
+RACAPP,1,RAC app
+RAC,1,RAC
+RA,1,RA
+R50,1,R50
+R+V,1,R+V
+R%,1,R%
+R,1,R
+QUENCHING,1,Quenching
+RATECONSTANT,1,Rate constant
+RATECHANGE,1,Rate change
+RATEACCELERATION,1,Rate acceleration
+RATE,1,Rate
+RAPP,1,rapp
+RAP,1,RAP
+RANGEOFSURVIVALDAYS,1,Range of survival days
+RANGEOFSURVIVAL,1,Range of survival
+RANGEOFMIC,1,Range of MIC
+RANGEOFDEATHS,1,Range of deaths
+RANGEOFDEATH,1,Range of death
+RANGE,1,Range
+RADIUSOFINHIBITIONZONE,1,Radius of inhibition zone
+RADIOLIGANDBOUND,1,Radioligand bound
+RADIOLABELRECOVERY,1,Radiolabel recovery
+RADIOACTIVITYREMAINED,1,Radioactivity remained
+RATEOFREDUCTION,1,Rate of reduction
+RATEOFRECOVERY,1,Rate of recovery
+RATEOFPHOSPHORYLATION,1,Rate of phosphorylation
+RATEOFOXIDATION,1,Rate of oxidation
+RATEOFO2CONSUMPTION,1,Rate of O2 consumption
+RATEOFMETABOLISM,1,Rate of metabolism
+RATEOFINHIBITION,1,Rate of inhibition
+RATEOFHYDROLYSIS,1,Rate of hydrolysis
+RATEOFHYDRIDETRANSFER,1,Rate of hydride transfer
+RATEOFFORMATION,1,Rate of formation
+RATEOFDECREASE,1,Rate of decrease
+RATEOFDECOMPOSITION,1,Rate of decomposition
+RATEOFDEATH,1,Rate of death
+RATEMAX,1,Rate max
+RATECONSTANTAPP,1,rate constant app
+RATECONSTANT(K),1,Rate constant (k)
+RATIOCMAX,1,Ratio Cmax
+RATIOCIC95IC50,1,Ratio CIC95/IC50
+RATIOCC50IC50,1,Ratio CC50/IC50
+RATIOCC50EC50,1,Ratio CC50/EC50
+RATIOAUCMIC,1,RatioAUC/MIC
+RATIOAUC(INF),1,Ratio AUC(inf)
+RATIOAUC,1,Ratio AUC
+RATIOATPASEACTIVITY,1,Ratio_ATPase activity
+RATIO(CICE),1,Ratio (Ci/Ce)
+RATIO,1,Ratio
+RATING,1,Rating
+RATFERTILITY,1,Rat fertility
+RATERESPONSE,1,Rate response
+RATEOF[CA+2]INCREASE,1,Rate of [Ca+2] increase
+RATEOFTURBIDITYCHANGE,1,Rate of turbidity change
+RATEOFROTATION,1,Rate of rotation
+RATIOLIVERBLOOD,1,Ratio_liver/blood
+RATIOLD50IC50,1,Ratio LD50/IC50
+RATIOLD50ED50,1,Ratio LD50/ED50
+RATIOLD50EC50,1,Ratio LD50/EC50
+RATIOLC50IC50,1,Ratio LC50/IC50
+RATIOLC50,1,RatioLC50
+RATIOKI(APP),1,Ratio Ki(app)
+RATIOKE,1,Ratio Ke
+RATIOIP,1,Ratio I/P
+RATIOIC50EC50,1,Ratio IC50/EC50
+RATIOIC50,1,Ratio IC50
+RATIOGI50EC50,1,Ratio GI50/EC50
+RATIOGI50,1,RatioGI50
+RATIOED50MIC50,1,Ratio ED50/MIC50
+RATIOED50,1,Ratio ED50
+RATIOCMAXBRAINPLASMA,1,Ratio_Cmax_brain/plasma
+RATTURNING,1,Rat turning
+RATSTURNING,1,Rats turning
+RATSBLOCKED,1,Rats blocked
+RATIO[3H]:TUBULIN,1,Ratio_[3H]:tubulin
+RATIOTUMOURPLASMA,1,Ratio_tumour/plasma
+RATIOTD50ED50,1,Ratio TD50/ED50
+RATIOPLASMACONCENTRATIONIC50,1,Ratio plasma concentration/IC50
+RATIOPKI,1,Ratio pKi
+RATIOPKB,1,Ratio pKb
+RATIOPIC50,1,Ratio pIC50
+RATIOPAPP,1,Ratio_Papp
+RATIOPA2,1,Ratio pA2
+RATIOOFSTIMULATION,1,Ratio of stimulation
+RATIOOFDOSE,1,Ratio of dose
+RATIOOFDISTRIBUTION,1,Ratio of distribution
+RATIOOFDEPOLARIZINGACTIVITY,1,Ratio of depolarizing activity
+RCI,1,RCI
+RC50,1,RC50
+RC10,1,RC10
+RBP,1,RBP
+RBLOODPLASMA,1,Rblood_plasma
+RBI,1,RBI
+RBF,1,RBF
+RBCX10E3,1,RBC x 10e 3
+RBCNUC,1,RBCNUC
+RBC,1,RBC
+RBARATIO,1,RBA ratio
+RBADATA,1,RBA data
+RBA2,1,RBA2
+RBA1,1,RBA1
+RBA,1,RBA
+RB,1,rb
+RECEPTOROCCUPIED,1,Receptor occupied
+RECEPTOROCCUPANCY,1,Receptor occupancy
+RECEPTORBINDING,1,Receptor binding
+REC,1,REC
+REACTORSTESTGROUP,1,Reactors/Test group
+REACTIVITY,1,Reactivity
+REACTIVATION,1,Reactivation
+REACTIONTIME,1,Reaction time
+REACTIONRATE,1,Reaction rate
+REACTION,1,Reaction
+REA,1,REA
+RE,1,RE
+RD500,1,RD500
+RD50,1,RD50
+RD1000,1,RD1000
+RD100,1,RD100
+REDUCEDCYP7A1GENEEXP,1,Reduced_Cyp7a1_gene_exp
+REDUCEDCIRCADIANOSCILLATION,1,Reduced_circadian_oscillation
+REDUCEDBP,1,Reduced BP
+RECTALTEMPERATURE,1,Rectal temperature
+RECOVERYTIME,1,Recovery time
+RECOVERYRATE,1,Recovery rate
+RECOVERYBTOAPLUSINHIBITOR(MEAN),1,Recovery B to A plus inhibitor (mean)
+RECOVERYBTOA(MEAN),1,Recovery B to A (mean)
+RECOVERYATOBPLUSINHIBITOR(MEAN),1,Recovery A to B plus inhibitor (mean)
+RECOVERYATOB(MEAN),1,Recovery A to B (mean)
+RECOVERY,1,Recovery
+RECOVEREDRADIOACTIVITY,1,Recovered radioactivity
+RECOVEREDINURINE,1,Recovered in urine
+RECOVEREDINBILE,1,Recovered in bile
+RECOVERED,1,Recovered
+RECEPTORSTATE,1,Receptor state
+%OFNORELEASE,1,% of NO release
+REDUCTIONINPROSTATEWEIGHT,1,Reduction in prostate weight
+REDUCTIONINMOVEMENT,1,Reduction in movement
+REDUCTIONINHEARTRATE,1,Reduction in heart rate
+REDUCTIONINEOSCOUNT,1,Reduction in EOS count
+REDUCTIONINCLRENAL,1,reduction in CL_renal
+REDUCTIONINBLOODPRESSURE,1,Reduction in blood pressure
+REDUCTIONINAUC,1,Reduction in AUC
+REDUCTIONINARTERIALBLOODPRESSURE,1,Reduction in arterial blood pressure
+REDUCTIONFACTOR,1,Reduction factor
+REDUCTION,1,Reduction
+REDUCINGACTIVITY,1,Reducing activity
+REDUCEDSREBF1GENEEXP,1,Reduced_Srebf1_gene_exp
+REDUCEDSERPINE1GENEEXP,1,Reduced_Serpine1_gene_exp
+REDUCEDPARASITEMIA,1,Reduced_parasitemia
+REDUCEDFOODINTAKE,1,Reduced food intake
+REDUCTIONINTG,1,Reduction in TG
+REDUCTIONINRBS,1,Reduction in RBS
+-DELTAG,1,-Delta G
+([I][S]05),1,([I]/[S]0.5)
+(KCATKM)KUNCAT,1,(kcat/KM)/kuncat
+%TURNOVER,1,% turnover
+%T>MIC,1,%T>MIC
+%RESIDUALKINASEACTIVITY,1,% residual kinase activity
+%RESIDUALACTIVITYWITHSKEPINONE-L,1,% Residual activity with Skepinone-L
+%RELEASEOFNITRICOXIDE,1,% release of nitric oxide
+%REDUCTION,1,% reduction
+%RECOVERY,1,% recovery
+%R,1,%R
+%PFU,1,%PFU
+%OFSELECTIVITY,1,% of selectivity
+%OFRESIDUALACTIVITY,1,% of residual activity
+RELATIVEACTIVITY,1,Relative activity
+RELATIVEACTIVATION,1,Relative activation
+RELATIVEABILITY,1,Relative ability
+RELATIVE,1,Relative
+RELATION,1,Relation
+RELAPSES,1,Relapses
+REGRESSIONRESPONSE,1,Regression response
+REGIOSPECIFICITY,1,Regiospecificity
+REFLEX,1,Reflex
+REFIONCOSTATICINDEX,1,Ref I oncostatic index
+REDUCTIONOFPROSTATEWEIGHT,1,Reduction of prostate weight
+REDUCTIONOFLIVEWORMS,1,Reduction of live worms
+REDUCTIONOFIOP,1,Reduction of IOP
+REDUCTIONOFHEARTRATE,1,Reduction of heart rate
+REDUCTIONINVIRUSYIELD,1,Reduction in virus yield
+REDUCTIONINVIRUSTITER,1,Reduction in virus titer
+RELATIVECONTRACTILEPOTENCY,1,Relative contractile potency
+RELATIVECONCENTRATION,1,Relative concentration
+RELATIVECHANGE,1,Relative change
+RELATIVEBINDINGPOTENCY,1,Relative binding potency
+RELATIVEBINDINGAFFINITY,1,Relative binding affinity
+RELATIVEBINDING,1,Relative binding
+RELATIVEANTITUMORACTIVITY,1,Relative antitumor activity
+RELATIVEANTIANDROGENICACTIVITY,1,Relative antiandrogenic activity
+RELATIVEANALGESICPOTENCY,1,Relative analgesic potency
+RELATIVEAMPLITUDE,1,Relative amplitude
+RELATIVEAMOUNT,1,Relative amount
+RELATIVEAGONISTICACTIVITY,1,Relative agonistic activity
+RELATIVEAGONISTACTIVITY,1,Relative agonist activity
+RELATIVEAFFINITY,1,Relative affinity
+RELATIVEADRENALWEIGHT,1,Relative adrenal weight
+RELATIVEACTIVITYOFACHE,1,Relative activity of AChE
+RELATIVEFLUORESCENTUNIT,1,Relative Fluorescent Unit
+RELATIVEFLORESCENCE,1,Relative florescence
+RELATIVEF%,1,Relative F%
+RELATIVEET-AIC50,1,Relative ET-A IC50
+RELATIVEESTERASESUSCEPTIBILITY,1,Relative esterase susceptibility
+RELATIVEENZYMEACTIVITY,1,Relative enzyme activity
+RELATIVEEFFICIENCY,1,Relative efficiency
+RELATIVEEFFICACY,1,Relative efficacy
+RELATIVEEFFECT,1,Relative effect
+RELATIVEED50,1,Relative ED50
+RELATIVEEC30,1,Relative EC30
+RELATIVEDISSOCIATIONRATE,1,Relative dissociation rate
+RELATIVEDIFFERENTIATINGACTIVITY,1,Relative differentiating activity
+RELATIVEDAUNOMYCINACCUMULATION,1,Relative daunomycin accumulation
+RELATIVECYTOTOXICITY,1,Relative cytotoxicity
+RELATIVECYTOTOXICACTIVITY,1,Relative cytotoxic activity
+RELATIVEINTRINSICACTIVITY,1,Relative intrinsic activity
+RELATIVEINTENSITY,1,Relative intensity
+RELATIVEINOTROPICPOTENCY,1,Relative inotropic potency
+RELATIVEINITIALSLOPE,1,Relative initial slope
+RELATIVEINITIALRATE,1,Relative initial rate
+RELATIVEINHIBITORYPOTENCY,1,Relative inhibitory potency
+RELATIVEINHIBITORYACTIVITY,1,Relative inhibitory activity
+RELATIVEINHIBITORPOTENCY,1,Relative inhibitor potency
+RELATIVEINHIBITIONINDEX,1,Relative inhibition index
+RELATIVEINHIBITION,1,Relative inhibition
+RELATIVEINFLUX,1,Relative influx
+RELATIVEINACTIVATION,1,Relative inactivation
+RELATIVEID50,1,Relative ID50
+RELATIVEIC50,1,Relative IC50
+RELATIVEHYDROLYSISRATE,1,Relative hydrolysis rate
+RELATIVEHYDROLYSIS,1,Relative hydrolysis
+RELATIVEONCENTRATION,1,Relative oncentration
+RELATIVEODNUPTAKE,1,Relative ODN uptake
+RELATIVEMOLARPOTENCY,1,Relative molar potency
+RELATIVEMETABOLICSTABILITY,1,Relative metabolic stability
+RELATIVEMETABOLICRATE,1,Relative metabolic rate
+RELATIVEMAXIMUM,1,Relative maximum
+RELATIVELUCIFERASERESPONSE,1,Relative luciferase response
+RELATIVELOSSOFPOTENCY,1,Relative loss of potency
+RELATIVELIVERWEIGHT,1,Relative liver weight
+RELATIVELIPOPHILICITY,1,Relative lipophilicity
+RELATIVELEVEL,1,Relative level
+RELATIVEKM,1,Relative Km
+RELATIVEKI,1,Relative Ki
+RELATIVEKD,1,Relative Kd
+RELATIVEJC-1ACCUMULATION,1,Relative JC-1 accumulation
+RELATIVEIONOTROPICACTIVITY,1,Relative ionotropic activity
+RELATIVESELECTIVITY,1,Relative Selectivity
+RELATIVESEAPACTIVITY,1,Relative SEAP activity
+RELATIVESALIDIURETICACTIVITY,1,Relative salidiuretic activity
+RELATIVERESPONSE,1,Relative response
+RELATIVERESISTANCE,1,Relative resistance
+RELATIVERATEOFHYDROLYSIS,1,Relative rate of hydrolysis
+RELATIVERATEOFDECOMPOSITION,1,Relative rate of decomposition
+RELATIVERATEMETABOLISM,1,Relative rate metabolism
+RELATIVERATE,1,Relative rate
+RELATIVEPT,1,Relative PT
+RELATIVEPROTECTION,1,Relative protection
+RELATIVEPOTENCYRATIO,1,Relative Potency Ratio
+RELATIVEPHOSPHORYLATIONRATE,1,Relative phosphorylation rate
+RELATIVEPHOSPHORYLATION,1,Relative phosphorylation
+RELATIVEPEROXIDATION,1,Relative peroxidation
+RELATIVEPERMIABILITY,1,Relative permiability
+RELATIVEUPTAKE,1,Relative uptake
+RELATIVETUMORGROWTH,1,Relative tumor growth
+RELATIVETS,1,Relative TS
+RELATIVETOXICITY,1,Relative toxicity
+RELATIVETODA,1,Relative to DA
+RELATIVETOCONTROL,1,Relative to control
+RELATIVETHYMUSWEIGHT,1,Relative thymus weight
+RELATIVETHRESHOLDDOSE,1,Relative threshold dose
+RELATIVET12,1,Relative t1/2
+RELATIVESUSCEPTIBILITY,1,Relative susceptibility
+RELATIVESUBSTRATEVELOCITY,1,Relative substrate velocity
+RELATIVESTIMULATORYACTIVITY,1,Relative stimulatory activity
+RELATIVESTIMULATIONINDEX,1,Relative stimulation index
+RELATIVESTABILITY,1,Relative stability
+RELATIVESIGNAL,1,relative signal
+RELATIVESEMINALVESICLEWEIGHT,1,Relative seminal vesicle weight
+RELK,1,rel k
+RELEASE,1,Release
+RELBRAINEXPOSURE,1,Rel brain exposure
+RELAXIVITY,1,Relaxivity
+RELAXEDDNA,1,Relaxed DNA
+RELAXATION,1,Relaxation
+RELATIVITY,1,Relativity
+RELATIVEWEIGHTLOSS,1,Relative weight loss
+RELATIVEVMAXKM,1,Relative Vmax/Km
+RELATIVEVMAX,1,Relative Vmax
+RELATIVEVIABILITY,1,Relative viability
+RELATIVEVELOCITY,1,Relative velocity
+RELATIVEVALUE,1,Relative value
+RELATIVEUTERUSWEIGHT,1,Relative uterus weight
+RELATIVEUTEROTROPHICACTIVITY,1,Relative uterotrophic activity
+RELATIVEUTERINEWEIGHT,1,Relative uterine weight
+REMLATENCY,1,REM latency
+REMISSION,1,Remission
+REMAINS,1,Remains
+REMAININGRATIO,1,Remaining ratio
+REMAININGRATE,1,Remaining rate
+REMAININGCOMPOUND,1,Remaining compound
+REMAININGAT40MIN,1,Remaining at 40 min
+REMAININGACTIVITY,1,Remaining activity
+REMAINING(WITHOUTCOFACTOR),1,Remaining (without cofactor)
+REMAINING,1,Remaining
+REMAINED,1,Remained
+RELT,1,rel T
+RELPOTENCY,1,Rel potency
+RELMAXFI,1,Rel Max FI
+RELMAX,1,Rel max
+RELKO,1,rel ko
+RESIDUALINSULINSECRETION,1,Residual insulin secretion
+RESIDUALINSULINRELEASE,1,Residual insulin release
+RESIDUALCONTRACTILEACTIVITY,1,Residual contractile activity
+RESIDUALBINDING,1,Residual binding
+RESIDUALAMINE(EE),1,Residual amine (ee)
+RESERPINEHYPOTHERMIA,1,Reserpine hypothermia
+RESCUEDNEURONS,1,Rescued neurons
+REPRESSION,1,Repression
+REPORT,1,Report
+REPOLARIZATIONTIME,1,Repolarization time
+REPLACEMENT,1,Replacement
+REPELLENCY,1,Repellency
+REP,1,REP
+RENALCLEARANCE,1,Renal clearance
+REMOVALOFMICROFILARIAE,1,Removal of microfilariae
+REMOVAL,1,Removal
+RESPONDERS,1,Responders
+RESPONDER,1,Responder
+RESPIRATORYSYSTEMRESISTANCE,1,Respiratory system resistance
+RESPIRATORYFREQUENCY,1,Respiratory frequency
+RESOWING,1,Resowing
+RESORPTION,1,Resorption
+RESORBINGIMPLANTS,1,Resorbing implants
+RESISTANCEREVERSAL,1,Resistance reversal
+RESISTANCERATIO,1,Resistance ratio
+RESISTANCEINDEX,1,Resistance index
+RESISTANCEFACTOR,1,Resistance factor
+RESISTANCE,1,Resistance
+RESIDUEFRACTION,1,Residue fraction
+RESIDUALSECRETION,1,Residual secretion
+RESIDUALRRACTIVITY,1,Residual RR activity
+RESIDUALPEPTIDE,1,Residual peptide
+REVERSAL,1,Reversal
+RETRACTIONTIME,1,Retraction time
+RETIRBC,1,RETIRBC
+RETENTIONRATIO,1,Retention ratio
+RETENTIONINDEX,1,Retention_index
+RETENTION,1,Retention
+RETCHES,1,Retches
+RESULT,1,Result
+RESTORATION,1,Restoration
+RESTINGPOTENTIAL,1,Resting potential
+RESPONSEVALUE,1,Response value
+RESPONSEUNIT,1,Response unit
+RESPONSERATIO,1,Response ratio
+RESPONSERATE,1,Response rate
+RESPONSE,1,Response
+RESPONDING,1,Responding
+RH,1,RH
+RFU,1,RFU
+RF50,1,rf50
+REVERTANTSPLATE,1,Revertants/plate
+REVERTANTCOLONIESPERPLATE,1,Revertant colonies per plate
+REVERSIONACTIVITY,1,Reversion activity
+REVERSION,1,Reversion
+REVERSINGACTIVITY,1,Reversing activity
+REVERSIBLE,1,Reversible
+REVERSIBILITYRATIO,1,Reversibility ratio
+REVERSIBILITY,1,Reversibility
+REVERSETRANSCRIPTASEACTIVITY,1,Reverse transcriptase activity
+REVERSEPOTENTIAL,1,Reverse potential
+REVERSALTYPE,1,Reversal type
+REVERSALACTIVITY,1,Reversal activity
+REVERSALABILITY,1,Reversal ability
+RMAX,1,Rmax
+RLUWELL,1,RLU/well
+RLUNG,1,Rlung
+RLU,1,RLU
+RL,1,RL
+RK,1,rK
+RISEHR,1,Rise HR
+RIS,1,RIS
+RINGIMMOBILITY,1,Ring immobility
+RICESTEMLENGTH,1,Rice stem length
+RIA,1,RIA
+RHT,1,RHT
+RHRL,1,RH/RL
+RHR,1,RHR
+RHODAMINE-123ACCUMULATION,1,Rhodamine-123 accumulation
+RHA,1,RHA
+RPF,1,RPF
+RPE,1,RPE
+RP,1,RP
+ROTORODINDEX,1,Rotorod index
+ROTOROD,1,Rotorod
+ROTATIONS10H,1,Rotations/10 h
+ROTATIONNUMBER,1,Rotation number
+ROTATIONALBEHAVIOR,1,Rotational behavior
+ROTARODTOXICITY,1,Rotarod toxicity
+ROR,1,ROR
+ROOTGALLINGINDEX,1,Root_galling_index
+ROLIPRAMACTIVITY,1,Rolipram activity
+ROI,1,ROI
+RNAFRACTION,1,RNA fraction
+RN,1,Rn
+RMP,1,RMP
+RU,1,RU
+RTW,1,RTW
+RTV,1,RTV
+RTP,1,RTP
+RTG,1,RTG
+RTACTIVITY,1,RT activity
+RT50,1,RT50
+RT3PRODUCTION,1,rT3 Production
+RT,1,RT
+RSRATIO,1,R/S ratio
+RSATR,1,RSA tR
+RSA,1,RSA
+RS,1,Rs
+RRT,1,RRT
+RRI,1,RRI
+RPP,1,RPP
+SAFETYINDEX,1,Safety index
+SA,1,SA
+S50,1,S50
+"S20,W",1,"S20,w"
+S05,1,S0.5
+S-PHASE,1,S-phase
+S-GPTLEVEL,1,s-GPT level
+S-GOTLEVEL,1,s-GOT level
+S,1,S
+RW,1,RW
+RVRED15,1,RVR ED15
+RVR,1,RVR
+RVMAX,1,RVmax
+RVCF,1,RVCF
+RV,1,RV
+RUMAX,1,RUmax
+SCEREBRATIO,1,S/Cereb Ratio
+SC50,1,SC50
+SC200,1,SC200
+SC,1,SC
+SBPDECREASE,1,SBP decrease
+SBPCHANGE,1,SBP change
+SBP,1,SBP
+SB,1,SB
+SAQ,1,Saq
+SALURETICSCORE,1,Saluretic score
+SALURETICPOTENCY,1,Saluretic potency
+SALURETICACTIVITY,1,Saluretic activity
+SALINECONTROL,1,Saline control
+SALDIURETICACTIVITY,1,Saldiuretic activity
+SAFTEYMARGIN,1,Saftey margin
+SAFETYRATIO,1,Safety ratio
+SECRETION,1,Secretion
+SECONDORDER,1,Second order
+SECONDARYRESPONSE,1,Secondary response
+SEC50,1,SEC50
+SDS,1,SDS
+SDL,1,SDL
+SD90,1,SD90
+SD80,1,SD80
+SD50,1,SD50
+SD200,1,SD200
+SD,1,SD
+SCXRATIO,1,S/CX Ratio
+SCWREDUCTION,1,SCW reduction
+SCORE,1,Score
+SCMET,1,scMet
+SCHIZONTSIZE,1,Schizont size
+SENSITIZEDANIMALS,1,Sensitized animals
+SENSITIVITY,1,Sensitivity
+SENSITISATION,1,Sensitisation
+SELECTIVITYRATIOS32,1,Selectivity ratio S3/2
+SELECTIVITYRATIOS31,1,Selectivity ratio S3/1
+SELECTIVITYRATIO,1,Selectivity ratio
+SELECTIVITYRATING,1,Selectivity rating
+SELECTIVITYQUOTIENT,1,Selectivity quotient
+SELECTIVITYINBINDING,1,Selectivity in binding
+SELECTIVITYFACTOR,1,Selectivity factor
+SELECTIVITYCOEFFICIENT,1,Selectivity coefficient
+SELECTIVETOXICITY,1,Selective toxicity
+SELECTIVEINDEX,1,Selective index
+SEIZURESTAGE,1,Seizure stage
+SEIZURESCORE,1,Seizure score
+SEDATIVEDOSE,1,Sedative dose
+SERUMLHLEVEL,1,Serum LH level
+SERUMLEVEL,1,Serum level
+SERUMLDL-CHOLESTEROL,1,Serum LDL-cholesterol
+SERUMHDL-CHOLESTEROL,1,Serum HDL-cholesterol
+SERUMGLUCOSE,1,Serum glucose
+SERUMCREATININECONC,1,Serum creatinine conc
+SERUMCREATININE,1,Serum creatinine
+SERUMCORTICOSTERONE,1,Serum corticosterone
+SERUMCONCENTRATION,1,Serum concentration
+SERUMCONC,1,Serum conc
+SERUMCHOLESTEROL,1,Serum cholesterol
+SERUMCA2+,1,Serum Ca2+
+SEROSALMUCOSALCA,1,Serosal/Mucosal Ca
+SER,1,SER
+SEPARATION,1,Separation
+SENSORYEVALUATION,1,Sensory evaluation
+SGOTACTIVITY,1,SGOT activity
+SF50,1,SF50
+SF,1,SF
+SEVERITYMEAN,1,Severity mean
+SEVERITY,1,Severity
+SERUMTSH,1,Serum TSH
+SERUMTRIGLYCERIDE,1,Serum triglyceride
+SERUMTOTALTRIGLYCERIDES,1,Serum total triglycerides
+SERUMTOTALCHOLESTEROL,1,Serum total cholesterol
+SERUMTG,1,Serum TG
+SERUMT4,1,Serum T4
+SERUMSTABILITY,1,Serum stability
+SERUMPROLACTINLEVEL,1,Serum prolactin level
+SERUMMG2+LEVEL,1,Serum Mg2+ level
+SERUMMETABOLITE,1,Serum metabolite
+SERUMLIPOPROTEINCHOLESTEROL,1,Serum lipoprotein cholesterol
+SIGMASH,1,sigmaSH
+SIGMAP,1,Sigmap
+SIGMAL,1,sigmaL
+SIGMAH,1,sigmaH
+SHUTDOWNTIME,1,Shutdown time
+SHRDELTABLOODPRESSURE,1,SHR delta blood pressure
+SHR,1,SHR
+SHLEVEL,1,SH level
+SHIFT,1,Shift
+SGPTINCREASE-NUMBEROFREPORTS,1,SGPT Increase - Number of Reports
+SGPTINCREASE-INDEXVALUE,1,SGPT Increase - Index Value
+SGPTINCREASE-ACTIVITYSCORE,1,SGPT Increase - Activity Score
+SGPTACTIVITY,1,SGPT activity
+SGOTINCREASE-NUMBEROFREPORTS,1,SGOT Increase - Number of Reports
+SGOTINCREASE-INDEXVALUE,1,SGOT Increase - Index Value
+SGOTINCREASE-ACTIVITYSCORE,1,SGOT Increase - Activity Score
+SLI,1,SLI
+SLEEPTIME,1,Sleep time
+SLEEPRATIO,1,Sleep ratio
+SLEEPLATENCY,1,Sleep latency
+SLEEPINGTIME,1,Sleeping time
+SKINUPTAKE,1,Skin uptake
+SKINTHICKNESS,1,Skin thickness
+SKINTESTSINTENSITY,1,Skin tests intensity
+SKINSCALING,1,Skin scaling
+SKINRESPONSE,1,Skin response
+SKINREACTION,1,Skin reaction
+SKINGRAFTSURVIVAL,1,Skin Graft Survival
+SINUSBEATS,1,Sinus beats
+SIMULATION,1,Simulation
+SIGNIFICANCE,1,Significance
+SIGNFREEDOSE,1,Sign free dose
+SPAV3,1,SPAV3
+SP,1,SP
+SOLUBILITYRATIO,1,Solubility ratio
+SOLUBILITY(MEAN),1,Solubility (mean)
+SODIUM,1,SODIUM
+SODACTIVITY,1,SOD activity
+SOCIALINTERACTION,1,Social interaction
+SNI,1,Sni
+SNGFR,1,SNGFR
+SNA,1,SNA
+SN,1,S/N
+SMT,1,SMT
+SMAX,1,Smax
+SLOWBINDING,1,Slow binding
+SLOPEOFSCHILDPLOT,1,Slope of Schild plot
+SLOPE,1,Slope
+SPLEENWEIGHT,1,Spleen weight
+SPF,1,SPF
+SPERMIDINECONCENTRATION,1,Spermidine concentration
+SPERMATOGENICINDEX,1,Spermatogenic index
+SPENTTIME,1,Spent time
+SPEEDOFPERFORMANCE,1,Speed of performance
+SPEEDOFINDUCTION,1,Speed of induction
+SPECIFICRADIOACTIVITY,1,Specific radioactivity
+SPECIFICITY,1,Specificity
+SPECIFICINDEX,1,Specific index
+SPECIFICINCORPORATION,1,Specific incorporation
+SPECIFICDISPLACEMENT,1,Specific Displacement
+SPECIFICBINDINGPERMGOFPROTEIN,1,Specific binding per mg of protein
+SPECIFICBINDING,1,Specific binding
+SPECIFICACTIVITY,1,Specific activity
+SPB,1,SPB
+STABILTY,1,Stabilty
+STABILITYOFBSR,1,Stability of BSR
+STABILITY,1,Stability
+SSC,1,SSC
+SSAT,1,SSAT
+SS,1,SS
+SRR,1,SRR
+SR,1,SR
+SPST,1,Sp St
+SPREADING,1,Spreading
+SPREAD,1,Spread
+SPONTANEOUSREPERFUSION,1,Spontaneous reperfusion
+SPONTANEOUSMOTORACTIVITY,1,Spontaneous motor activity
+SPONTANEOUSACTIVITY,1,Spontaneous activity
+SPONTACTIVITY,1,Spont activity
+SPMAX,1,Sp Max
+STIMULATORYEFFECT,1,Stimulatory effect
+STIMULATORYACTIVITY,1,Stimulatory activity
+STIMULATIONS,1,Stimulations
+STIMULATIONINDEX,1,Stimulation index
+STIMULATION,1,Stimulation
+STERILIZED,1,Sterilized
+STERILITY,1,Sterility
+STEREOTYPYSCORE,1,Stereotypy score
+STENOSIS,1,Stenosis
+STELEVATION,1,ST elevation
+STCBRATIO,1,ST/CB ratio
+STATICTUMORS,1,Static tumors
+STATICREMISSION,1,Static remission
+STAININGPOTENTIAL,1,Staining potential
+STAINING,1,Staining
+STAININDEX,1,Stain index
+SUBSTRATEMETABOLIZEDAT1HR,1,Substrate metabolized at 1hr
+SUBSTRATEEFFICIENCY,1,Substrate efficiency
+SUBSTRATEACTIVITY,1,Substrate activity
+SUBSTRATE,1,Substrate
+SUBMIC,1,SubMIC
+SUBLETHALDOSE,1,Sublethal dose
+SUBG0,1,SubG0
+SUBCUTSCORE,1,Subcut score
+SUBCUTANEOUSSCORE,1,Subcutaneous score
+STYSEIZURE,1,STY seizure
+STROKEWORK,1,Stroke work
+STROKEVOLUME,1,Stroke volume
+STRETCHES,1,Stretches
+STOOLOUTPUT,1,Stool output
+STOMACH,1,Stomach
+STOICHIOMETRY,1,Stoichiometry
+SURVIVALDOSE,1,Survival dose
+SURVIVALDAYS,1,Survival days
+SURVIVALAFTER30DAYS,1,Survival after 30 days
+SURVIVALAFTER10DAYS,1,Survival after 10 days
+SURVIVAL,1,Survival
+SURFACEINVOLVEMENT,1,Surface involvement
+SUPRESSIVEEFFECT,1,Supressive effect
+SUPRESSION,1,Supression
+SUPPRESSIVEDOSE,1,Suppressive dose
+SUPPRESSIONRATIO,1,Suppression ratio
+SUPPRESSIONOFPARASITEMIA,1,Suppression of parasitemia
+SUPPRESSION,1,Suppression
+SUPEROXIDEANION,1,Superoxide anion
+SUMMATIONMABP,1,Summation MABP
+SUCCEEDEDTESTED,1,Succeeded/tested
+SUBSTRATESPECIFICITY,1,Substrate specificity
+SURVIVORSALIVETOTAL,1,Survivors alive/total
+SURVIVORS,1,Survivors
+SURVIVORINCREASE,1,Survivor increase
+SURVIVINGFRACTION,1,Surviving fraction
+SURVIVINGFACTOR,1,Surviving factor
+SURVIVIALTOTAL,1,Survivial / total
+SURVIVALTREATED,1,Survival treated
+SURVIVALTIME,1,Survival time
+SURVIVALSTOTAL,1,Survivals / total
+SURVIVALS,1,Survivals
+SURVIVALRATIO,1,Survival ratio
+SURVIVALRATE,1,Survival rate
+SURVIVALRANGE,1,Survival range
+SURVIVALMEDIAN,1,Survival median
+SURVIVALINCREASE,1,Survival increase
+SURVIVALEXTENSION,1,Survival extension
+%MAX(MEAN),1,%Max (Mean)
+%MAX,1,%max
+SUVMAX,1,SUVmax
+SUV,1,SUV
+SUSCEPTIBILTYRATIO(LIVERINTESTINE),1,Susceptibilty Ratio (Liver/Intestine)
+SUSCEPTIBILITY,1,Susceptibility
+SURVIVORSTREATED,1,Survivors / treated
+SURVIVORSTOTAL,1,Survivors / total
+SURVIVORSATDAY9,1,Survivors at day 9
+SURVIVORSATDAY8,1,Survivors at day 8
+SURVIVORSATDAY4,1,Survivors at day 4
+SURVIVORSATDAY30,1,Survivors at day 30
+SURVIVORSATDAY28,1,Survivors at day 28
+SURVIVORSATDAY15,1,Survivors at day 15
+SURVIVORSAT24H,1,Survivors at 24 h
+SURVIVORSANIMALSTESTED,1,Survivors / animals tested
+SWEETNESSPOTENCY,1,Sweetness potency
+SVT,1,SVT
+%OFKINASEACTIVITY,1,% of kinase activity
+%OFINHIBITIONORSTIMULATION,1,% of inhibition or stimulation
+%OFINHIBITION,1,% of inhibition
+%OFGROWTHRATE,1,% of growth rate
+%OFENGAGEMENT,1,% of engagement
+%OFEFFECT,1,% of effect
+%OFCONTROLAGONISTRESPONSE(MEANN=2),1,% of Control Agonist Response (Mean n=2)
+%OFCONTROLAGONISTRESPONSE,1,% of Control Agonist Response
+%OFCONTROL,1,% of control
+%OFACTIVITYREMAINING,1,% of activity remaining
+%OFACTIVITY,1,% of activity
+%NUCLEOTIDEPRESENT,1,% nucleotide present
+%NO2-,1,% NO2-
+%MAXIMUMRESPONSE,1,% maximum response
+T-CELLBINDING,1,T-cell binding
+T-CELL,1,T-cell
+T-CC,1,T-C/C
+T-C,1,T-C
+SYSTOLICBLOODPRESSURE,1,Systolic blood pressure
+SYSTEMICEFFECT,1,Systemic effect
+SYNERGYWITHMETHICILLIN,1,Synergy with methicillin
+SYNERGYEC50,1,Synergy EC50
+SYNERGY,1,Synergy
+SYNERGISTICEFFECT,1,Synergistic effect
+SYNAPTICSITE,1,Synaptic site
+SYMPTOMS,1,Symptoms
+SYMPTOMINITIATION,1,Symptom initiation
+SWO,1,SWo
+SWIMMINGACTIVITY,1,Swimming activity
+SWELLING,1,Swelling
+T12REGEN,1,T1/2 regen
+T12RATIO,1,t1/2_ratio
+T12LAMBDA,1,t1/2lambda
+T12IV,1,T1/2 iv
+T12INCREASE,1,T1/2 increase
+T12HS,1,T1/2 h/s
+T12HMIN,1,T1/2 h/min
+T12H,1,T1/2 h
+T12EFF,1,t1/2eff
+T12DOSE,1,t1/2/dose
+T12BETA,1,T1/2 beta
+T129,1,T1/29
+T12(APP),1,t1/2(app)
+T1,1,T1
+T09,1,t0.9
+T-CELLINHIBITION,1,T-cell inhibition
+TAD,1,TAD
+TAC,1,TAC
+TA,1,T/A
+T>MIC90,1,T>MIC90
+T>MIC,1,T>MIC
+T>IC50,1,T>IC50
+T>FEC50,1,T>fEC50
+T>EC99,1,T>EC99
+T>EC50,1,T>EC50
+T999%,1,T99.9%
+T50,1,T50
+T4,1,T4
+T34,1,T3/4
+T3,1,T3
+T2,1,T2
+T12SS,1,t1/2ss
+TC(SURVIVAL),1,T/C (survival)
+TC(RATIOOFTREATEDTOCONTROL),1,T/C (ratio of treated to control)
+TC(D),1,T/C (d)
+TBPSSHIFT,1,TBPS shift
+TBPSIC50,1,TBPS IC50
+TBOUND,1,T bound
+TBMIC,1,TBMIC
+TASTECLASS,1,Taste class
+TASTECHARACTER,1,Taste character
+TASTE,1,Taste
+TAR,1,TAR
+TAQINHIBITION,1,Taq inhibition
+TAILVEINTOXICITY,1,Tail vein toxicity
+TAILFLICKLATENCY,1,Tail flick latency
+TAILFLICK,1,Tail flick
+TAI,1,TAI
+TCID50,1,TCID50
+TCI,1,TCI
+TCCORR,1,T/C corr
+TC@50MGKG,1,T/C @ 50mg/kg
+TC@40MGKG,1,T/C @ 40mg/kg
+TC@30MGKG,1,T/C @ 30mg/kg
+TC@20MGKG,1,T/C @ 20mg/kg
+TC90,1,TC90
+TC50IC50,1,TC50/IC50
+TC50,1,TC50
+TC41,1,T/C 41
+TC25,1,TC25
+TC12,1,T/C 1.2
+TC1,1,T/C 1
+TC-CQ,1,T/C-CQ
+TC(TUMORVOL),1,T/C (tumor vol)
+TDELTAS,1,TdeltaS
+TDECREASE,1,T decrease
+TD90,1,TD90
+TD50ED50,1,TD50/ED50
+TD50,1,TD50
+TD100,1,TD100
+TD10,1,TD10
+TD,1,TD
+TCX100,1,T/C x100
+TCVALUE,1,T/C value
+TCUNTREATED,1,T/C untreated
+TCT,1,TCT
+TCSURVIVALDAYS,1,T/C survival days
+TCS50,1,TCS50
+TCMIN,1,T/C min
+TCLOWERING,1,TC lowering
+TESTEDCONTROL,1,Tested/Control
+TESTCONTROLSURVIVAL,1,Test/control survival
+TEST,1,Test
+TERMINALT12,1,Terminal t1/2
+TERMINALELIMINATIONT12,1,Terminal elimination t1/2
+TERMBW,1,TERMBW
+TENSION,1,Tension
+TENSILESTRENGTH,1,Tensile strength
+TEMPERATUREDECREASE,1,Temperature decrease
+TEMPERATURECHANGE,1,Temperature change
+TEMPERATURE,1,Temperature
+TED,1,TED
+TE50,1,TE50
+TDSRATIO,1,TDS ratio
+TDS,1,TDS
+TDI,1,TDI
+TGIRATIO,1,TGI ratio
+TGIR,1,TGIR
+TGICORRELATIONCOEFFICIENT,1,TGI correlation coefficient
+TGI50,1,TGI50
+TGI,1,TGI
+TGD,1,TGD
+TG2XLAG,1,TG 2X lag
+TG100,1,TG100
+TG,1,TG
+TFS,1,TFS
+TFREE,1,T free
+TFP,1,TF/P
+TEWL,1,TEWL
+TETRAMER,1,Tetramer
+TESTOSTERONE,1,Testosterone
+TESTESWEIGHT,1,Testes weight
+THROMBINTIME,1,Thrombin time
+THRESHOLDVALUE,1,Threshold value
+THRESHOLDCURRENT,1,Threshold current
+THRESHOLDCONCENTRATION,1,Threshold concentration
+THRESHOLDACTIVEDOSE,1,Threshold active dose
+THERMSOLUBILITY,1,Therm_solubility
+THERMOGENESIS,1,Thermogenesis
+THERMODYNAMICSOLUBILITY,1,Thermodynamic solubility
+THERMALMELTINGCHANGE,1,Thermal melting change
+THERAPEUTICRATIO,1,Therapeutic ratio
+THERAPEUTICINDICES,1,Therapeutic indices
+THERAPEUTICINDEX99,1,Therapeutic index 99
+THERAPEUTICINDEX,1,Therapeutic index
+THERAPEUTICEFFICACY,1,Therapeutic efficacy
+THERAPEUTICEFFECT,1,Therapeutic effect
+THERAPEUTICDOSE,1,Therapeutic dose
+TICKACTION,1,Tick action
+TI50,1,TI50
+THYROIDSTATUS,1,Thyroid status
+THYMUSWEIGHTCHANGE,1,Thymus weight change
+THYMOLYSIS,1,Thymolysis
+THYMIDYLATESHIFT,1,Thymidylate shift
+THYMIDINEUPTAKE,1,Thymidine uptake
+THYMIDINESHIFT,1,Thymidine shift
+THYMIDINEREVERSAL,1,Thymidine reversal
+THYLPOSITIVECELLSSPLEEN,1,Thylpositive cells/spleen
+THYLPOSITIVECELLS,1,Thylpositive cells
+THY-1EXPRESSION,1,Thy-1 expression
+THRUPTAKE,1,Thr uptake
+THROMBUSWEIGHT,1,Thrombus weight
+THROMBOXANEB2LEVEL,1,Thromboxane B2 level
+THROMBOXANEB2(TXB2),1,Thromboxane B2 (TxB2)
+TIMEOVER100NGML,1,Time over 100ng/ml
+TIMEOFPEAKACTION,1,Time of peak action
+TIMEOFLICKING,1,Time of licking
+TIMEOFHALFINACTIVATION,1,Time of half inactivation
+TIMEOFDOSINGBEFOREANTIGENCHALLENGE,1,Time of dosing before antigen challenge.
+TIMEINLIGHT,1,Time in light
+TIMEINFLIGHT,1,Time in flight
+TIMECONSTANTT4,1,Time constant T4
+TIMECONSTANTT3,1,Time constant T3
+TIMECONSTANTT2,1,Time constant T2
+TIMECONSTANTT1,1,Time constant T1
+TIMECONSTANT,1,Time constant
+TIMEAFTERDOSE,1,Time after dose
+TIMEABOVEIC50,1,Time above IC50
+TIDALVOLUME,1,Tidal volume
+TID20,1,TID20
+TISSUELEVELS,1,Tissue levels
+TISSUELEVEL,1,Tissue level
+TISSUEDISTRIBUTION,1,Tissue distribution
+TISSUECONCENTRATION,1,Tissue concentration
+TISSUEBLOODRATIO,1,Tissue/Blood ratio
+TISSUEAREA,1,Tissue area
+TIRATING,1,TI rating
+TINH,1,T inh
+TIMETORIGHTING,1,Time to righting
+TIMETOPEAKTENSION,1,Time to peak tension
+TIMETOONSET,1,Time to onset
+TIMETOOFFSET,1,Time to offset
+TIMETOMAXINHIBITION,1,Time to max. inhibition
+TIMETOMAXBSR,1,Time to max. BSR
+TIMETO30%BSR,1,Time to 30% BSR
+TIMESPENT,1,Time spent
+TMSHIFTDEGREEC,1,Tm shift degreeC
+TMSHIFT,1,Tm shift
+TMPDECREASE,1,TMP.decrease
+TMIN,1,Tmin
+TMED50,1,TMED50
+TMED,1,TMED
+TMAXDOSE,1,Tmax/dose
+TM(APP),1,Tm(app)
+TM,1,Tm
+TLM,1,TLm
+TLAST,1,Tlast
+TLAG,1,Tlag
+TISSUEWEIGHT,1,Tissue weight
+TISSUESWELLING,1,Tissue swelling
+TISSUESEVERITYSCORE,1,Tissue Severity Score
+TISSUEPLASMARATIO,1,Tissue/Plasma Ratio
+TOTALACIDOUTPUT,1,Total acid output
+TOTAL,1,Total
+TOPOISOMERASE-IACTIVITY,1,Topoisomerase-I activity
+TOPICALPOTENCY,1,Topical potency
+TOPICALIRRITATIONSCORE(0-21),1,Topical irritation score(0-21)
+TOPICALDOSAGE,1,Topical dosage
+TOP1CLEAVAGEACTIVITY,1,Top1 cleavage activity
+TOP,1,TOP
+TONICSEIZURES,1,Tonic seizures
+TONIC-CLONICSEIZURE,1,Tonic-clonic seizure
+TONIC,1,Tonic
+TOLERANCE,1,Tolerance
+TOCED50,1,TOC ED50
+TO,1,TO
+TN,1,TN
+TMSW,1,TMSW
+TOTALLIVERWEIGHT,1,Total liver weight
+TOTALIRONOUTPUT,1,Total iron output
+TOTALINFARCTVOLUME,1,Total infarct volume
+TOTALGLOMERULI,1,Total glomeruli
+TOTALEXCRETION,1,Total excretion
+TOTALDPM,1,Total DPM
+TOTALDOSE,1,Total dose
+TOTALCOUNTS,1,Total counts
+TOTALCOENZYME,1,Total coenzyme
+TOTALCL,1,Total CL
+TOTALCHOLESTEROL,1,Total cholesterol
+TOTALCELLS,1,Total cells
+TOTALCELLCOUNT,1,Total Cell Count
+TOTALBINDINGINHIBITED,1,Total binding inhibited
+TOTALBINDING,1,Total binding
+TOTALACTIVITY,1,Total activity
+TOX,1,TOX
+TOTALURINEACTIVITY,1,Total urine activity
+TOTALUPTAKE,1,Total uptake
+TOTALTURNS,1,Total turns
+TOTALTURNINGS,1,Total turnings
+TOTALTUMORS,1,Total tumors
+TOTALTRITIUM,1,Total tritium
+TOTALSCORE,1,Total score
+TOTALRELEASE,1,Total release
+TOTALRATE,1,Total rate
+TOTALRADIOACTIVITY,1,Total radioactivity
+TOTALPROTEIN,1,Total protein
+TOTALPERIPHERALRESISTANCE,1,Total peripheral resistance
+TOTALNUMBEROFENTRIES,1,Total number of entries
+TOTALNOOFTURNS,1,Total no. of turns
+TOTALLYSIS,1,Total lysis
+TOXICLEVEL,1,Toxic level
+TOXICITYZONE,1,Toxicity zone
+TOXICITYSURVIVORS,1,Toxicity Survivors
+TOXICITYRELATEDDEATH,1,Toxicity related death
+TOXICITYRATIO,1,Toxicity ratio
+TOXICITYINDEX,1,Toxicity index
+TOXICITYDAYSURVIVORS,1,Toxicity day survivors
+TOXICITY(DEATHS),1,Toxicity (deaths)
+TOXICITY,1,Toxicity
+TOXICINDEX,1,Toxic index
+TOXICEFFECT,1,Toxic effect
+TOXICDOSE,1,Toxic dose
+TOXICDEATHS,1,Toxic deaths
+TOXIC,1,Toxic
+TOXDSURV,1,ToxD/Surv
+TOX50,1,Tox50
+TRANSACETYLATIONRATE,1,Transacetylation rate
+TRANS,1,Trans
+TRACTIONTEST,1,Traction test
+TRACER,1,Tracer
+TRABECULARTHICKNESS,1,Trabecular thickness
+TRABECULARNO,1,Trabecular no.
+TPR,1,TPR
+TPO(MAX),1,TPO(max)
+TPO,1,TPO
+TPL,1,T.P.L
+TPI,1,TPI
+TPE,1,TPE
+TPCONTROL,1,Tp control
+TOXTOTAL,1,tox/total
+TOXTEST,1,TOX/TEST
+TOXICTOTAL,1,Toxic/total
+TREATMENT,1,Treatment
+TREATEDCELLS,1,Treated cells
+TREATED,1,Treated
+TRAPSTAINING,1,TRAP staining
+TRANSPORTRATE,1,Transport rate
+TRANSPORTINHIBITION,1,Transport inhibition
+TRANSPORTERPRODUCTIONRATE(R),1,Transporter production rate (r)
+TRANSPORTERDEGRATECONST(K),1,Transporter deg rate const (k)
+TRANSPORT,1,Transport
+TRANSLATION,1,Translation
+TRANSFECTIONEFFICIENCY,1,Transfection efficiency
+TRANSFECTIONACTIVITY,1,Transfection activity
+TRANSCRIPTIONALACTIVITY,1,Transcriptional activity
+TRANSCRIPTIONALACTIVATION,1,Transcriptional activation
+TRANSACYLATIONRATE,1,Transacylation rate
+TRANSACTIVATION,1,Transactivation
+TUBULINCONTENT,1,Tubulin content
+TUBULINBINDING,1,Tubulin binding
+TUBULIN,1,Tubulin
+TTO,1,TTO
+TTC,1,TTC
+TSHCHOL,1,TSH/chol
+TS,1,Ts
+TRNAPEAKEXCLUSION,1,tRNA peak exclusion
+TRITIUMRELEASE,1,Tritium release
+TRIGLYCERIDES,1,Triglycerides
+TRIGLYCERIDELEVEL,1,Triglyceride level
+TRIGLYCERIDECORRECTION,1,Triglyceride correction
+TRIGCHANGE,1,TRIG_CHANGE
+TRIG,1,TRIG
+TREMOROLYTICDOSE,1,Tremorolytic dose
+TREATMENTPERIOD,1,Treatment period
+TUMORINCIDENCE,1,Tumor incidence
+TUMORHALFGROWTH,1,Tumor half growth
+TUMORGROWTHINHIBITION,1,Tumor growth inhibition
+TUMORGROWTHDELAY,1,Tumor growth delay
+TUMORGROWTH,1,Tumor growth
+TUMORFREETOTAL,1,Tumor free/total
+TUMORFREESURVIVORS,1,Tumor free survivors
+TUMORFREESURVIVAL,1,Tumor free survival
+TUMORCURE,1,Tumor cure
+TUMORBURDEN,1,Tumor burden
+TUMORBLOODRATIO,1,Tumor/blood ratio
+TUMORAREA,1,Tumor area
+TUMOR-FREE,1,Tumor-free
+TUMOR,1,Tumor
+TUBULINPOLYMERIZATIONRATIO,1,Tubulin polymerization ratio
+TUBULINPOLYMERIZATION,1,Tubulin polymerization
+TUMOURINHIBITION,1,Tumour inhibition
+TUMORWEIGHTREDUCTION,1,Tumor weight reduction
+TUMORWEIGHT,1,Tumor weight
+TUMORVOLUMEREDUCTION,1,Tumor volume reduction
+TUMORVOLUME,1,Tumor volume
+TUMORUPTAKE,1,Tumor uptake
+TUMORSWITHCR,1,Tumors with CR
+TUMORSIZE,1,Tumor size
+TUMORS,1,Tumors
+TUMORRESPONSE,1,Tumor response
+TUMORNUMBER,1,Tumor number
+TUMORMASS,1,Tumor mass
+TUMORLIVERRATIO,1,Tumor/liver ratio
+TUMORLATENCY,1,Tumor latency
+TUMORINHIBITIONRATIO,1,Tumor inhibition ratio
+TUMORINHIBITION,1,Tumor inhibition
+UD50,1,UD50
+UD,1,UD
+UC50,1,UC50
+UB,1,UB
+TZ,1,tz
+TWITCHTENSION,1,Twitch tension
+TWI,1,TWI
+TW,1,TW
+TVR,1,TVR
+TVI,1,TVI
+TV,1,T/V
+TURNSFIRSTHOUR,1,Turns/first hour
+TURNS1ST,1,Turns/1st
+TURNS,1,Turns
+TURNOVER,1,Turnover
+TUMOUR[5-FU],1,Tumour_[5-FU]
+UNCUTDNA,1,Uncut DNA
+UNCHANGEDTRACER,1,Unchanged tracer
+UNCHANGEDNDEA,1,Unchanged NDEA
+UNCHANGED,1,Unchanged
+UNBOUNDPLASMA,1,Unbound plasma
+UNBOUND,1,Unbound
+UNALTEREDCOMPOUND,1,Unaltered compound
+UN,1,UN
+ULTRAFILTRATION,1,Ultrafiltration
+ULCERSCORE,1,Ulcer score
+ULCEROGENICINDEX,1,Ulcerogenic index
+ULCEROGENICACTIVITY,1,Ulcerogenic activity
+ULCERINCIDENCE,1,Ulcer incidence
+ULCERATIVEINDEX,1,Ulcerative index
+ULCERATION,1,Ulceration
+UI,1,UI
+UREANITROGENCONCENTRATION,1,Urea Nitrogen Concentration
+URATE,1,URATE
+UR,1,UR
+UPTAKEVALUE,1,Uptake value
+UPTAKESELECTIVITY,1,Uptake selectivity
+UPTAKERATIO,1,Uptake ratio
+UPTAKERATE,1,Uptake rate
+UPTAKEBINDINGRATIO,1,Uptake/Binding ratio
+UPTAKEATC50,1,Uptake at C50
+UPTAKE,1,Uptake
+UP,1,U/P
+UOSM,1,U osm
+UNWINDING,1,Unwinding
+UNTREATEDCONTROL,1,Untreated control
+UNREACTEDDRUG,1,Unreacted drug
+UNMETABOLIZED,1,Unmetabolized
+UTERINEACTIVITY,1,Uterine activity
+UTC,1,UTC
+URINEVOLUME,1,Urine volume
+URINEOUTPUT,1,Urine output
+URINEOSMOLALITY,1,Urine osmolality
+URINENA+,1,Urine Na+
+URINEK+,1,Urine K+
+URINEBILE,1,Urine/bile
+URINE,1,Urine
+URINARYVOLUME,1,Urinary volume
+URINARYRECOVERY,1,Urinary recovery
+URINARYOUTPUT,1,Urinary output
+URINARYNA+,1,Urinary Na+
+URINARYLEVEL,1,Urinary level
+URINARYGLUCOSEEXCRETION,1,Urinary glucose excretion
+URINARYEXCRETION,1,Urinary excretion
+V1,1,V1
+V0,1,V0
+V,1,V
+UVAPF,1,UVAPF
+UV,1,UV
+UTREOTROPICEFFECT,1,Utreotropic effect
+UTERUSTOBLOODRATIO,1,Uterus to blood ratio
+UTERUSEFFECT,1,Uterus effect
+UTEROTROPICEFFECT,1,Uterotropic effect
+UTEROTROPICACTIVITY,1,Uterotropic activity
+UTEROTROPHICEFFECT,1,Uterotrophic effect
+UTEROTROPHICACTIVITY,1,Uterotrophic activity
+UTEROTONICACTIVITY,1,Uterotonic activity
+UTERINEWETWEIGHT,1,Uterine wet weight
+UTERINEWEIGHTEFFECT,1,Uterine weight effect
+UTERINEWEIGHT,1,Uterine weight
+VASODILATORYRATE,1,Vasodilatory rate
+VASODILATION,1,Vasodilation
+VASOCONSTRICTIONEFFECT,1,Vasoconstriction effect
+VASCULARRELAXATION,1,Vascular relaxation
+VASCULARACCUMULATIONRATIO,1,Vascular accumulation ratio
+VARIATIONOFEDEMAVOLUME,1,Variation of edema volume
+VARIATIONCONTROL,1,Variation/Control
+VARIATION,1,Variation
+VAREA,1,Varea
+VAR,1,VAR
+VAGUS,1,Vagus
+VAGINALACTIVITY,1,Vaginal activity
+VAGALRESPONSE,1,Vagal response
+VACUOLERESPONSE,1,Vacuole response
+V2,1,V2
+V12,1,V1/2
+VDSS(APP),1,Vdss(app)
+VDSS,1,Vdss
+VDRAFFINITY,1,VDR affinity
+VDF,1,Vd/F
+VDAREA,1,Vd area
+VDAPP,1,Vd app
+VD(APP),1,Vd(app)
+VD,1,Vd
+VCT,1,VCT
+VCRACCUMULATION,1,VCR accumulation
+VCF,1,Vc/F
+VC,1,Vc
+VBETA,1,Vbeta
+VASORELAXANTEFFECT,1,Vasorelaxant effect
+VASOPRESSORRESPONSES,1,Vasopressor responses
+VASOPRESSORACTIVITY,1,Vasopressor activity
+VF,1,VF
+VERTEBRALBLOODFLOW,1,Vertebral blood flow
+VERP,1,VERP
+VERAPAMILINDEX,1,Verapamil index
+VENTRICULARTACHYCARDIA,1,Ventricular tachycardia
+VENTRICULARRELATIVEREFRACTORYPERIOD,1,Ventricular relative refractory period
+VENTRICULARRATE,1,Ventricular rate
+VENTRICULARMAPD90,1,Ventricular MAPD90
+VENOM,1,Venom
+VELREM,1,Vel rem
+VELOCITYRELATIVETOATP,1,Velocity relative to ATP
+VELOCITY,1,Velocity
+VEHICLECONTROL,1,Vehicle control
+VDU,1,Vdu
+VDSSF,1,Vdss/F
+VDSSDOSE,1,Vdss/dose
+VK,1,V/K
+VISCOSITY,1,Viscosity
+VIRUSYIELDREDUCTION,1,Virus yield reduction
+VIRUSYIELD,1,Virus yield
+VIRUSTITER,1,Virus titer
+VIRUSRATING,1,Virus rating
+VIRUSINACTIVATION,1,Virus inactivation
+VIRUCIDAL,1,Virucidal
+VIRALTITER,1,Viral titer
+VINACT,1,Vinact
+VIGOURINDEX,1,Vigour_index
+VIABLECELLS,1,Viable cells
+VIABILITY,1,Viability
+VI30,1,VI30
+VI,1,Vi
+VFT,1,VFT
+VOLUMEDISTRIBUTION,1,Volume distribution
+VOLUMECHANGE,1,Volume change
+VOLUME,1,Volume
+VOLSYN,1,VOLSYN
+VOCALIZATIONTIME,1,Vocalization time
+VMREL,1,Vm rel
+VMKM,1,Vm/Km
+VMAXREL,1,Vmax rel
+VMAXL,1,VmaxL
+VMAXKMAX100,1,Vmax / Kmax100
+VMAXK,1,Vmax / K
+VMAXH,1,VmaxH
+VMAX(UM),1,Vmax (uM)
+VMAX(APP),1,Vmax(app)
+VMAX,1,Vmax
+VLDL,1,VLDL
+VZ,1,Vz
+VV,1,VV
+VT50,1,VT50
+VSV,1,VSV
+VSSF,1,Vss/F
+VSS,1,Vss
+VRT(T),1,VRT(t)
+VRT,1,VRT
+VREL,1,Vrel
+VPF,1,Vp/F
+VOMITS,1,Vomits
+VOMITINGFREQUENCY,1,Vomiting frequency
+VOLUMEREDUCTION,1,Volume reduction
+VOLUMEOFURINE,1,Volume of urine
+VOLUMEOFASCRITFLUID,1,Volume of ascrit fluid
+VOLUMEOFAIR,1,Volume of air
+WEIGHTCHANGEOFAP-S,1,Weight change of AP-S
+WEIGHTCHANGEDIFFERENCE,1,Weight change difference
+WEIGHTCHANGEATNADIR,1,Weight change at nadir
+WEIGHTCHANGE,1,Weight change
+WEIGHTATTERM,1,Weight at term
+WEIGHT(MGG),1,Weight (mg/g)
+WCC999,1,WCC99.9
+WCC90,1,WCC90
+WBCX10E-3,1,WBC x10e-3
+WBCCHANGE,1,WBC_CHANGE
+WBC,1,WBC
+WATERINTAKE,1,Water intake
+WATERCONSUMPTION,1,Water consumption
+WASHOUT,1,washout
+WALKINGBEHAVIOUR,1,Walking behaviour
+VZF,1,Vz/F
+ZSCORE,1,Z score
+WRITHES,1,Writhes
+WORMREDUCTION,1,Worm reduction
+WORMMOVEMENTINHIBITION,1,Worm movement inhibition
+WLCPRA,1,WLC PRA
+WETWEIGHTOFTISSUE,1,Wet weight of tissue
+WETWEIGHT,1,Wet weight
+WEIGHTREDUCTION,1,Weight reduction
+WEIGHTRATIO,1,Weight ratio
+WEIGHTLOSS,1,Weight loss
+WEIGHTINCREASE,1,Weight increase
+WEIGHTGAINORLOSS,1,Weight gain or loss
+WEIGHTGAIN,1,Weight gain
+WEIGHTDIFFERENCE,1,Weight difference
+WEIGHTCHANGES,1,Weight changes
+WEIGHTCHANGEONDAY5,1,Weight change on day 5
+%HEPATICBLOODFLOW,1,%hepatic blood flow
+"%ENZYMEACTIVITY(RELATIVETODMSOCONTROLS,AVERAGEN=2)",1,"% Enzyme Activity (relative to DMSO controls, average n=2)"
+%DOSE,1,% dose
+[I],1,[I]
+[GSH],1,[GSH]
+[EOP']INFINITY[EOH]INFINITY,1,[EOP']infinity/[EOH]infinity
+[EA],1,[EA]
+[CA2+]VARIATION,1,[Ca2+] variation
+[CA2+]INCREASE,1,[Ca2+] increase
+[CA2+],1,[Ca2+]
+"[A]T,L",1,"[A]T,L"
+[A],1,[A]
+[ALP]MAX,1,[ALP]max
+[3H]TDRUPTAKE,1,[3H] TdR uptake
+[LDH]MAX,1,[LDH]max
+X1(50),1,X1(50)
+[I]FORKM',1,[I] for Km'
+[I]05,1,[I] 0.5
+ZONESIZE,1,Zone size
+ZONEREDUCTION,1,Zone reduction
+ZONEOFSTIMULATION,1,Zone of stimulation
+ZONEOFINHIBITION,1,Zone of inhibition
+ZONEDIAMETER,1,Zone diameter
+ZINCFINGERREACTIVITY,1,Zinc finger reactivity
+ZIMAXKZI,1,ZImax/KZI
+Z,1,Z
+YA,1,Ya
+XL50,1,XL50
+XFOLD,1,x fold
+XC50,1,XC50
+[3H]-UPTAKE,1,[3H]-uptake
+[3H]CONCENTRATION,1,[3H] concentration

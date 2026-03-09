@@ -12,6 +12,9 @@ CONFIGPATH = os.path.join(abspath, "..", "config")
 DATAPATH = os.path.join(abspath, "..", "data")
 TMPDIR = os.path.join(abspath, "..", "tmp")
 
+# LLM model for assay parameter curation (step 09)
+LLM_MODEL = "gpt-oss:20b"
+
 # Parameters for binarization
 # PCHEMBL_CUTOFFS = [5, 6, 7, 8, 9]
 # PERCENTAGE_ACTIVITY_CUTOFFS = [50, 75, 90]

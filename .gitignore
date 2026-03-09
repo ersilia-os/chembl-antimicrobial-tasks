@@ -2,20 +2,7 @@ output/**
 tmp/**
 old/**
 data/**
-
-# data/chembl_activities/activities.csv
-# data/chembl_activities/compound_structures.csv
-# data/chembl_activities/assays.csv
-# data/chembl_activities/assay_descriptions.csv
-# data/chembl_activities/molecule_dictionary.csv
-# data/chembl_activities/docs.csv
-# data/chembl_activities/assay_parameters.csv
-# data/chembl_activities/activity_comments.csv
-
-# data/chembl_processed/activities_preprocessed.csv
-# data/chembl_processed/compound_info.csv
-# data/chembl_processed/compound_info_standardized.csv
-
+CLAUDE.md
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

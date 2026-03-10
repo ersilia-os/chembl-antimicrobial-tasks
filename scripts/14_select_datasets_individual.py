@@ -94,8 +94,11 @@ selected_df = pd.DataFrame(selected, columns=[
 
 selected_df.to_csv(os.path.join(OUTPUT, "14_individual_selected_LM.csv"), index=False)
 
-# Sanity check: one dataset per assay triplet
-assert len(set(tuple(row) for row in selected_df[["assay_id", "activity_type", "unit"]].values)) == len(selected_df)
+# Sanity check: one dataset per assay triplet within each label
+for label in labels:
+    sub = selected_df[selected_df["label"] == label]
+    assert len(set(tuple(row) for row in sub[["assay_id", "activity_type", "unit"]].values)) == len(sub), \
+        f"Duplicate assay triplets in label {label}"
 
 print("Chemical space coverage:")
 for label in labels:

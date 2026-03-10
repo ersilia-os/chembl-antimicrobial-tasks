@@ -41,8 +41,8 @@ print("Step 06")
 
 # Read compound_info
 print("Loading data")
-compound_info = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "compound_info.csv"))
-compounds_standardized = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "compound_info_standardized.csv"), low_memory=True)
+compound_info = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "02_compound_info.csv"))
+compounds_standardized = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "03_compound_info_standardized.csv"), low_memory=True)
 compound_info['standardized_smiles'] = compounds_standardized['standardized_smiles']
 compound_info['standardized_MW'] = compounds_standardized['standardized_MW']
 compound_info["molregno"] = compound_info["molregno"].astype(str)
@@ -59,7 +59,7 @@ print(f"Original number of compounds: {len(compound_info)}")
 print(f"Final number of compounds: {len(smiles), X_morgan.shape}")
 
 print("Saving results to H5 file...")
-with h5py.File(os.path.join(DATAPATH, "chembl_processed", "ChEMBL_ECFPs.h5"), "w") as f:
+with h5py.File(os.path.join(DATAPATH, "chembl_processed", "06_chembl_ecfps.h5"), "w") as f:
     smiles_dt = h5py.string_dtype(encoding="utf-8")
     f.create_dataset("smiles", data=np.asarray(smiles, dtype=object), dtype=smiles_dt, compression="gzip", chunks=True)
     f.create_dataset("X_morgan", data=X_morgan.astype(np.int8), compression="gzip", chunks=True)

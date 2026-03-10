@@ -17,6 +17,11 @@ pathogen = load_pathogen(pathogen_code)
 print("Step 17: Evaluating correlations among datasets")
 
 OUTPUT = os.path.join(root, "..", "output", pathogen_code)
+
+
+def _parse_assay_key(s):
+    assay_id, activity_type, unit = s.split("|")
+    return (assay_id, activity_type, np.nan if unit == "" else unit)
 path_to_correlations = os.path.join(OUTPUT, "correlations")
 labels = ["A", "B", "M"]
 
@@ -96,7 +101,7 @@ final_datasets = final_datasets.sort_values(["label", "cpds"], ascending=[True, 
 # ---------------------------------------------------------------------------
 
 name_to_assay_keys = {
-    name: [tuple(s.split("|")) for s in assay_keys.split(";")]
+    name: [_parse_assay_key(s) for s in assay_keys.split(";")]
     for name, assay_keys in zip(final_datasets["name"], final_datasets["assay_keys"])
 }
 
@@ -172,7 +177,7 @@ print(f"Selected datasets per label: {dict(Counter(final_datasets[final_datasets
 coverage = {label: set() for label in labels}
 for label, assay_keys in final_datasets[["label", "assay_keys"]].values:
     for s in assay_keys.split(";"):
-        coverage[label].update(assay_to_compounds[tuple(s.split("|"))])
+        coverage[label].update(assay_to_compounds[_parse_assay_key(s)])
 
 for label in labels:
     pct = round(100 * len(coverage[label]) / len(pathogen_compounds), 1)

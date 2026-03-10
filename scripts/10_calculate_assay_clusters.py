@@ -56,8 +56,8 @@ for assay_id, activity_type, unit in tqdm(assays_info[['assay_id', 'activity_typ
             try:
                 bb_tree = bblean.BitBirch(branching_factor=128, threshold=thr, merge_criterion="diameter")
                 bb_tree.fit(fps)
-                clusters = len(bb_tree.get_cluster_mol_ids())
-                thr_to_clusters[thr] = clusters
+                n_clusters = len(bb_tree.get_cluster_mol_ids())
+                thr_to_clusters[thr] = n_clusters
             except:
                 thr_to_clusters[thr] = np.nan
         clusters.append([thr_to_clusters[thr] for thr in thrs])

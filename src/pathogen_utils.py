@@ -284,6 +284,12 @@ def add_target_type_curated(assays_cleaned, parameters):
 
     keys = ["assay_id", "activity_type", "unit"]
 
+    # Step 09 may write duplicate rows (e.g. from resume runs); keep the last
+    n_before = len(parameters)
+    parameters = parameters.drop_duplicates(subset=keys, keep="last").reset_index(drop=True)
+    if len(parameters) < n_before:
+        print(f"  Warning: removed {n_before - len(parameters)} duplicate rows from parameters (step 09 resume artefact)")
+
     left_only = parameters[keys].merge(assays_cleaned[keys], on=keys, how="left", indicator=True)
     if not left_only["_merge"].eq("both").all():
         raise ValueError("parameters contains keys not present in assays_cleaned")

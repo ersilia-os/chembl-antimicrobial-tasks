@@ -16,7 +16,7 @@ cd chembl-antimicrobial-tasks
 We recommend creating a Conda environment to run this code. Dependencies are minimal. 🐍
 
 ```sh
-conda create -n camt python=3.10 -y
+conda create -n camt python=3.12 -y
 conda activate camt
 pip install -r requirements.txt
 ```

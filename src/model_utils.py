@@ -64,7 +64,7 @@ def load_ecfp_all(h5_path):
     Parameters
     ----------
     h5_path : str
-        Path to the HDF5 file containing datasets 'SMILES' and 'X_morgan'.
+        Path to the HDF5 file containing datasets 'smiles' and 'X_morgan'.
 
     Returns
     -------
@@ -72,7 +72,7 @@ def load_ecfp_all(h5_path):
         Mapping {chembl_id: fingerprint (shape (nBits,))}.
     """
     with h5py.File(h5_path, "r") as f:
-        ids = f["SMILES"][:, 3].astype(str)
+        ids = f["smiles"][:, 3].astype(str)
         fps = f["X_morgan"][:]
     return {cid: fp for cid, fp in zip(ids, fps)}
 
@@ -84,7 +84,7 @@ def load_ecfp_subset_by_chembl_id(h5_path, chembl_id_set):
     Parameters
     ----------
     h5_path : str
-        Path to the HDF5 file containing datasets 'SMILES' and 'X_morgan'.
+        Path to the HDF5 file containing datasets 'smiles' and 'X_morgan'.
     chembl_id_set : iterable[str]
         ChEMBL IDs to load. IDs not found in the file are silently ignored.
 
@@ -95,7 +95,7 @@ def load_ecfp_subset_by_chembl_id(h5_path, chembl_id_set):
     """
     chembl_id_set = set(chembl_id_set)
     with h5py.File(h5_path, "r") as f:
-        ids = f["SMILES"][:, 3].astype(str)
+        ids = f["smiles"][:, 3].astype(str)
         idx = np.flatnonzero(np.isin(ids, list(chembl_id_set)))
         fps = f["X_morgan"][idx]
     return {ids[i]: fp for i, fp in zip(idx, fps)}

@@ -1,5 +1,5 @@
-pandas==2.2.1
-numpy>=2.0.0
+pandas==3.0.1
+numpy==2.4.3
 scipy==1.17.1
 rdkit==2025.9.3
 datamol==0.12.5

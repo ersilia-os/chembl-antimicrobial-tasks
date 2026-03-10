@@ -66,7 +66,7 @@ pathogen_compounds = set(pd.read_csv(os.path.join(OUTPUT, "07_compound_counts.cs
 
 # Load all Morgan fingerprints into memory
 print("Loading ECFPs...")
-ecfps = load_ecfp_all(os.path.join(DATAPATH, "chembl_processed", "ChEMBL_ECFPs.h5"))
+ecfps = load_ecfp_all(os.path.join(DATAPATH, "chembl_processed", "06_chembl_ecfps.h5"))
 
 # Decoy pool: all ChEMBL compounds not tested against this pathogen
 decoys_pool = set(i for i in ecfps if i not in pathogen_compounds)
@@ -78,7 +78,7 @@ print(f"Sampling reference set from decoy pool ({len(decoys_pool)} compounds)...
 rng_ref = random.Random(42)
 reference_set = rng_ref.sample(sorted(decoys_pool), min(10000, len(decoys_pool)))
 pd.DataFrame(reference_set, columns=["reference_compounds"]).to_csv(
-    os.path.join(OUTPUT, "reference_set.csv.gz"), index=False
+    os.path.join(OUTPUT, "13_reference_set.csv.gz"), index=False
 )
 
 # Reference feature matrix

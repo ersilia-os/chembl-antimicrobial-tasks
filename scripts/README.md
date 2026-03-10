@@ -98,7 +98,7 @@ Also saves `data/chembl_processed/05_activity_std_units_curated_comments.csv`: a
 
 ### Step 06 — Calculate ECFPs (`06_calculate_ecfps.py`) *(optional)*
 
-Computes ECFP fingerprints (radius 3, 2048 bits) for all standardized compounds using RDKit. Failed SMILES are skipped. Results are stored in HDF5 format. Output: `data/chembl_processed/ChEMBL_ECFPs.h5`.
+Computes ECFP fingerprints (radius 3, 2048 bits) for all standardized compounds using RDKit. Failed SMILES are skipped. Results are stored in HDF5 format. Output: `data/chembl_processed/06_chembl_ecfps`.
 
 ⏳ ETA: ~15 minutes.
 
@@ -110,7 +110,7 @@ After step 01 the pipeline pauses. Before it can continue, a curator must assign
 
 1. Open `data/01_activity_std_units_converted.csv`
 2. Fill in `manual_curation_direction`: `1` = higher value means more active (e.g. % Inhibition), `-1` = lower value means more active (e.g. IC50), `0` = unclear
-3. Save the result as `config/activity_std_units_curated_manual_curation.csv`
+3. Save the result as `config/activity_std_units_manual_curation.csv`
 
 This file is required by step 08 of the pathogen pipeline.
 
@@ -124,7 +124,7 @@ This file is required by step 08 of the pathogen pipeline.
 | `config/synonyms.csv` | steps 01, 05 | Maps activity type variants to their canonical name (e.g. `MIC>=90` → `MIC90`). |
 | `config/activity_comments_manual_curation.csv` | step 05 | Maps activity comment strings to active (1), inactive (-1), or unknown (0). |
 | `config/standard_text_manual_curation.csv` | step 05 | Maps standard text values to active (1), inactive (-1), or unknown (0). |
-| `config/activity_std_units_curated_manual_curation.csv` | step 08 | Biological direction per (`activity_type`, `unit`) pair. Produced by manual curation of step 01 output. |
+| `config/activity_std_units_manual_curation.csv` | step 08 | Biological direction per (`activity_type`, `unit`) pair. Produced by manual curation of step 01 output. |
 
 ---
 
@@ -167,7 +167,7 @@ Filters applied in order:
 1. **Remove compounds with no SMILES** — activities without a valid structure are discarded.
 2. **Remove empty activities** — activities lacking both a numeric value and a non-zero `text_flag` are discarded.
 3. **Filter by consensus units** — only activities with units present in `data/chembl_processed/01_activity_std_units_converted.csv` (or no unit) are retained.
-4. **Assign direction** — biological direction (-1 or +1) is assigned per (`activity_type`, `unit`) from `config/activity_std_units_curated_manual_curation.csv`.
+4. **Assign direction** — biological direction (-1 or +1) is assigned per (`activity_type`, `unit`) from `config/activity_std_units_manual_curation.csv`.
 5. **Remove unmodelable activities** — activities with no direction and no active/inactive text flag are discarded.
 
 Outputs are saved to `output/<pathogen_code>/`:
@@ -215,8 +215,6 @@ Outputs are saved to `output/<pathogen_code>/`:
 ---
 
 ### Step 10 — Calculate assay clusters (`10_calculate_assay_clusters.py`)
-
-> ⚠️ **Requires the `bblean` conda environment** with [bblean](https://github.com/mqcomplab/bblean) installed.
 
 For each (`assay_id`, `activity_type`, `unit`) triplet in `08_assays_cleaned.csv`, unique compound SMILES are retrieved from the cleaned activity data and clustered using ECFP4 fingerprints (2048 bits) with the BitBirch algorithm. The number of clusters is computed at three Tanimoto Coefficient thresholds (0.3, 0.6, 0.85), providing a measure of chemical diversity within each assay.
 
@@ -351,7 +349,7 @@ Outputs are saved to `output/<pathogen_code>/`:
 | File | Description |
 |------|-------------|
 | `13_individual_LM.csv` | One row per (assay, condition) — AUROC mean and std, dataset metadata. |
-| `reference_set.csv.gz` | The 10,000 pathogen-naive reference compounds. |
+| `13_reference_set.csv.gz` | The 10,000 pathogen-naive reference compounds. |
 | `correlations/A/` | Reference set prediction probabilities (`.npz`) for condition A models. |
 | `correlations/B/` | Reference set prediction probabilities (`.npz`) for condition B models. |
 
@@ -419,7 +417,7 @@ For each qualifying group:
 1. Build the merged dataset as described above
 2. *(If active ratio > 0.5)* Sample and append decoys
 3. Run **4-fold stratified cross-validation** with Random Forest → mean AUROC ± std
-4. Train a **final model on all data** → predict activity probabilities on the reference set (loaded from `reference_set.csv.gz`)
+4. Train a **final model on all data** → predict activity probabilities on the reference set (loaded from `13_reference_set.csv.gz`)
 5. Save merged dataset and reference predictions
 
 Merged datasets are named `M_ORG<i>` (ORGANISM) or `M_SP<i>` (SINGLE PROTEIN), suffixed with the expert cutoff value.

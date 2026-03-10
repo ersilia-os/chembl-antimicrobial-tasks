@@ -58,6 +58,7 @@ def prepare_harmonized_types_map(activity_std_units):
         .sort_values("count", ascending=False, ignore_index=True)
     )
     outfile = os.path.join(DATAPATH, "chembl_processed", "01_harmonized_types_map.csv")
+    os.makedirs(os.path.dirname(outfile), exist_ok=True)
     mapping.to_csv(outfile, index=False)
 
     print(f"  {len(flat)} unique standard_type values -> {len(mapping)} harmonized types")

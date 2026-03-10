@@ -64,7 +64,7 @@ from default import DATAPATH
 
 print("Step 03")
 print("Loading compound SMILES")
-compounds = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "compound_info.csv"))
+compounds = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "02_compound_info.csv"))
 smiles = compounds['canonical_smiles']
 
 output = []

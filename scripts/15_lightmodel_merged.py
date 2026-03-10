@@ -78,7 +78,9 @@ def to_merge_unique_cpds(df, group_keys, assay_to_compounds):
     )
     out["n_assays"] = out["assay_keys"].apply(len)
     out["n_cpds_union"] = out["assay_keys"].apply(union_size)
-    out["assay_keys"] = out["assay_keys"].apply(lambda ks: ";".join("|".join(k) for k in ks))
+    out["assay_keys"] = out["assay_keys"].apply(
+        lambda ks: ";".join("|".join("" if (not isinstance(x, str) and pd.isna(x)) else str(x) for x in k) for k in ks)
+    )
 
     cols = [c for c in out.columns if c != "assay_keys"] + ["assay_keys"]
     return out[cols].sort_values("n_cpds_union", ascending=False).reset_index(drop=True)
@@ -100,6 +102,7 @@ individual_selected_lm = pd.read_csv(os.path.join(OUTPUT, "14_individual_selecte
 
 accepted_assays = set(tuple(row) for row in individual_selected_lm[keys].values)
 
+assays_parameters = assays_parameters.drop_duplicates(subset=keys, keep="last").reset_index(drop=True)  # TODO REMOVE ONCE LLM RERUN
 assays_merged = assays_cleaned.merge(assays_parameters, on=keys, how="left", validate="1:1")
 assays_merged = assays_merged.merge(assay_data_info[keys + columns_data_info], on=keys, how="left", validate="1:1")
 assays_merged["accepted_in_individual_lm"] = [tuple(row) in accepted_assays for row in assays_merged[keys].values]
@@ -114,10 +117,10 @@ del chembl
 
 # Load fingerprints, reference set, and define decoy pool
 print("Loading ECFPs...")
-ecfps = load_ecfp_all(os.path.join(DATAPATH, "chembl_processed", "ChEMBL_ECFPs.h5"))
+ecfps = load_ecfp_all(os.path.join(DATAPATH, "chembl_processed", "06_chembl_ecfps.h5"))
 
 print("Loading reference set...")
-reference_set = pd.read_csv(os.path.join(OUTPUT, "reference_set.csv.gz"))["reference_compounds"].tolist()
+reference_set = pd.read_csv(os.path.join(OUTPUT, "13_reference_set.csv.gz"))["reference_compounds"].tolist()
 x_ref = np.array([ecfps[cid] for cid in reference_set if cid in ecfps])
 
 pathogen_compounds = set(pd.read_csv(os.path.join(OUTPUT, "07_compound_counts.csv.gz"))["compound_chembl_id"])
@@ -301,12 +304,16 @@ merged_lm_df = pd.DataFrame(merged_lm, columns=[
 ])
 merged_lm_df.to_csv(os.path.join(OUTPUT, "15_merged_LM.csv"), index=False)
 
+def parse_assay_key(s):
+    assay_id, activity_type, unit = s.split("|")
+    return (assay_id, activity_type, np.nan if unit == "" else unit)
+
 for tt, label in [("ORGANISM", "ORG"), ("SINGLE PROTEIN", "SP")]:
     sub = merged_lm_df[merged_lm_df["target_type_curated_extra"] == tt]
     assay_strs = set(s for row in sub["assay_keys"] for s in row.split(";"))
-    cpds = set(cpd for s in assay_strs for cpd in assay_to_compounds[tuple(s.split("|"))])
+    cpds = set(cpd for s in assay_strs for cpd in assay_to_compounds[parse_assay_key(s)])
     print(f"{label} — datasets: {len(sub)}, assays: {len(assay_strs)}, coverage: {round(100 * len(cpds) / len(pathogen_compounds), 1)}%")
 
 all_assay_strs = set(s for row in merged_lm_df["assay_keys"] for s in row.split(";"))
-all_cpds = set(cpd for s in all_assay_strs for cpd in assay_to_compounds[tuple(s.split("|"))])
+all_cpds = set(cpd for s in all_assay_strs for cpd in assay_to_compounds[parse_assay_key(s)])
 print(f"Overall coverage: {round(100 * len(all_cpds) / len(pathogen_compounds), 1)}%")

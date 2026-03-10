@@ -17,6 +17,11 @@ print("Step 16: Selecting merged datasets")
 
 OUTPUT = os.path.join(root, "..", "output", pathogen_code)
 
+
+def _parse_assay_key(s):
+    assay_id, activity_type, unit = s.split("|")
+    return (assay_id, activity_type, np.nan if unit == "" else unit)
+
 # Load expert cutoffs
 expert_cutoffs = load_expert_cutoffs(CONFIGPATH)
 
@@ -92,7 +97,7 @@ for base_name, activity_type, unit, target_type in groups:
         info = mid_rows[cols_to_keep].iloc[0].tolist()
         selected.append([activity_type, unit, target_type, mid_cutoff, mid_auroc, True] + info)
 
-    assay_keys = [tuple(s.split("|")) for s in selected[-1][-1].split(";")]
+    assay_keys = [_parse_assay_key(s) for s in selected[-1][-1].split(";")]
     for assay in assay_keys:
         selected_compounds[ty].update(assay_to_compounds[assay])
 

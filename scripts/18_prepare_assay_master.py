@@ -43,6 +43,7 @@ assays_parameters = pd.read_csv(os.path.join(OUTPUT, "09_assays_parameters.csv")
 assay_data_info = pd.read_csv(os.path.join(OUTPUT, "12_assay_data_info.csv"))[keys + columns_data_info]
 
 print("Merging tables...")
+assays_parameters = assays_parameters.drop_duplicates(subset=keys, keep="last").reset_index(drop=True) #TODO REMOVE ONCE LLM RERUN
 assays_master = assays_cleaned.merge(assays_clusters, on=keys, how="left", validate="1:1")
 assays_master = assays_master.merge(assays_parameters, on=keys, how="left", validate="1:1")
 assays_master = assays_master.merge(assay_data_info, on=keys, how="left", validate="1:1")
@@ -58,10 +59,15 @@ assays_master["evaluated_cutoffs"] = [
 # Load modeling results to annotate each assay's pipeline status
 # ---------------------------------------------------------------------------
 
+def _parse_assay_key(s):
+    assay_id, activity_type, unit = s.split("|")
+    return (assay_id, activity_type, np.nan if unit == "" else unit)
+
+
 def assay_keys_to_set(df, label=None):
     """Extract all (assay_id, activity_type, unit) tuples from an assay_keys column."""
     subset = df if label is None else df[df["label"] == label]
-    return set(tuple(s.split("|")) for row in subset["assay_keys"] for s in row.split(";"))
+    return set(_parse_assay_key(s) for row in subset["assay_keys"] for s in row.split(";"))
 
 individual_lm = pd.read_csv(os.path.join(OUTPUT, "13_individual_LM.csv"))
 merged_lm = pd.read_csv(os.path.join(OUTPUT, "15_merged_LM.csv"))

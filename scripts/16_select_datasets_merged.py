@@ -56,7 +56,7 @@ groups = sorted(
 )
 
 cols_to_keep = [
-    "name", "direction", "assay_type", "bao_label", "strain", "target_chembl_id",
+    "name", "direction", "assay_type", "strain", "target_chembl_id",
     "n_assays", "n_cpds_union", "positives", "ratio", "avg", "std", "assay_keys",
 ]
 
@@ -107,7 +107,7 @@ for base_name, activity_type, unit, target_type in groups:
 
 selected_df = pd.DataFrame(selected, columns=[
     "activity_type", "unit", "target_type", "cutoff", "auroc", "is_mid_cutoff",
-    "name", "direction", "assay_type", "bao_label", "strain", "target_chembl_id",
+    "name", "direction", "assay_type", "strain", "target_chembl_id",
     "n_assays", "n_cpds_union", "positives", "ratio", "avg", "std", "assay_keys",
 ])
 selected_df.to_csv(os.path.join(OUTPUT, "16_merged_selected_LM.csv"), index=False)

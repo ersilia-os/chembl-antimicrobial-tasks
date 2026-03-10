@@ -310,6 +310,7 @@ Outputs are saved to `output/<pathogen_code>/`:
 ### Step 13 — Individual light modeling (`13_lightmodel_individual.py`)
 
 Evaluates the modelability of each binarized assay dataset from step 12 using Random Forest classifiers trained on Morgan (ECFP) fingerprints. Produces per-assay AUROC scores and reference set predictions used for downstream correlation analysis.
+**Note:** qualitative assays are not taken into account in the next steps nor they are part of the final assay table. For Mixed assays, only quantitative measurements are considered.
 
 #### Modeling conditions
 
@@ -335,14 +336,12 @@ For datasets where actives are over-represented (ratio ≥ 0.5), random ChEMBL c
 For each qualifying dataset:
 1. Load the quantitative or mixed dataset from the step 12 zip archives
 2. *(Condition B only)* Sample and append decoys from the pathogen-naive ChEMBL pool
-3. Run **4-fold stratified cross-validation** with Random Forest (100 trees) → mean AUROC ± std
-4. Train a **final model on all data** → predict activity probabilities on the reference set
+3. Run 4-fold stratified cross-validation with Random Forest (100 trees) → mean AUROC ± std
+4. Train a final model on all data → predict activity probabilities on the reference set
 
 #### Reference set
 
-The reference set is a fixed sample of **10,000 compounds that have never been screened against the pathogen**, drawn from all ChEMBL compounds with available fingerprints. Using pathogen-naive compounds avoids data leakage: correlations between model predictions reflect shared biological signal rather than shared training data. The set is sampled with a fixed seed (42) for reproducibility.
-
-> The alternative of using pathogen-tested compounds was considered but rejected: many of those compounds appear in the training sets of the models being compared, which would make correlations partly reflect memorization rather than generalization.
+The reference set is a fixed sample of 10,000 compounds that have never been screened against the pathogen, drawn from all ChEMBL compounds with available fingerprints. Using pathogen-naive compounds avoids data leakage: correlations between model predictions reflect shared biological signal rather than shared training data. The set is sampled with a fixed seed (42) for reproducibility.
 
 Outputs are saved to `output/<pathogen_code>/`:
 

@@ -41,6 +41,9 @@ selected = []
 original_compounds = {label: set() for label in labels}
 selected_compounds = {label: set() for label in labels}
 
+# Cascade: assays selected in A are excluded from B consideration
+selected_in_previous = set()
+
 for label in labels:
 
     lm_label = individual_lm[individual_lm["label"] == label]
@@ -53,8 +56,8 @@ for label in labels:
         key = (assay_id, activity_type, unit)
         original_compounds[label].update(assay_to_compounds[key])
 
-        # Each assay selected at most once across cutoffs
-        if key in already_selected:
+        # Each assay selected at most once across cutoffs, and never in B if already in A
+        if key in already_selected or key in selected_in_previous:
             continue
 
         # Mid cutoff is the reference cutoff (middle value in the expert list)
@@ -86,6 +89,8 @@ for label in labels:
             selected_compounds[label].update(assay_to_compounds[key])
             already_selected.add(key)
 
+    selected_in_previous.update(already_selected)
+
 selected_df = pd.DataFrame(selected, columns=[
     "label", "assay_id", "activity_type", "unit", "target_type", "cutoff", "auroc", "is_mid_cutoff",
     "dataset_type", "pos_qt", "ratio_qt", "cpds_qt", "pos_ql", "ratio_ql", "cpds_ql",
@@ -94,11 +99,14 @@ selected_df = pd.DataFrame(selected, columns=[
 
 selected_df.to_csv(os.path.join(OUTPUT, "14_individual_selected_LM.csv"), index=False)
 
-# Sanity check: one dataset per assay triplet within each label
+# Sanity check: one dataset per assay triplet within each label, and no overlap across labels
 for label in labels:
     sub = selected_df[selected_df["label"] == label]
     assert len(set(tuple(row) for row in sub[["assay_id", "activity_type", "unit"]].values)) == len(sub), \
         f"Duplicate assay triplets in label {label}"
+keys_A = set(tuple(r) for r in selected_df[selected_df["label"] == "A"][["assay_id", "activity_type", "unit"]].values)
+keys_B = set(tuple(r) for r in selected_df[selected_df["label"] == "B"][["assay_id", "activity_type", "unit"]].values)
+assert len(keys_A & keys_B) == 0, "Cascade violation: same assay selected in both A and B"
 
 print("Chemical space coverage:")
 for label in labels:

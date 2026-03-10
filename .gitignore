@@ -2,6 +2,8 @@ output/**
 tmp/**
 old/**
 data/**
+scripts/nohup.out
+scripts/nohup_.out
 CLAUDE.md
 
 # Byte-compiled / optimized / DLL files

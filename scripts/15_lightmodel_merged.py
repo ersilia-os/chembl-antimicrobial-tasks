@@ -35,11 +35,12 @@ decoy_ratio = 0.1  # target active ratio when adding decoys
 # ---------------------------------------------------------------------------
 
 def filter_assays_for_merging(assay_df, activity_type, unit, direction, assay_type,
-                               target_type_curated_extra, bao_label, strain,
+                               target_type_curated_extra, strain=None, bao_label=None,
                                target_chembl_id=None):
     """Filter assay_df to rows matching all provided metadata fields.
 
     Non-string `unit` and `strain` are treated as NaN (missing).
+    `bao_label` and `strain` are optional: pass None to skip filtering on that column.
     If `target_chembl_id` is provided, also filters on that column (SINGLE PROTEIN only).
     """
     mask = (
@@ -47,10 +48,12 @@ def filter_assays_for_merging(assay_df, activity_type, unit, direction, assay_ty
         (assay_df["unit"].eq(unit) if isinstance(unit, str) else assay_df["unit"].isna()) &
         (assay_df["direction"] == direction) &
         (assay_df["assay_type"] == assay_type) &
-        (assay_df["target_type_curated_extra"] == target_type_curated_extra) &
-        (assay_df["bao_label"] == bao_label) &
-        (assay_df["strain"].eq(strain) if isinstance(strain, str) else assay_df["strain"].isna())
+        (assay_df["target_type_curated_extra"] == target_type_curated_extra)
     )
+    if bao_label is not None:
+        mask &= (assay_df["bao_label"] == bao_label)
+    if strain is not None:
+        mask &= (assay_df["strain"].eq(strain) if isinstance(strain, str) else assay_df["strain"].isna())
     if target_chembl_id is not None:
         mask &= (assay_df["target_chembl_id"] == target_chembl_id)
     return assay_df[mask].reset_index(drop=True)
@@ -141,12 +144,26 @@ print(f"  Quantitative: {len(dfs_qt)} | Mixed: {len(dfs_mx)}")
 print("Identifying assays to merge...")
 not_accepted = assays_merged[~assays_merged["accepted_in_individual_lm"]]
 
-keys_organism = ["activity_type", "unit", "direction", "assay_type", "target_type_curated_extra", "bao_label", "strain"]
 filtered_organism = not_accepted[not_accepted["target_type_curated_extra"] == "ORGANISM"].copy()
-to_merge_organism = to_merge_unique_cpds(filtered_organism, keys_organism, assay_to_compounds)
-to_merge_organism = to_merge_organism[
-    (to_merge_organism["n_cpds_union"] > 1000) & (to_merge_organism["n_assays"] > 1)
+
+# Strain-known ORGANISM: group by strain (no bao_label — ORGANISM target type is sufficient)
+keys_organism_strain = ["activity_type", "unit", "direction", "assay_type", "target_type_curated_extra", "strain"]
+filtered_organism_known = filtered_organism[filtered_organism["strain"].notna()].copy()
+to_merge_organism_strain = to_merge_unique_cpds(filtered_organism_known, keys_organism_strain, assay_to_compounds)
+to_merge_organism_strain = to_merge_organism_strain[
+    (to_merge_organism_strain["n_cpds_union"] > 1000) & (to_merge_organism_strain["n_assays"] > 1)
 ].reset_index(drop=True)
+
+# NaN-strain ORGANISM: group only by activity metadata (no strain, no bao_label)
+keys_organism_no_strain = ["activity_type", "unit", "direction", "assay_type", "target_type_curated_extra"]
+filtered_organism_nan = filtered_organism[filtered_organism["strain"].isna()].copy()
+to_merge_organism_no_strain = to_merge_unique_cpds(filtered_organism_nan, keys_organism_no_strain, assay_to_compounds)
+to_merge_organism_no_strain["strain"] = np.nan
+to_merge_organism_no_strain = to_merge_organism_no_strain[
+    (to_merge_organism_no_strain["n_cpds_union"] > 1000) & (to_merge_organism_no_strain["n_assays"] > 1)
+].reset_index(drop=True)
+
+to_merge_organism = pd.concat([to_merge_organism_strain, to_merge_organism_no_strain], ignore_index=True)
 to_merge_organism["name"] = [f"M_ORG{i}" for i in range(len(to_merge_organism))]
 
 keys_single_protein = ["activity_type", "unit", "direction", "assay_type", "target_type_curated_extra", "bao_label", "strain", "target_chembl_id"]
@@ -183,20 +200,30 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
         direction = float(merging.direction)
         assay_type = merging.assay_type
         target_type_curated_extra = merging.target_type_curated_extra
-        bao_label = merging.bao_label
-        strain = merging.strain
-        target_chembl_id = merging.target_chembl_id if target_type == "SINGLE PROTEIN" else np.nan
         name = merging.name
         assay_keys = merging.assay_keys
         n_assays = merging.n_assays
         n_cpds_union = merging.n_cpds_union
 
-        # Filter to matching assays with quantitative or mixed data
-        df = filter_assays_for_merging(
-            filtered_assays, activity_type, unit, direction, assay_type,
-            target_type_curated_extra, bao_label, strain,
-            target_chembl_id=target_chembl_id if target_type == "SINGLE PROTEIN" else None,
-        )
+        if target_type == "ORGANISM":
+            # For NaN-strain groups: pass strain=None to skip strain filter
+            # For strain-known groups: pass the strain string to filter on it
+            raw_strain = merging.strain
+            filter_strain = raw_strain if isinstance(raw_strain, str) else None
+            target_chembl_id = np.nan
+            df = filter_assays_for_merging(
+                filtered_assays, activity_type, unit, direction, assay_type,
+                target_type_curated_extra, strain=filter_strain,
+            )
+        else:  # SINGLE PROTEIN
+            filter_strain = merging.strain  # string or NaN, both handled in filter function
+            target_chembl_id = merging.target_chembl_id
+            df = filter_assays_for_merging(
+                filtered_assays, activity_type, unit, direction, assay_type,
+                target_type_curated_extra, strain=filter_strain,
+                bao_label=merging.bao_label,
+                target_chembl_id=target_chembl_id,
+            )
         df = df[df["dataset_type"].isin(["quantitative", "mixed"])].reset_index(drop=True)
 
         if len(df) == 0:
@@ -260,7 +287,7 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
                 print(f"  Skipping {name_}: too few positives ({n_positives})")
                 continue
 
-            print(f"  {name_} | {activity_type} | {unit} | cutoff={expert_cutoff} | strain={strain} | target={target_chembl_id}")
+            print(f"  {name_} | {activity_type} | {unit} | cutoff={expert_cutoff} | strain={filter_strain} | target={target_chembl_id}")
             print(f"    Compounds: {len(X)}, Positives: {n_positives} ({round(100 * n_positives / len(Y), 1)}%)")
 
             if n_positives / len(Y) > 0.5:
@@ -279,7 +306,7 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
 
             merged_lm.append([
                 name_, activity_type, unit, expert_cutoff, direction, assay_type,
-                target_type_curated_extra, bao_label, strain, target_chembl_id,
+                target_type_curated_extra, filter_strain, target_chembl_id,
                 n_assays, n_cpds_union, n_positives, round(n_positives / len(Y), 3),
                 avg_auroc, std_auroc, assay_keys,
             ])
@@ -299,7 +326,7 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
 
 merged_lm_df = pd.DataFrame(merged_lm, columns=[
     "name", "activity_type", "unit", "expert_cutoff", "direction", "assay_type",
-    "target_type_curated_extra", "bao_label", "strain", "target_chembl_id",
+    "target_type_curated_extra", "strain", "target_chembl_id",
     "n_assays", "n_cpds_union", "positives", "ratio", "avg", "std", "assay_keys",
 ])
 merged_lm_df.to_csv(os.path.join(OUTPUT, "15_merged_LM.csv"), index=False)

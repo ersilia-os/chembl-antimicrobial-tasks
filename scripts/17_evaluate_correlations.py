@@ -87,7 +87,7 @@ ind_tmp["assay_keys"] = [
 ind_tmp["n_assays"] = 1
 
 mrg_tmp = merged_selected.drop(columns=[
-    "direction", "assay_type", "bao_label", "is_mid_cutoff",
+    "direction", "assay_type", "is_mid_cutoff",
     "ratio", "avg", "std", "strain", "target_chembl_id",
 ]).rename(columns={"n_cpds_union": "cpds"}).copy()
 mrg_tmp["label"] = "M"

@@ -112,7 +112,6 @@ def prepare_unit_curation_file(activity_std_units):
     print("  ACTION REQUIRED: fill in manual_curation_direction and save as:")
     print(f"  {os.path.join(CONFIGPATH, 'activity_std_units_curated_manual_curation.csv')}")
 
-
 if __name__ == "__main__":
     print("Step 01")
     activity_std_units = pd.read_csv(

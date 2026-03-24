@@ -28,7 +28,7 @@ OUTPUT = os.path.join(root, "..", "output", pathogen_code)
 
 # Load and enrich assay table with curated target types
 assays_cleaned = pd.read_csv(os.path.join(OUTPUT, "08_assays_cleaned.csv"))
-parameters = pd.read_csv(os.path.join(OUTPUT, "09_assays_parameters.csv"))
+parameters = pd.read_csv(os.path.join(OUTPUT, "09_assays_parameters_full.csv"))
 assays_cleaned = add_target_type_curated(assays_cleaned, parameters)
 assays_cleaned['target_type_curated_extra'] = [
     extra_curation_target_type(i, j)

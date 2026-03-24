@@ -168,7 +168,10 @@ final_datasets["selected"] = [
 ]
 final_datasets.to_csv(os.path.join(OUTPUT, "17_final_datasets.csv"), index=False)
 
-print(f"Selected datasets per label: {dict(Counter(final_datasets[final_datasets['selected']]['label']))}")
+if len(final_datasets[final_datasets['selected']]) > 0:
+    print(f"Selected datasets per label: {dict(Counter(final_datasets[final_datasets['selected']]['label']))}")
+else:
+    print("No datasets selected after correlation filtering.")
 
 # ---------------------------------------------------------------------------
 # Coverage summary

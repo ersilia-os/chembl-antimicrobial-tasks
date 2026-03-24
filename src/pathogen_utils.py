@@ -130,8 +130,9 @@ def build_assays_info(df, pathogen_chemical_space,
         assay_to_idx[assay_id].append(i)
 
     columns = [
-        "assay_id", "assay_type", "assay_organism", "doc_chembl_id",
-        "target_type", "target_chembl_id", "target_organism",
+        "assay_id", "assay_type", "assay_organism", "assay_tax_id", "assay_strain", "assay_confidence_score",
+        "doc_chembl_id",
+        "target_type", "target_organism", "target_tax_id", "target_chembl_id", "tid",
         "bao_label", "source_label",
         "activity_type", "unit", "activities", "nan_values",
         "cpds", "act_flag", "inact_flag", "frac_cs",
@@ -149,6 +150,11 @@ def build_assays_info(df, pathogen_chemical_space,
         target_organism = _only_one(list(set(df_["target_organism"])), "target_organism")
         assay_organism = _only_one(list(set(df_["assay_organism"])), "assay_organism")
         doc_chembl_id = _only_one(list(set(df_["doc_chembl_id"])), "doc_chembl_id")
+        tid           = _only_one(df_["tid"].unique().tolist(),                    "tid")
+        assay_tax_id  = _only_one(df_["assay_tax_id"].unique().tolist(),           "assay_tax_id")
+        assay_strain  = _only_one(df_["assay_strain"].unique().tolist(),           "assay_strain")
+        assay_conf    = _only_one(df_["assay_confidence_score"].unique().tolist(), "assay_confidence_score")
+        target_tax_id = _only_one(df_["target_tax_id"].unique().tolist(),          "target_tax_id")
 
         bao_label = bao_id_to_label.get(assay_to_bao_format.get(assay), np.nan)
         source_label = src_id_to_src_short_name.get(assay_to_src_id.get(assay), np.nan)
@@ -170,8 +176,9 @@ def build_assays_info(df, pathogen_chemical_space,
                 frac_cs = round(len(cpds & pathogen_chemical_space) / len(pathogen_chemical_space), 5)
 
                 row = [
-                    assay, assay_type, assay_organism, doc_chembl_id,
-                    target_type, target_chembl_id, target_organism,
+                    assay, assay_type, assay_organism, assay_tax_id, assay_strain, assay_conf,
+                    doc_chembl_id,
+                    target_type, target_organism, target_tax_id, target_chembl_id, tid,
                     bao_label, source_label,
                     activity_type, unit, activities, nan_values,
                     len(cpds), act_flag, inact_flag, frac_cs,

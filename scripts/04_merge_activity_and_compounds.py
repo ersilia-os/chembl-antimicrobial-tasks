@@ -33,7 +33,7 @@ compounds['standardized_MW'] = compounds_standardized['standardized_MW']
 print("Merging data...")
 
 # Merge with assays
-new_activities = activities.merge(assays[['assay_id', 'chembl_id', 'assay_type', 'confidence_score', 'tid', 'assay_organism', 'doc_id']].
+new_activities = activities.merge(assays[['assay_id', 'chembl_id', 'assay_type', 'confidence_score', 'tid', 'assay_organism', 'assay_tax_id', 'assay_strain', 'doc_id']].
                                   rename(columns={'chembl_id': 'assay_chembl_id', 'confidence_score': 'assay_confidence_score'}), on='assay_id', how='left')
 
 # Merge with targets
@@ -51,6 +51,8 @@ final_columns = [
     'assay_type',
     'assay_confidence_score',
     'assay_organism',
+    'assay_tax_id',
+    'assay_strain',
     'doc_id',
     'tid',
     'target_type',

@@ -21,9 +21,12 @@ OUTPUT = os.path.join(root, "..", "output", pathogen_code)
 chembl_pathogen = pd.read_csv(os.path.join(OUTPUT, "08_chembl_cleaned_data.csv.gz"), low_memory=False)
 
 # Build assay → compound set mapping, then free the full table
+# Use None instead of NaN for consistent dictionary keys
 assay_to_compounds = defaultdict(set)
 for assay_id, activity_type, unit, compound_chembl_id in chembl_pathogen[["assay_chembl_id", "activity_type", "unit", "compound_chembl_id"]].values:
-    assay_to_compounds[(assay_id, activity_type, unit)].add(compound_chembl_id)
+    # Normalize NaN to None for consistent dictionary keys
+    unit_key = None if pd.isna(unit) else unit
+    assay_to_compounds[(assay_id, activity_type, unit_key)].add(compound_chembl_id)
 del chembl_pathogen
 
 # Load expert cutoffs and individual LM results
@@ -33,6 +36,9 @@ individual_lm = pd.read_csv(os.path.join(OUTPUT, "13_individual_LM.csv"))
 # All pathogen compounds (for coverage stats)
 pathogen_compounds = set(pd.read_csv(os.path.join(OUTPUT, "07_compound_counts.csv.gz"))["compound_chembl_id"])
 
+# AUROC improvement threshold: use best cutoff if improvement > 10% AUROC
+AUROC_IMPROVEMENT_THRESHOLD = 0.1
+
 labels = ["A", "B"]
 cols_to_keep = ["dataset_type", "pos_qt", "ratio_qt", "cpds_qt", "pos_ql", "ratio_ql", "cpds_ql", "overlap_mx", "pos_mx", "ratio_mx", "cpds_mx"]
 keys = ["assay_id", "activity_type", "unit", "target_type_curated_extra"]
@@ -40,9 +46,6 @@ keys = ["assay_id", "activity_type", "unit", "target_type_curated_extra"]
 selected = []
 original_compounds = {label: set() for label in labels}
 selected_compounds = {label: set() for label in labels}
-
-# Cascade: assays selected in A are excluded from B consideration
-selected_in_previous = set()
 
 for label in labels:
 
@@ -53,22 +56,39 @@ for label in labels:
 
     for assay_id, activity_type, unit, target_type in assays_label:
 
-        key = (assay_id, activity_type, unit)
+        # Normalize NaN to None for consistent dictionary lookup
+        unit_key = None if pd.isna(unit) else unit
+        key = (assay_id, activity_type, unit_key)
         original_compounds[label].update(assay_to_compounds[key])
 
-        # Each assay selected at most once across cutoffs, and never in B if already in A
-        if key in already_selected or key in selected_in_previous:
+        # Each assay selected at most once across cutoffs
+        # Use original (assay_id, activity_type, unit) triplet for tracking selection
+        selection_key = (assay_id, activity_type, unit)
+        if selection_key in already_selected:
             continue
 
         # Mid cutoff is the reference cutoff (middle value in the expert list)
-        mid_cutoff = expert_cutoffs[(activity_type, unit, target_type, pathogen_code)][1]
+        cutoff_list = expert_cutoffs.get((activity_type, unit, target_type, pathogen_code))
+        if not cutoff_list or len(cutoff_list) < 2:
+            print(f"Warning: Missing cutoff for {activity_type}, {unit}, {target_type}")
+            continue
+        mid_cutoff = cutoff_list[1]
 
         # Get all cutoff results for this assay, sorted by AUROC
+        if pd.isna(unit):
+            unit_mask = lm_label["unit"].isna()
+        else:
+            unit_mask = lm_label["unit"].eq(unit)
+
         df = lm_label[
             (lm_label["assay_id"] == assay_id) &
             (lm_label["activity_type"] == activity_type) &
-            (lm_label["unit"].eq(unit) if isinstance(unit, str) else lm_label["unit"].isna())
+            unit_mask
         ].sort_values("avg", ascending=False).reset_index(drop=True)
+
+        if len(df) == 0:
+            print(f"Warning: No LM results for {assay_id}, {activity_type}, {unit}")
+            continue
 
         best_auroc = df["avg"].iloc[0]
         best_cutoff = df["expert_cutoff"].iloc[0]
@@ -76,10 +96,13 @@ for label in labels:
         mid_rows = df[df["expert_cutoff"] == mid_cutoff]
         mid_auroc = mid_rows["avg"].iloc[0] if len(mid_rows) > 0 else np.nan
 
+        if len(mid_rows) == 0:
+            print(f"Info: Mid cutoff {mid_cutoff} not found for {assay_id}, {activity_type}, {unit}, using best: {best_cutoff}")
+
         if best_auroc > 0.7:
 
-            # Prefer the mid cutoff unless the best is substantially better (> 0.1 AUROC)
-            if np.isnan(mid_auroc) or (best_auroc - mid_auroc) > 0.1:
+            # Prefer the mid cutoff unless the best is substantially better (> threshold AUROC)
+            if np.isnan(mid_auroc) or (best_auroc - mid_auroc) > AUROC_IMPROVEMENT_THRESHOLD:
                 info = df[cols_to_keep].iloc[0].tolist()
                 selected.append([label, assay_id, activity_type, unit, target_type, best_cutoff, best_auroc, False] + info)
             else:
@@ -87,9 +110,7 @@ for label in labels:
                 selected.append([label, assay_id, activity_type, unit, target_type, mid_cutoff, mid_auroc, True] + info)
 
             selected_compounds[label].update(assay_to_compounds[key])
-            already_selected.add(key)
-
-    selected_in_previous.update(already_selected)
+            already_selected.add(selection_key)
 
 selected_df = pd.DataFrame(selected, columns=[
     "label", "assay_id", "activity_type", "unit", "target_type", "cutoff", "auroc", "is_mid_cutoff",
@@ -99,14 +120,11 @@ selected_df = pd.DataFrame(selected, columns=[
 
 selected_df.to_csv(os.path.join(OUTPUT, "14_individual_selected_LM.csv"), index=False)
 
-# Sanity check: one dataset per assay triplet within each label, and no overlap across labels
+# Sanity check: one dataset per assay triplet within each label
 for label in labels:
     sub = selected_df[selected_df["label"] == label]
     assert len(set(tuple(row) for row in sub[["assay_id", "activity_type", "unit"]].values)) == len(sub), \
         f"Duplicate assay triplets in label {label}"
-keys_A = set(tuple(r) for r in selected_df[selected_df["label"] == "A"][["assay_id", "activity_type", "unit"]].values)
-keys_B = set(tuple(r) for r in selected_df[selected_df["label"] == "B"][["assay_id", "activity_type", "unit"]].values)
-assert len(keys_A & keys_B) == 0, "Cascade violation: same assay selected in both A and B"
 
 print("Chemical space coverage:")
 for label in labels:

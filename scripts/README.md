@@ -1,24 +1,45 @@
-# `scripts` directory
+# Scripts
 
-There are two main stages of data processing. First, all ChEMBL is standardised to common units and data types (Stage 00_process_chembl). Then, a per-pathogen split happens according to the pathogens specified by the user, and individual processing takes place (01_proces_pathogen)
+Two sequential stages: **Stage 1** processes the full ChEMBL database once; **Stage 2** runs per pathogen to produce ML-ready datasets.
 
-## Set up
-Before running any script, create a **local copy of the ChEMBL Database** following the instructions detailed in `docs/install_ChEMBL.md`. Currently, this is set to *ChEMBL_36* (latest version), but if a new release appears simply download the new version and change the Database name in `src/default.py` (DATABASE_NAME).
+## Setup
 
-## 00. Process ChEMBL
+Create a local ChEMBL PostgreSQL database following `docs/install_ChEMBL.md`. Database connection defaults are in `src/default.py` (`DATABASE_NAME`, user, password).
 
-Run once to produce a single cleaned bioactivity file from the local ChEMBL database. Takes ~4–5 hours on a desktop machine; the main bottleneck is compound standardization (step 03).
+---
+
+## Stage 1 — Process ChEMBL (run once, ~4–5 h)
 
 ```sh
 conda activate camt
-bash scripts/process_ChEMBL.sh
+bash scripts/process_ChEMBL.sh              # standard
+bash scripts/process_ChEMBL.sh --calculate_ecfps  # also compute fingerprints
 ```
 
-Optionally compute ECFP fingerprints for all ChEMBL compounds:
+| Step | Script | What it does | Key output |
+|------|--------|-------------|------------|
+| 00 | `00_export_chembl_activities.py` | Exports raw tables from the ChEMBL PostgreSQL DB and derives frequency tables for activity comments, units, and text values. | `data/chembl_activities/*.csv` |
+| 01 | `01_prepare_manual_files.py` | Harmonizes activity type strings, maps units to UCUM, collapses synonyms. **Pauses here** — a curator must assign biological direction to each (activity\_type, unit) pair before continuing (see below). | `data/chembl_processed/01_*.csv` |
+| 02 | `02_get_compound_info.py` | Merges compound structures with molecule dictionary; calculates molecular weight. | `data/chembl_processed/02_compound_info.csv` |
+| 03 | `03_standardize_compounds.py` | Canonicalizes SMILES, removes salts/solvents, recalculates MW. ⏳ ~3–4 h | `data/chembl_processed/03_compound_info_standardized.csv` |
+| 04 | `04_merge_activity_and_compounds.py` | Joins activities, assays, targets, and compounds into a single table. | `data/chembl_processed/04_activities_all_raw.csv` |
+| 05 | `05_clean_activities.py` | Filters invalid entries, applies activity comment/text flags, converts units, harmonizes activity types, recalculates pChEMBL. ⏳ ~15 min | `data/chembl_processed/05_activities_preprocessed.csv` |
+| 06 | `06_calculate_ecfps.py` *(optional)* | Computes ECFP4 fingerprints (radius 3, 2048 bits) for all standardized compounds. ⏳ ~15 min | `data/chembl_processed/06_chembl_ecfps` |
 
-```sh
-bash scripts/process_ChEMBL.sh --calculate_ecfps
-```
+### Manual curation required between steps 01 and 02
+
+1. Open `data/chembl_processed/01_activity_std_units_converted.csv`
+2. Fill in `manual_curation_direction`: `1` = higher value → more active, `-1` = lower value → more active, `0` = unclear
+3. Save as `config/activity_std_units_manual_curation.csv`
+
+### Config files used in Stage 1
+
+| File | Step | Purpose |
+|------|------|---------|
+| `config/ucum_manual.csv` | 01, 05 | Maps ChEMBL units to UCUM; provides value conversion formulas |
+| `config/synonyms.csv` | 01, 05 | Collapses activity type variants to canonical names |
+| `config/activity_comments_manual_curation.csv` | 05 | Maps activity comment strings to active/inactive/unknown |
+| `config/standard_text_manual_curation.csv` | 05 | Maps standard text values to active/inactive/unknown |
 
 ---
 
@@ -40,18 +61,18 @@ In addition, the script derives four frequency tables from the `ACTIVITIES` tabl
 4. `standard_text.csv` — frequency of values in `standard_text_value` (e.g. `"Compound metabolized"`)
 5. `assay_descriptions.csv` — assay IDs mapped to their text descriptions and ChEMBL IDs
 
-The files `activity_comments.csv` and `standard_text.csv` were manually reviewed to assign an activity label to the most frequent entries, stored in `config/activity_comments_manual_curation.csv` and `config/standard_text_manual_curation.csv` (column `manual_curation_activity`): `1` = active, `-1` = inactive, `0` = inconclusive. Users are encouraged to extend these files.
+The files `activity_comments.csv` and `standard_text.csv` were manually reviewed to assign an activity label to the most frequent entries, stored in `config/activity_comments_manual_curation.csv` and `config/standard_text_manual_curation.csv` (column `manual_curation_activity`): `1` = active, `-1` = inactive, `0` = inconclusive.
 
 ---
 
 ### Step 01 — Prepare manual curation files (`01_prepare_manual_files.py`)
 
-Harmonizes activity type strings (uppercase, punctuation stripped) and maps units to their UCUM-compliant equivalents via `ucum_manual.csv`. Synonym activity types are collapsed using `synonyms.csv`. Produces two outputs in `data/`:
+Harmonizes activity type strings (uppercase, punctuation stripped) and maps units to their UCUM-compliant equivalents via `ucum_manual.csv`. Synonym activity types are collapsed using `synonyms.csv`. Produces two outputs in `data/chembl_processed/`:
 
-- `01_activity_std_units_converted.csv` — (`activity_type`, `unit`) pairs with counts, ready for manual curation of biological direction (see below)
+- `01_activity_std_units_converted.csv` — (`activity_type`, `unit`) pairs with counts, ready for manual curation of biological direction
 - `01_harmonized_types_map.csv` — each harmonized activity type mapped to the count and list of raw `standard_type` variants it collapses
 
-> ⚠️ **Manual curation required before continuing.** The pipeline will exit with an error if the curated file is missing (see below).
+> ⚠️ **Manual curation required before continuing.** The pipeline will exit with an error if the curated file is missing.
 
 ---
 
@@ -79,14 +100,14 @@ Joins activity records with assay metadata, target information, and standardized
 
 Produces the final preprocessed activity table `data/chembl_processed/05_activities_preprocessed.csv`. Performs the following steps:
 
-1. **Filter invalid entries** — removes activities with missing canonical SMILES (~226k records).
+1. **Filter invalid entries** — removes activities with missing canonical SMILES.
 2. **Flag activity comments** — maps each `activity_comment` to active (1), inactive (-1), or unknown (0) using `config/activity_comments_manual_curation.csv`.
 3. **Flag standard text** — same for `standard_text_value` using `config/standard_text_manual_curation.csv`.
 4. **Convert units and values** — normalizes unit strings and converts raw values using formulas from `config/ucum_manual.csv`.
-5. **Harmonize activity types** — strips punctuation/spaces and uppercases `standard_type` (e.g. `"A ctivity"` → `"ACTIVITY"`).
+5. **Harmonize activity types** — strips punctuation/spaces and uppercases `standard_type`.
 6. **Standardize relations** — maps `>=`, `>>`, `~` etc. to simplified `>`, `<`, `=`.
 7. **Calculate pChEMBL** — recalculates pChEMBL values for records with `unit = umol.L-1` and a valid numeric value.
-8. **Convert doc IDs** — replaces internal `doc_id` with `doc_chembl_id` using `data/chembl_activities/docs.csv`.
+8. **Convert doc IDs** — replaces internal `doc_id` with `doc_chembl_id`.
 9. **Map synonyms** — collapses activity type variants to their canonical name using `config/synonyms.csv`.
 10. **Create text flag** — merges activity comment and standard text flags into a single `text_flag` column (1 / -1 / 0).
 
@@ -104,40 +125,40 @@ Computes ECFP fingerprints (radius 3, 2048 bits) for all standardized compounds 
 
 ---
 
-### Manual curation required (between steps 01 and 02)
-
-After step 01 the pipeline pauses. Before it can continue, a curator must assign a biological direction to each (`activity_type`, `unit`) pair:
-
-1. Open `data/01_activity_std_units_converted.csv`
-2. Fill in `manual_curation_direction`: `1` = higher value means more active (e.g. % Inhibition), `-1` = lower value means more active (e.g. IC50), `0` = unclear
-3. Save the result as `config/activity_std_units_manual_curation.csv`
-
-This file is required by step 08 of the pathogen pipeline.
-
----
-
-### Config files used
-
-| File | Used in | Description |
-|------|---------|-------------|
-| `config/ucum_manual.csv` | steps 01, 05 | Maps ChEMBL units to UCUM-compliant formats and provides value conversion formulas. |
-| `config/synonyms.csv` | steps 01, 05 | Maps activity type variants to their canonical name (e.g. `MIC>=90` → `MIC90`). |
-| `config/activity_comments_manual_curation.csv` | step 05 | Maps activity comment strings to active (1), inactive (-1), or unknown (0). |
-| `config/standard_text_manual_curation.csv` | step 05 | Maps standard text values to active (1), inactive (-1), or unknown (0). |
-| `config/activity_std_units_manual_curation.csv` | step 08 | Biological direction per (`activity_type`, `unit`) pair. Produced by manual curation of step 01 output. |
-
----
-
-## 01. Generate pathogen datasets
-
-Run per pathogen to produce binarized ML-ready datasets from the preprocessed ChEMBL data.
+## Stage 2 — Generate pathogen datasets (run per pathogen)
 
 ```sh
 conda activate camt
 bash scripts/generate_datasets.sh --<pathogen_code>
+# e.g. bash scripts/generate_datasets.sh --mtb
 ```
 
-Supported pathogen codes are listed in `config/pathogens.csv`.
+Supported codes are in `config/pathogens.csv`. All outputs go to `output/<pathogen_code>/`.
+
+| Step | Script | What it does | Key output |
+|------|--------|-------------|------------|
+| 07 | `07_get_pathogen_assays.py` | Filters the full ChEMBL dataset to records matching the pathogen (by organism field and optional assay allowlist). ⏳ ~1 min | `07_chembl_raw_data.csv.gz`, `07_assays_raw.csv` |
+| 08 | `08_clean_pathogen_activities.py` | Removes invalid records, assigns biological direction per (activity\_type, unit) pair, drops unmodelable activities. ⏳ ~5 min | `08_chembl_cleaned_data.csv.gz`, `08_assays_cleaned.csv` |
+| 09 | `09_curate_assay_parameters.py` | **⚠️ GPU + ollama required.** Uses a local LLM to extract and standardize biological context for each unique assay: target type/name/ChEMBL ID, strain, ATCC ID, mutations, drug resistances, culture media. Processes assays in batches of 6. Already-processed assays are skipped on restart. Target ChEMBL IDs are resolved via a multi-strategy exact-match lookup (organism-prefix stripping, slash-split, gene-name reconstruction) — IDs are never guessed. | `09_assays_parameters_full.csv` |
+| 10 | `10_calculate_assay_clusters.py` | Clusters compounds in each assay by ECFP4 similarity (BitBirch) at three Tanimoto thresholds (0.3, 0.6, 0.85). **Can run in parallel with step 09.** ⏳ ~10 min | `10_assays_clusters.csv` |
+| 11 | `11_get_assay_overlap.py` | Computes pairwise compound overlap between assays with ≥ 50 compounds. ⏳ ~1 min | `11_assays_overlap.csv` |
+| 12 | `12_prepare_assay_datasets.py` | Binarizes activities using expert cutoffs (`config/expert_cutoffs.csv`). Produces quantitative (`_qt`), qualitative (`_ql`), and mixed (`_mx`) datasets per assay. **⚠️ `expert_cutoffs.csv` must exist before running.** ⏳ ~5 min | `12_datasets.csv`, `datasets/datasets_qt.zip`, `datasets_ql.zip`, `datasets_mx.zip` |
+| 13 | `13_lightmodel_individual.py` | Trains Random Forest classifiers (4-fold CV, Morgan fingerprints) on each binarized dataset. Evaluates AUROC. Adds ChEMBL decoys for active-enriched datasets. ⏳ ~30 min | `13_individual_LM.csv`, `13_reference_set.csv.gz`, `correlations/A/`, `correlations/B/` |
+| 14 | `14_select_datasets_individual.py` | Selects the best cutoff per assay (AUROC > 0.7 threshold; prefers the mid cutoff). ⏳ < 1 min | `14_individual_selected_LM.csv` |
+| 15 | `15_lightmodel_merged.py` | Merges assays that share experimental context (same activity type, unit, target, strain) and re-evaluates modelability for assays rejected in step 14. ⏳ ~10–30 min | `15_merged_LM.csv`, `correlations/M/`, `datasets/M/` |
+| 16 | `16_select_datasets_merged.py` | Selects the best cutoff per merged group (same criteria as step 14). ⏳ < 1 min | `16_merged_selected_LM.csv` |
+| 17 | `17_evaluate_correlations.py` | Computes pairwise similarity between all selected ORGANISM datasets using reference-set predictions, then greedily deduplicates redundant models. ⏳ ~5 min | `17_dataset_correlations.csv`, `17_final_datasets.csv` |
+| 18 | `18_prepare_assay_master.py` | Assembles a master annotation table merging all per-step metadata, pipeline status flags, and selection traceability fields for every assay triplet. ⏳ < 1 min | `18_assays_master.csv` |
+| 19 | `19_prepare_final_datasets.py` *(optional)* | Exports the selected datasets as simplified CSVs (SMILES + binary label only) in a single ZIP. ⏳ < 1 min | `19_final_datasets.zip` |
+| 20 | `20_diagnosis.py` *(optional)* | Produces a diagnostic plot covering data quality, chemical diversity, assay coverage, and model correlations. ⏳ ~2 min | `20_diagnosis.png` |
+
+### Config files used in Stage 2
+
+| File | Step | Purpose |
+|------|------|---------|
+| `config/activity_std_units_manual_curation.csv` | 08 | Biological direction per (activity\_type, unit) pair |
+| `config/expert_cutoffs.csv` | 12 | Binarization thresholds per (activity\_type, unit, target\_type, pathogen\_code) |
+| `config/pathogens.csv` | all | Pathogen codes and names |
 
 ---
 
@@ -200,6 +221,8 @@ Uses a local LLM to extract and standardize biological context for each (`assay_
 | `known_drug_resistances` | Drugs for which resistance is explicitly stated |
 | `media` | Growth or culture medium explicitly stated |
 
+Target ChEMBL IDs extracted by the LLM are resolved against the ChEMBL target dictionary using a **multi-strategy exact-match lookup**: first by direct ID match, then by organism-prefix stripping, then by slash-split of compound names, and finally by gene-name reconstruction. IDs are never guessed — unresolvable names are left blank.
+
 The script supports **resuming**: already-processed triplets in the output file are skipped. On LLM failure, an empty row is written and processing continues.
 
 The LLM model is configured via `LLM_MODEL` in `src/default.py`.
@@ -258,7 +281,7 @@ The LLM-curated `target_type_curated` from step 09 is merged onto the cleaned as
 - `ORGANISM` — whole-cell or phenotypic assays
 - `DISCARDED` — assays that cannot be assigned a clear biological target
 
-This simplified field is used as the key for expert cutoff lookup (see below).
+This simplified field is used as the key for expert cutoff lookup.
 
 #### Expert cutoffs
 
@@ -270,7 +293,7 @@ Binarization thresholds are loaded from `config/expert_cutoffs.csv`, keyed by (`
 
 For assays with numeric values, a valid biological direction, and an expert cutoff:
 
-1. **Adjust censored relations** — measurements on the wrong side of the direction (e.g. `IC50 > 100 µM` when lower = more active) are replaced with the assay extreme value (max for IC50-like, min for %inhibition-like) and their relation set to `=`. This ensures they are correctly classified as inactive after binarization without distorting the compound selection step.
+1. **Adjust censored relations** — measurements on the wrong side of the direction (e.g. `IC50 > 100 µM` when lower = more active) are replaced with the assay extreme value and their relation set to `=`. This ensures they are correctly classified as inactive after binarization without distorting the compound selection step.
 2. **Disambiguate compounds** — if a compound has multiple measurements, the most active one is kept: minimum for direction = −1, maximum for direction = +1.
 3. **Binarize** — values are compared to the expert cutoff: `bin = 1` if `value ≤ cutoff` (direction = −1) or `value ≥ cutoff` (direction = +1).
 
@@ -291,8 +314,6 @@ Built from the `text_flag` column (derived from activity comments and standard t
 
 For **mixed** datasets, qualitative inactives not already present in the quantitative set are appended to it. Only inactives are added this way — qualitative actives without a numeric measurement are excluded to avoid inflating the active class with unquantified data.
 
-Individual dataset files are compressed into zip archives at the end of the step and the originals removed.
-
 Outputs are saved to `output/<pathogen_code>/`:
 
 | File | Description |
@@ -310,7 +331,6 @@ Outputs are saved to `output/<pathogen_code>/`:
 ### Step 13 — Individual light modeling (`13_lightmodel_individual.py`)
 
 Evaluates the modelability of each binarized assay dataset from step 12 using Random Forest classifiers trained on Morgan (ECFP) fingerprints. Produces per-assay AUROC scores and reference set predictions used for downstream correlation analysis.
-**Note:** qualitative assays are not taken into account in the next steps nor they are part of the final assay table. For Mixed assays, only quantitative measurements are considered.
 
 #### Modeling conditions
 
@@ -336,12 +356,14 @@ For datasets where actives are over-represented (ratio ≥ 0.5), random ChEMBL c
 For each qualifying dataset:
 1. Load the quantitative or mixed dataset from the step 12 zip archives
 2. *(Condition B only)* Sample and append decoys from the pathogen-naive ChEMBL pool
-3. Run 4-fold stratified cross-validation with Random Forest (100 trees) → mean AUROC ± std
-4. Train a final model on all data → predict activity probabilities on the reference set
+3. Run **4-fold stratified cross-validation** with Random Forest (100 trees) → mean AUROC ± std
+4. Train a **final model on all data** → predict activity probabilities on the reference set
 
 #### Reference set
 
-The reference set is a fixed sample of 10,000 compounds that have never been screened against the pathogen, drawn from all ChEMBL compounds with available fingerprints. Using pathogen-naive compounds avoids data leakage: correlations between model predictions reflect shared biological signal rather than shared training data. The set is sampled with a fixed seed (42) for reproducibility.
+The reference set is a fixed sample of **10,000 compounds that have never been screened against the pathogen**, drawn from all ChEMBL compounds with available fingerprints. Using pathogen-naive compounds avoids data leakage: correlations between model predictions reflect shared biological signal rather than shared training data. The set is sampled with a fixed seed (42) for reproducibility.
+
+> The alternative of using pathogen-tested compounds was considered but rejected: many of those compounds appear in the training sets of the models being compared, which would make correlations partly reflect memorization rather than generalization.
 
 Outputs are saved to `output/<pathogen_code>/`:
 
@@ -386,6 +408,7 @@ Outputs are saved to `output/<pathogen_code>/`:
 ### Step 15 — Merged light modeling (`15_lightmodel_merged.py`)
 
 Attempts to rescue assay triplets that were not accepted in step 14 by merging them into larger combined datasets and re-evaluating their modelability.
+
 Many assays in ChEMBL are too small individually to meet the compound and positive thresholds of conditions A or B. However, assays that share the same experimental context (activity type, unit, direction, assay type, target type, BAO label, and strain) can be combined into a single dataset. If the union of their compounds is large enough, a viable classifier can still be built.
 
 #### Merge candidate identification
@@ -541,3 +564,37 @@ Outputs are saved to `output/<pathogen_code>/`:
 ⏳ ETA: < 1 minute.
 
 ---
+
+### Step 19 — Prepare final datasets (`19_prepare_final_datasets.py`) *(optional)*
+
+Exports all selected datasets as simplified CSVs containing only SMILES and binary activity labels, bundled into a single ZIP file. Intended for researchers who want ML-ready data without navigating the full pipeline outputs.
+
+Output: `output/<pathogen_code>/19_final_datasets.zip`
+
+⏳ ETA: < 1 minute.
+
+---
+
+### Step 20 — Diagnosis (`20_diagnosis.py`) *(optional)*
+
+Produces a diagnostic plot summarizing data quality, chemical diversity, assay coverage, and model correlations for the pathogen dataset.
+
+Output: `output/<pathogen_code>/20_diagnosis.png`
+
+⏳ ETA: ~2 minutes.
+
+---
+
+## Accessing ML-ready datasets
+
+After the full pipeline, researchers can access datasets without manually sifting files:
+
+```sh
+# Recommended: simplified export (SMILES + binary label)
+python scripts/19_prepare_final_datasets.py <pathogen_code>
+unzip output/<pathogen_code>/19_final_datasets.zip
+```
+
+Finally, script 21 is required to generate files for the pubchem pipeline, but all pathogens need to be processed minimum to step 07 for it to work.
+
+For programmatic access with full metadata, see `docs/dataset_access_guide.md`.

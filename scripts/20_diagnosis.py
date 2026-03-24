@@ -1,12 +1,12 @@
 """
-Step 19 — Diagnosis plots.
+Step 20 — Diagnosis plots.
 
 Produces a 3×3 diagnostic figure for a given pathogen and saves it to
-output/<pathogen_code>/19_diagnosis.png.
+output/<pathogen_code>/20_diagnosis.png.
 
 Usage
 -----
-    python scripts/19_diagnosis.py <pathogen_code>
+    python scripts/20_diagnosis.py <pathogen_code>
 """
 
 from collections import Counter, defaultdict
@@ -21,16 +21,17 @@ import h5py
 from tqdm import tqdm
 import sys
 import os
+import matplotlib.pyplot as plt
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import DATAPATH, CONFIGPATH
+from default import DATAPATH
 from pathogen_utils import load_pathogen
 
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
 
-print("Step 19: Diagnosis plots")
+print("Step 20: Diagnosis plots")
 
 OUTPUT = os.path.join(root, "..", "output", pathogen_code)
 
@@ -44,9 +45,13 @@ raw = pd.read_csv(os.path.join(OUTPUT, "07_chembl_raw_data.csv.gz"), low_memory=
 cleaned = pd.read_csv(os.path.join(OUTPUT, "08_chembl_cleaned_data.csv.gz"), low_memory=False)
 assays_raw_df = pd.read_csv(os.path.join(OUTPUT, "07_assays_raw.csv"))
 assays_cleaned_df = pd.read_csv(os.path.join(OUTPUT, "08_assays_cleaned.csv"))
+strain_info = pd.read_csv(os.path.join(OUTPUT, "09_assays_parameters_full.csv"))
 compound_counts = pd.read_csv(os.path.join(OUTPUT, "07_compound_counts.csv.gz"))
 final_datasets = pd.read_csv(os.path.join(OUTPUT, "17_final_datasets.csv"))
 correlations = pd.read_csv(os.path.join(OUTPUT, "17_dataset_correlations.csv"))
+
+# Load assays master data for rejection analysis
+assays_master = pd.read_csv(os.path.join(OUTPUT, "18_assays_master.csv"))
 
 pathogen_compounds = set(compound_counts["compound_chembl_id"])
 
@@ -70,6 +75,7 @@ act_mx = len(cleaned[(cleaned["value"].notna()) & (cleaned["text_flag"].isin([-1
 assay_type_ctr = Counter(assays_cleaned_df["assay_type"])
 target_type_ctr = Counter(assays_cleaned_df["target_type"])
 organism_ctr = Counter(assays_cleaned_df["assay_organism"])
+strain_ctr = Counter(strain_info["assay_strain_curated"])
 unit_ctr = Counter(assays_cleaned_df["unit"])
 
 total_assay = sum(assay_type_ctr.values())
@@ -86,8 +92,38 @@ target_type_bars = [
     1,
 ][::-1]
 
-total_organism = sum(organism_ctr.values())
-assay_organism_bars = [organism_ctr[pathogen] / total_organism, 1][::-1]
+# Calculate strain bars: [no-strain, other strains, majoritarian strain]
+total_strain = sum(strain_ctr.values())
+null_strain_count = (
+    strain_ctr.get(None, 0) +           # Handle None
+    strain_ctr.get('', 0) +             # Handle empty strings
+    strain_ctr.get(np.nan, 0)           # Handle pandas NaN (float)
+)
+
+if total_strain > 0:
+    # Find majoritarian strain (excluding null values)
+    non_null_strain_ctr = {k: v for k, v in strain_ctr.items() if k and k != '' and not pd.isna(k)}
+    if non_null_strain_ctr:
+        majoritarian_strain, majoritarian_count = max(non_null_strain_ctr.items(), key=lambda x: x[1])
+        other_strains_count = sum(non_null_strain_ctr.values()) - majoritarian_count
+    else:
+        majoritarian_strain, majoritarian_count = None, 0
+        other_strains_count = 0
+
+    # Create 3-segment bars: [no-strain, other strains, majoritarian strain]
+    no_strain_frac = null_strain_count / total_strain
+    other_strains_frac = other_strains_count / total_strain
+    majoritarian_frac = majoritarian_count / total_strain
+    print(no_strain_frac, other_strains_frac, majoritarian_frac, majoritarian_strain)
+
+    strain_bars = [
+        majoritarian_frac,
+        majoritarian_frac+other_strains_frac,
+        1
+    ][::-1]  # Reverse to match stacking pattern
+else:
+    strain_bars = [1, 1, 1]
+    majoritarian_strain = "Unknown"
 
 total_unit = sum(unit_ctr.values())
 unit_bars = [
@@ -153,7 +189,7 @@ print("Building correlation matrices...")
 
 names = sorted(set(correlations["name_1"]))
 co_dict = {(r.name_1, r.name_2): r.compound_overlap for r in correlations.itertuples()}
-ho_dict = {(r.name_1, r.name_2): r.hit_overlap_1000 for r in correlations.itertuples()}
+ho_dict = {(r.name_1, r.name_2): r.hit_overlap_100 for r in correlations.itertuples()}
 
 X_co = np.array([[co_dict[(n1, n2)] for n2 in names] for n1 in names])
 X_ho = np.array([[ho_dict[(n1, n2)] for n2 in names] for n1 in names])
@@ -220,50 +256,98 @@ def right_to_left(y_right):
     return np.log10(np.maximum(np.asarray(y_right), 1e-100)) / 5
 
 
+def parse_rejection_categories(comment_series):
+    """Parse rejection comments into standardized categories"""
+    categories = {
+        'selected': comment_series.str.contains('Retained in final selection', na=False),
+        'already_accepted': comment_series.str.contains('already accepted', na=False),
+        'too_few_positives': comment_series.str.contains('insufficient positives', na=False),
+        'too_few_compounds': comment_series.str.contains('insufficient compounds', na=False),
+        'auroc_below': comment_series.str.contains('below 0.70 threshold', na=False, regex=True),
+        'no_cutoff': comment_series.str.contains('no expert cutoff defined', na=False),
+        'qualitative_only': comment_series.str.contains('only qualitative data', na=False),
+        'insufficient_data': comment_series.str.contains('insufficient data for merging', na=False),
+        'insufficient_compatible': comment_series.str.contains('insufficient compatible assays', na=False),
+        'correlation': comment_series.str.contains('high correlation', na=False),      
+        'non_organism': comment_series.str.contains('non-ORGANISM target type', na=False)  
+    }
+    return categories
+
+
+def calculate_rejection_proportions(df):
+    """Calculate proportions for each label with proper normalization"""
+    results = {}
+    total = len(df)
+
+    # Label A: All datasets can be considered
+    a_cats = parse_rejection_categories(df['comment_A'])
+    results['A'] = {cat: a_cats[cat].sum() / total for cat in a_cats}
+
+    # Label B: Exclude datasets already selected under A
+    b_cats = parse_rejection_categories(df['comment_B'])
+    results['B'] = {cat: b_cats[cat].sum() / total for cat in b_cats}
+
+    # Label M: Exclude datasets accepted individually under A or B
+    m_cats = parse_rejection_categories(df['comment_M'])
+    results['M'] = {cat: m_cats[cat].sum() / total for cat in m_cats}
+
+    return results
+
+
 # ---------------------------------------------------------------------------
 # Plot
 # ---------------------------------------------------------------------------
 
 print("Plotting...")
+stylia.set_style("ersilia")
+nc = stylia.NamedColors()  
 
-fig, axs = stylia.create_figure(3, 3, width=stylia.TWO_COLUMNS_WIDTH * 1.5, height=stylia.TWO_COLUMNS_WIDTH * 1.35)
-cmap2 = mpl.colors.LinearSegmentedColormap.from_list("purple_blue", ["#50285A", "#8DC7FA"], N=256)
-label_to_color = {"A": "#FAA08B", "B": "#8DC7FA", "M": "#FAD782"}
+fig, axs = stylia.create_figure(3, 3, width=1, height=1)
+cmap2 = mpl.colors.LinearSegmentedColormap.from_list("purple_blue", [nc.plum, nc.blue], N=256)
+label_to_color = {"A":nc.orange, "B": nc.blue, "M": nc.yellow}
 
 # [0][0] Raw vs cleaned: activities, compounds, assays
 ax = axs.next()
-ax.bar([0, 0], [activities_raw, activities_cleaned], color=["#D2D2D2", "#8DC7FA"], ec="k", zorder=2)
-ax.bar([1, 1], [compounds_raw, compounds_cleaned], color=["#D2D2D2", "#8DC7FA"], ec="k", zorder=2)
-ax.bar([2, 2], [n_assays_raw, n_assays_cleaned], color=["#D2D2D2", "#8DC7FA"], ec="k", zorder=2)
-ax.set_yscale("log")
-ax.set_yticks([10**1, 10**2, 10**3, 10**4, 10**5, 10**6])
-ax.set_ylim([5, 3e6])
+ax.bar([0], [activities_raw], color=nc.gray, label="Raw")
+ax.bar([0], [activities_cleaned], color=nc.blue, label="Cleaned")
+ax.bar([1], [compounds_raw], color=nc.gray)
+ax.bar([1], [compounds_cleaned], color=nc.blue)
+ax.bar([2], [n_assays_raw], color=nc.gray)
+ax.bar([2], [n_assays_cleaned], color=nc.blue)
 ax.set_xticks([0, 1, 2])
 ax.set_xticklabels(["Activities", "Compounds", "Assays"])
-stylia.label(ax, ylabel="Number of")
+ax.legend(loc="upper right")
+stylia.label(ax, ylabel="Number", xlabel="", title="Raw vs cleaned data")
 
-# [0][1] Fraction bars: assay type, target type, organism, unit, activity type
+# [0][1] Fraction bars: assay type, target type, strain, unit, activity type
 ax = axs.next()
-ax.bar([0, 0, 0], assay_type_bars, zorder=2, color=["#D2D2D2", "#DC9FDC", "#FAD782"], ec="k")
+ax.bar([0, 0, 0], assay_type_bars, zorder=2, color=[nc.gray, nc.pink,nc.yellow])
 ax.text(0, assay_type_bars[-1] / 2, "F", ha="center", va="center")
 ax.text(0, (assay_type_bars[-2] + assay_type_bars[-1]) / 2, "B", ha="center", va="center")
-ax.bar([1, 1, 1], target_type_bars, zorder=2, color=["#D2D2D2", "#DC9FDC", "#FAD782"], ec="k")
+ax.bar([1, 1, 1], target_type_bars, zorder=2, color=[nc.gray, nc.pink, nc.yellow])
 ax.text(1, target_type_bars[-1] / 2, "ORG", ha="center", va="center")
 ax.text(1, (target_type_bars[-2] + target_type_bars[-1]) / 2, "SP", ha="center", va="center")
-ax.bar([2, 2], assay_organism_bars, zorder=2, color=["#D2D2D2", "#FAD782"], ec="k")
-ax.bar([3, 3, 3], unit_bars, zorder=2, color=["#D2D2D2", "#DC9FDC", "#FAD782"], ec="k")
+ax.bar([2, 2, 2], strain_bars, zorder=2, color=[nc.gray, nc.pink,nc.yellow])
+# Add text labels for strain information
+if 'majoritarian_strain' in locals() and majoritarian_strain:
+    ax.text(2, strain_bars[-1] / 2, majoritarian_strain[:6], ha="center", va="center")
+# Add label for "other strains" segment
+if len(strain_bars) >= 2:
+    other_center = (strain_bars[-2] + strain_bars[-1]) / 2
+    ax.text(2, other_center, "other", ha="center", va="center")
+ax.bar([3, 3, 3], unit_bars, zorder=2, color=[nc.gray, nc.pink,nc.yellow])
 ax.text(3, unit_bars[-1] / 2, "uM", ha="center", va="center")
 ax.text(3, (unit_bars[-2] + unit_bars[-1]) / 2, "%", ha="center", va="center")
 ax.bar(
     [4, 4, 4],
     [1, (act_qt + act_mx) / activities_cleaned, act_qt / activities_cleaned],
-    zorder=2, color=["#D2D2D2", "#DC9FDC", "#FAD782"], ec="k",
+    zorder=2, color=[nc.gray, nc.pink,nc.yellow],
 )
 ax.text(4, (act_qt / activities_cleaned) / 2, "qt.", ha="center", va="center")
 ax.set_ylim([0, 1])
 ax.set_xticks([0, 1, 2, 3, 4])
-ax.set_xticklabels(["Assay\ntype", "Target\ntype", "Organism", "Unit", "Activity\ntype"])
-stylia.label(ax, ylabel="Fraction")
+ax.set_xticklabels(["Assay\ntype", "Target\ntype", "Strain", "Unit", "Activity\ntype"])
+stylia.label(ax, ylabel="Fraction", xlabel="", title="Data classification by:")
 
 # [0][2] tSNE
 ax = axs.next()
@@ -272,8 +356,9 @@ ax.scatter(emb[n_ref:][:, 0], emb[n_ref:][:, 1], s=5, c="lightgray")
 scatter_density(ax, emb[:n_ref, :2], size_min=0, size_max=20, cmap=cmap_tsne, alpha=1)
 ax.set_yticks([])
 ax.set_xticks([])
-stylia.label(ax, xlabel="tSNE-2", ylabel="tSNE-1")
+stylia.label(ax, xlabel="tSNE-2", ylabel="tSNE-1", title="tSNE (pathogen compounds colored by density)")
 
+"""
 # [1][0] Compound occurrence rank
 ax = axs.next()
 x_rank = list(range(1, len(count_cpds) + 1))
@@ -285,7 +370,8 @@ ax.set_xticks([1, 10, 10**2, 10**3, 10**4, 10**5])
 for xi in [1, 10, 100, 1000, 10000, 100000]:
     if xi <= len(count_cpds):
         ax.scatter([xi], [count_cpds[xi - 1]], zorder=4, ec="k", s=25, c="#D2D2D2")
-stylia.label(ax, xlabel="Compound number", ylabel="Compound occurrences")
+stylia.label(ax, xlabel="Compound number", ylabel="Compound occurrences", title="Compound occurrences ranked")
+"""
 
 # [1][1] Compounds per assay (yellow) + cumulative coverage (purple), dual axis
 ax = axs.next()
@@ -298,37 +384,37 @@ ax.set_xticks([1, 10, 100, 1000, 10000])
 ax.set_yscale("log")
 ax.set_yticks([1, 10, 100, 1_000, 10_000, 100_000])
 ax.set_yticklabels([r"$10^0$", r"$10^1$", r"$10^2$", r"$10^3$", r"$10^4$", r"$10^5$"])
-ax.plot(x_cpds_arr, cpds_per_assay, c="#FAD782", lw=1.8, zorder=3)
-ax.fill_between(x_cpds_arr, cpds_per_assay, 1, color="#FAD782", alpha=0.6, zorder=2)
+ax.plot(x_cpds_arr, cpds_per_assay, c=nc.yellow, lw=1.8, zorder=3)
+ax.fill_between(x_cpds_arr, cpds_per_assay, 1, color=nc.yellow, alpha=0.6, zorder=2)
 for xi in x_marks:
-    ax.scatter([xi], [cpds_per_assay[xi - 1]], zorder=4, ec="k", s=25, c="#D2D2D2")
+    ax.scatter([xi], [cpds_per_assay[xi - 1]], zorder=4, ec="k", s=25, color=nc.gray)
 ymax = max(max(cpds_per_assay), np.max(cum_as_compounds), left_to_right(1.0))
 ax.set_ylim(0.6, ymax * 2)
 secax = ax.secondary_yaxis("right", functions=(right_to_left, left_to_right))
-secax.set_ylabel("Cumulative fraction of\nthe chemical space")
+secax.set_ylabel("Fraction (cum) of the chemical space")
 secax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
 secax.yaxis.set_major_formatter(mpl.ticker.FormatStrFormatter("%.1f"))
-ax.plot(x_cum, cum_as_compounds, c="#50285A", lw=1.8, zorder=5)
-ax.fill_between(x_cum, cum_as_compounds, 1, color="#50285A", alpha=0.25, zorder=1)
+ax.plot(x_cum, cum_as_compounds, c=nc.plum, lw=1.8, zorder=5)
+ax.fill_between(x_cum, cum_as_compounds, 1, color=nc.plum, alpha=0.25, zorder=1)
 for xi in x_marks:
-    ax.scatter([xi], [cum_as_compounds[xi - 1]], zorder=6, ec="k", s=25, c="#D2D2D2")
-stylia.label(ax, xlabel="Number of assays", ylabel="Number of compounds")
+    ax.scatter([xi], [cum_as_compounds[xi - 1]], zorder=6, ec="k", s=25, color=nc.gray)
+stylia.label(ax, xlabel="Number of assays", ylabel="Number of compounds", title="Chemical space coverage by assays")
 
 # [1][2] Compound overlap heatmap (clustered)
 ax = axs.next()
 im = ax.imshow(X_co, vmin=X_co.min(), vmax=X_co.max(), cmap=cmap2)
 ax.set_xticks([])
 ax.set_yticks([])
-fig.colorbar(im, ax=ax, fraction=0.045).set_label("Compound overlap")
-stylia.label(ax, title="Compound overlap")
+fig.colorbar(im, ax=ax, fraction=0.045)
+stylia.label(ax, title="Compound overlap in datasets", ylabel="", xlabel="")
 
 # [2][0] Hit overlap heatmap (clustered)
 ax = axs.next()
 im2 = ax.imshow(X_ho, vmin=X_ho.min(), vmax=X_ho.max(), cmap=cmap2)
 ax.set_xticks([])
 ax.set_yticks([])
-fig.colorbar(im2, ax=ax, fraction=0.045).set_label("Hit overlap")
-stylia.label(ax, title="Top-1000 hit overlap")
+fig.colorbar(im2, ax=ax, fraction=0.045)
+stylia.label(ax, title="Top-100 hit overlap", xlabel="", ylabel="")
 
 # [2][1] Chemical space coverage by label
 ax = axs.next()
@@ -338,12 +424,12 @@ ax.set_ylim([0, 1])
 ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
 ax.set_xticks([1, 2, 3, 4])
 ax.set_xticklabels(["A", "B", "M", "ALL"])
-for xi, lbl, color in [(1, "A", "#FAA08B"), (2, "B", "#8DC7FA"), (3, "M", "#FAD782")]:
+for xi, lbl, color in [(1, "A", nc.orange), (2, "B", nc.blue), (3, "M", nc.yellow)]:
     frac = len(final_coverage[lbl]) / len(pathogen_compounds)
-    ax.bar([xi, xi], [1, frac], zorder=2, color=["#D2D2D2", color], ec="k")
+    ax.bar([xi, xi], [1, frac], zorder=2, color=[nc.gray, color], ec="k")
 frac_all = len(all_coverage) / len(pathogen_compounds)
-ax.bar([4, 4], [1, frac_all], zorder=2, color=["#D2D2D2", "#BEE6B4"], ec="k")
-stylia.label(ax, ylabel="Chemical space coverage")
+ax.bar([4, 4], [1, frac_all], zorder=2, color=[nc.gray, nc.mint], ec="k")
+stylia.label(ax, ylabel="Chemical space percentage", xlabel="", title="Chemical space coverage by label")
 
 # [2][2] Compounds vs positives per selected dataset
 ax = axs.next()
@@ -359,8 +445,72 @@ ax.set_yticks([10, 100, 1000, 10000, 100000])
 stylia.label(ax, xlabel="Number of compounds", ylabel="Number of positives",
              title=f"Number of datasets: {len(selected_df)}")
 
-fig.suptitle(pathogen, size=15, y=1.01)
+# [3][0] Dataset rejection reasons stacked barplot
+ax = axs.next()
 
-outpath = os.path.join(OUTPUT, "19_diagnosis.png")
+rejection_props = calculate_rejection_proportions(assays_master)
+
+# Define colors for each rejection category
+colors = {
+    'non_organism': nc.gray,
+    'qualitative_only': nc.plum,   
+    'no_cutoff': nc.purple,
+    'insufficient_data': nc.blue,
+    'insufficient_compatible': nc.orange,
+    'too_few_positives': nc.yellow,    
+    'too_few_compounds': nc.pink, 
+    'auroc_below': nc.purple,  
+    'correlation': nc.blue,  
+    'selected': nc.mint,          
+    'already_accepted': nc.plum, 
+}
+
+# Create stacked bars
+labels = ['A', 'B', 'M']
+bar_positions = [0, 1, 2]
+bottoms = [0, 0, 0]
+
+# Stack categories (from bottom to top by frequency)
+stack_order = [
+    'non_organism',
+    'qualitative_only',
+    'no_cutoff',
+    'insufficient_data',
+    'insufficient_compatible',
+    'too_few_positives',
+    'too_few_compounds',
+    'auroc_below',
+    'correlation',
+    'already_accepted',
+    'selected',
+    ]
+
+for category in stack_order:
+    heights = []
+    for label in labels:
+        prop = rejection_props[label].get(category, 0)
+        heights.append(prop)
+
+    ax.bar(bar_positions, heights, bottom=bottoms,
+           color=colors[category], label=category.replace('_', ' ').title(),
+           edgecolor='k', linewidth=0.3, alpha=0.8)
+
+    # Update bottoms for next stack level
+    bottoms = [b + h for b, h in zip(bottoms, heights)]
+
+ax.set_xticks(bar_positions)
+ax.set_xticklabels(labels)
+ax.set_ylim(0, 1)
+ax.set_ylabel('Proportion of datasets')
+ax.set_xlabel('Dataset labels')
+ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize='small')
+stylia.label(ax, title='Dataset rejection reasons by label')
+
+fig.suptitle(pathogen, size=8, y=1.01)
+
+
+plt.tight_layout()
+
+outpath = os.path.join(OUTPUT, "20_diagnosis.png")
 stylia.save_figure(outpath)
 print(f"Saved -> {outpath}")

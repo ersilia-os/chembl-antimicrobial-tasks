@@ -33,11 +33,15 @@ activity_tables = [
     "molecule_dictionary",
     "activity_stds_lookup",
     "target_dictionary",
+    "target_components",
+    "component_synonyms",
+    "component_sequences",
     "docs",
     "assay_parameters",
     "bioassay_ontology",
     "source",
 ]
+
 
 os.makedirs(output_dir, exist_ok=True)
 
@@ -97,8 +101,8 @@ def curate_activity_files():
     out = out.sort_values('count', ascending=False, ignore_index=True)
     total_count = out['count'].sum()
     out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
-    out.to_csv(os.path.join(output_dir, "activity_comments.csv"), index=False)
-    print(f"Activity comments [counts] stored in {os.path.join(output_dir, 'activity_comments.csv')}")
+    out.to_csv(os.path.join(DATAPATH, "chembl_processed", "00_activity_comments.csv"), index=False)
+    print(f"Activity comments [counts] stored in {os.path.join(DATAPATH, 'chembl_processed', '00_activity_comments.csv')}")
 
     # Activity type - standard units
     s = df[["standard_type", "standard_units"]].astype("string").fillna("")
@@ -109,8 +113,8 @@ def curate_activity_files():
     )
     total_count = out['count'].sum()
     out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
-    out.to_csv(os.path.join(output_dir, "activity_std_units.csv"), index=False)
-    print(f"Activity type - unit pairs [counts] stored in {os.path.join(output_dir, 'activity_std_units.csv')}")
+    out.to_csv(os.path.join(DATAPATH, "chembl_processed", "00_activity_std_units.csv"), index=False)
+    print(f"Activity type - unit pairs [counts] stored in {os.path.join(DATAPATH, 'chembl_processed', '00_activity_std_units.csv')}")
 
     # Standard units
     s = df['standard_units'].astype("string").str.strip().fillna("")
@@ -122,8 +126,8 @@ def curate_activity_files():
     total_count = out['count'].sum()
     out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
     out = out.sort_values('count', ascending=False, ignore_index=True)
-    out.to_csv(os.path.join(output_dir, "standard_units.csv"), index=False)
-    print(f"Units [counts] stored in {os.path.join(output_dir, 'standard_units.csv')}")
+    out.to_csv(os.path.join(DATAPATH, "chembl_processed", "00_standard_units.csv"), index=False)
+    print(f"Units [counts] stored in {os.path.join(DATAPATH, 'chembl_processed', '00_standard_units.csv')}")
 
     # Standard text
     s = df['standard_text_value'].astype("string").str.strip().fillna("")
@@ -135,8 +139,8 @@ def curate_activity_files():
     total_count = out['count'].sum()
     out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
     out = out.sort_values('count', ascending=False, ignore_index=True)
-    out.to_csv(os.path.join(output_dir, "standard_text.csv"), index=False)
-    print(f"Standard text [counts] stored in {os.path.join(output_dir, 'standard_text.csv')}")
+    out.to_csv(os.path.join(DATAPATH, "chembl_processed", "00_standard_text.csv"), index=False)
+    print(f"Standard text [counts] stored in {os.path.join(DATAPATH, 'chembl_processed', '00_standard_text.csv')}")
 
 def curate_assay_files():
     """Extract (assay_id, chembl_id, description) from assays.csv.
@@ -147,15 +151,45 @@ def curate_assay_files():
     df = pd.read_csv(os.path.join(output_dir, "assays.csv"), low_memory=False)
     s = df[['assay_id','chembl_id','description']]
     s = s.sort_values("assay_id", ascending=True, ignore_index=True)
-    s.to_csv(os.path.join(output_dir, "assay_descriptions.csv"), index=False)
-    print(f"Assay descriptions stored in {os.path.join(output_dir, 'assay_descriptions.csv')}")
+    s.to_csv(os.path.join(DATAPATH, "chembl_processed", "00_assay_descriptions.csv"), index=False)
+    print(f"Assay descriptions stored in {os.path.join(DATAPATH, 'chembl_processed', '00_assay_descriptions.csv')}")
+
+def build_target_dictionary_synonyms():
+    """Join target_dictionary with all component synonyms.
+
+    Reads target_dictionary.csv, target_components.csv, and component_synonyms.csv
+    from the output directory. Links each tid to its component synonyms via
+    target_components, then collapses all synonyms for a given tid into a single
+    semicolon-separated string. The result is target_dictionary with one extra
+    column ('synonyms') and is saved as 00_target_dictionary_synonyms.csv.
+    """
+    td = pd.read_csv(os.path.join(output_dir, "target_dictionary.csv"), low_memory=False)
+    tc = pd.read_csv(os.path.join(output_dir, "target_components.csv"), low_memory=False)[["tid", "component_id"]]
+    cs = pd.read_csv(os.path.join(output_dir, "component_synonyms.csv"), low_memory=False)[["component_id", "component_synonym", "syn_type"]]
+
+    cs = cs[cs["syn_type"] != "EC_NUMBER"]
+    cs = cs[cs["component_synonym"].notna()]
+    cs["component_synonym"] = cs["component_synonym"].astype(str).str.replace(r"^Synonyms=", "", regex=True)
+
+    merged = tc.merge(cs, on="component_id", how="inner")
+    synonym_map = (
+        merged.drop_duplicates(subset=["tid", "component_synonym"])
+              .groupby("tid")["component_synonym"]
+              .apply(lambda s: ";".join(s))
+    )
+    td["synonyms"] = td["tid"].map(synonym_map).fillna("")
+    outfile = os.path.join(DATAPATH, "chembl_processed", "00_target_dictionary_synonyms.csv")
+    td.to_csv(outfile, index=False)
+    print(f"Target dictionary with synonyms stored in {outfile}")
 
 if __name__ == "__main__":
     print("Step 00")
     print("Getting files from ChEMBL DB")
-    get_files_from_db()
+    #get_files_from_db()
     print("Curating activity files")
     curate_activity_files()
     print("Curating assay description")
     curate_assay_files()
+    print("Building target dictionary with synonyms")
+    build_target_dictionary_synonyms()
 

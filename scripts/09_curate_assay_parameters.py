@@ -27,6 +27,9 @@ root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import DATAPATH, CONFIGPATH, LLM_MODEL
 
+LLM_TIMEOUT = 600  # seconds; ollama.chat() calls that exceed this are retried
+_ollama_client = ollama.Client(timeout=LLM_TIMEOUT)
+
 print("Step 09 - Enhanced Assay Information Extraction")
 print("This script needs to run on a GPU-enabled machine.")
 
@@ -143,6 +146,8 @@ assay_type_map = {"F": "Functional", "B": "Binding", "T": "Toxicity", "A": "ADME
 
 AMBIGUOUS_TARGET_TYPES = {"UNCHECKED", "NON-MOLECULAR", "NON-PROTEIN TARGET"}
 KNOWN_PROTEIN_TYPES = {"SINGLE PROTEIN", "PROTEIN COMPLEX", "PROTEIN FAMILY"}
+SUBCELLULAR_TYPE = "SUBCELLULAR"
+KNOWN_DISCARDED_TYPES = {"ADMET", "NUCLEIC-ACID", "TISSUE", "SELECTIVITY GROUP", "UNDEFINED", "UNKNOWN"}
 
 
 class AssayDetails(BaseModel):
@@ -186,6 +191,10 @@ def classify_assay(row):
 
     if tt in KNOWN_PROTEIN_TYPES and target_chembl_id != "CHEMBL612545":
         return "text_only"
+    if tt == SUBCELLULAR_TYPE and target_chembl_id != "CHEMBL612545":
+        return "text_only"
+    if tt in KNOWN_DISCARDED_TYPES:
+        return "text_only"
     if tt == "ORGANISM" and pathogen.lower() in assay_org.lower():
         return "text_only"
     if tt in AMBIGUOUS_TARGET_TYPES and "organism-based" in bao and pathogen.lower() in assay_org.lower():
@@ -205,6 +214,24 @@ def prefill_target_fields(row):
             "target_type_curated": tt,
             "target_chembl_id_curated": str(row.get("target_chembl_id", "")),
             "target_name_curated": ti.get("pref_name", "") if isinstance(ti, dict) else "",
+            "assay_organism_curated": str(row.get("assay_organism", "")),
+        }
+    if tt == SUBCELLULAR_TYPE:
+        assay_id = row.get("assay_id", "")
+        ai = assay_info.get(assay_id, {})
+        tid = ai.get("tid") if isinstance(ai, dict) else None
+        ti = target_info.get(tid, {}) if tid and not pd.isna(tid) else {}
+        return {
+            "target_type_curated": SUBCELLULAR_TYPE,
+            "target_chembl_id_curated": str(row.get("target_chembl_id", "")),
+            "target_name_curated": ti.get("pref_name", "") if isinstance(ti, dict) else "",
+            "assay_organism_curated": str(row.get("assay_organism", "")),
+        }
+    if tt in KNOWN_DISCARDED_TYPES:
+        return {
+            "target_type_curated": "DISCARDED",
+            "target_chembl_id_curated": "",
+            "target_name_curated": "",
             "assay_organism_curated": str(row.get("assay_organism", "")),
         }
     else:  # ORGANISM or UNCHECKED+organism-based
@@ -276,10 +303,10 @@ def process_text_only_batch(assay_triplets_batch, pathogen_name, organism_chembl
 
     for attempt in range(MAX_RETRIES):
         try:
-            response = ollama.chat(
+            response = _ollama_client.chat(
                 messages=[{"role": "user", "content": prompt}],
                 model=LLM_MODEL,
-                options={"temperature": 0, "num_ctx": 12288},
+                options={"temperature": 0, "num_ctx": 12288, "num_predict": 1500},
                 keep_alive="1h",
                 format=schema,
             )
@@ -597,7 +624,9 @@ For each assay, extract and infer the following fields:
   NON-MOLECULAR targets, and NON-PROTEIN TARGET targets, infer from context:
   * If assay organism is pathogen AND assay is phenotypic/growth-based → ORGANISM
   * If description mentions specific proteins → SINGLE PROTEIN
-  * Otherwise use: SINGLE PROTEIN, PROTEIN COMPLEX, PROTEIN FAMILY, ORGANISM, CELL-LINE, or DISCARDED
+  * Otherwise use: SINGLE PROTEIN, PROTEIN COMPLEX, PROTEIN FAMILY, ORGANISM, SUBCELLULAR, or DISCARDED
+  * If assay target is a subcellular component (e.g. membrane, ribosome, cell wall) → SUBCELLULAR
+  * If assay is performed in a cell line → infer ORGANISM from context (e.g. human cell line → ORGANISM with target_name_curated = "Homo sapiens")
   * Set to DISCARDED if: (a) assay is explicitly not a bioactivity assay (e.g., transcriptomics), OR
     (b) both an explicit target name/ID AND an explicit organism/cell-line are missing from annotations.
 
@@ -667,10 +696,10 @@ def process_assay_batch(assay_triplets_batch, pathogen_name, organism_chembl_id,
 
     for attempt in range(MAX_RETRIES):
         try:
-            response = ollama.chat(
+            response = _ollama_client.chat(
                 messages=[{"role": "user", "content": prompt}],
                 model=LLM_MODEL,
-                options={"temperature": 0, "num_ctx": 12288},
+                options={"temperature": 0, "num_ctx": 12288, "num_predict": 1500},
                 keep_alive="1h",
                 format=schema,
             )
@@ -782,6 +811,7 @@ def main():
         sys.exit(1)
 
     assays_df = pd.read_csv(input_file)
+    full_assays_df = assays_df.copy()  # keep full dataset for final output
     print(f"Loaded {len(assays_df)} assay triplets from step 08")
 
     # Resume support - skip already processed triplets
@@ -798,7 +828,7 @@ def main():
 
     if len(assays_df) == 0:
         print("All triplets already processed!")
-        return expand_to_triplets(assays_df, output_file)
+        return expand_to_triplets(full_assays_df, output_file)
 
     # Classify assays into groups
     assays_df['_group'] = assays_df.apply(classify_assay, axis=1)
@@ -830,7 +860,7 @@ def main():
     print(f"Enhanced assay information saved to: {output_file}")
 
     # Expand assay-level results to all triplets
-    return expand_to_triplets(assays_df, output_file)
+    return expand_to_triplets(full_assays_df, output_file)
 
 
 def expand_to_triplets(assays_df, enhanced_file):

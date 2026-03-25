@@ -182,7 +182,7 @@ for _, row in merged_lm.iterrows():
         assay_to_merged_group[assay_key] = base_name
 
 # For each non-selected dataset, find the selected dataset it correlates most with (fix 3: no mutation)
-if len(final_datasets>0):
+if len(final_datasets)>0:
     selected_names = set(final_datasets[final_datasets["selected"]]["name"])
     corr_cause = {}
     if len(correlations) > 0:

@@ -426,10 +426,12 @@ merged_lm_df.to_csv(os.path.join(OUTPUT, "15_merged_LM.csv"), index=False)
 # Save detailed merging analysis for script 18 comments
 merging_analysis_df = pd.DataFrame(merging_analysis)
 if len(merging_analysis_df) > 0:
-    # Add additional fields for missing entries
-    merging_analysis_df["n_positives"] = merging_analysis_df.get("n_positives", 0)
-    merging_analysis_df["auroc"] = merging_analysis_df.get("auroc", 0.0)
-    merging_analysis_df["merged_group_name"] = merging_analysis_df.get("merged_group_name", "")
+    # Fill missing entries for assays that failed to merge
+    for col, default in [("n_positives", 0), ("auroc", 0.0), ("merged_group_name", "")]:
+        if col not in merging_analysis_df.columns:
+            merging_analysis_df[col] = default
+        else:
+            merging_analysis_df[col] = merging_analysis_df[col].fillna(default)
 
 merging_analysis_df.to_csv(os.path.join(OUTPUT, "15_merging_analysis.csv"), index=False)
 print(f"Saved merging analysis for {len(merging_analysis_df)} assay attempts")

@@ -62,15 +62,15 @@ root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import DATAPATH
 
-print("Step 02")
+print("Step 03")
 print("Loading compound SMILES")
-compounds = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "compound_info.csv"))
-SMILES = compounds['canonical_smiles']
+compounds = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "02_compound_info.csv"))
+smiles = compounds['canonical_smiles']
 
-OUTPUT = []
+output = []
 
 print("Standardizing compounds and recalculating Molecular Weight")
-for smiles in tqdm(SMILES):
+for smiles in tqdm(smiles):
 
     # Get canonical SMILES
     mol, canonical_smiles = get_canonical_smiles(smiles)
@@ -82,7 +82,7 @@ for smiles in tqdm(SMILES):
     mw = calculate_mw(mol)
 
     # Store results
-    OUTPUT.append([standardized_smiles, mw])
+    output.append([standardized_smiles, mw])
 
-OUTPUT = pd.DataFrame(OUTPUT, columns=["standardized_smiles", 'standardized_MW'])
-OUTPUT.to_csv(os.path.join(DATAPATH, "chembl_processed", "compound_info_standardized.csv"), index=False)
+output = pd.DataFrame(output, columns=["standardized_smiles", 'standardized_MW'])
+output.to_csv(os.path.join(DATAPATH, "chembl_processed", "03_compound_info_standardized.csv"), index=False)

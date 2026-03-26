@@ -12,17 +12,8 @@ CONFIGPATH = os.path.join(abspath, "..", "config")
 DATAPATH = os.path.join(abspath, "..", "data")
 TMPDIR = os.path.join(abspath, "..", "tmp")
 
-# Parameters for binarization
-# PCHEMBL_CUTOFFS = [5, 6, 7, 8, 9]
-# PERCENTAGE_ACTIVITY_CUTOFFS = [50, 75, 90]
-# PERCENTILES = [1, 5, 10, 25, 50]
+# LLM model for assay parameter curation (step 09)
+LLM_MODEL = "gpt-oss:20b"
+
 MIN_ASSAY_SIZE = 0
-# MIN_SIZE_ASSAY_TASK = 499
-# MIN_SIZE_ASSAY_SUBTASK = 99
-# MIN_SIZE_ANY_TASK = 499
-# MAX_NUM_INDEPENDENT_ASSAYS = 10
-# MAX_NUM_ASSAY_SUBTASKS = 3
 MIN_POSITIVES = 10
-# MAX_NUM_INDEPENDENT_UNITS = 5
-# DATASET_SIZE_LIMIT = 1e6
-# MAX_TASKS_PER_PATHOGEN = 1000

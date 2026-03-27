@@ -157,6 +157,7 @@ Supported codes are in `config/pathogens.csv`. All outputs go to `output/<pathog
 
 | File | Step | Purpose |
 |------|------|---------|
+| `config/assays/<pathogen_code>.csv` | 07 | Manual assay allowlist — ChEMBL assay IDs to include regardless of organism matching (one ID per line, no header). Optional: missing file is treated as an empty list. |
 | `config/activity_std_units_manual_curation.csv` | 08 | Biological direction per (activity\_type, unit) pair |
 | `config/expert_cutoffs.csv` | 12 | Binarization thresholds per (activity\_type, unit, target\_type, pathogen\_code) |
 | `config/pathogens.csv` | all | Pathogen codes and names |
@@ -165,7 +166,7 @@ Supported codes are in `config/pathogens.csv`. All outputs go to `output/<pathog
 
 ### Step 07 — Get pathogen assays (`07_get_pathogen_assays.py`)
 
-Filters the full preprocessed ChEMBL dataset to extract all bioactivity records associated with the target pathogen. Matching is done by text search on `target_organism` and `assay_organism`, plus any assay ChEMBL IDs listed in `config/assays/<pathogen_code>.csv`.
+Filters the full preprocessed ChEMBL dataset to extract all bioactivity records associated with the target pathogen. Matching is done by case-insensitive text search on `target_organism` and `assay_organism`. Additionally, any assay ChEMBL IDs listed in `config/assays/<pathogen_code>.csv` are included regardless of organism match — this allowlist is intended for assays that the organism-name filter misses (e.g. assays annotated under a strain name or a non-standard organism string). The file contains one ChEMBL assay ID per line with no header; if the file does not exist it is silently ignored.
 
 Outputs are saved to `output/<pathogen_code>/`:
 
@@ -212,7 +213,7 @@ Uses a local LLM to extract and standardize biological context for each (`assay_
 
 | Field | Description |
 |-------|-------------|
-| `organism_curated` | Biological species explicitly stated (e.g. `Mycobacterium tuberculosis`) |
+| `assay_organism_curated` | Biological species explicitly stated (e.g. `Mycobacterium tuberculosis`) |
 | `target_type_curated` | Curated target type: `SINGLE PROTEIN`, `ORGANISM`, `DISCARDED`, or the verbatim ChEMBL target type |
 | `target_name_curated` | Target name explicitly stated in the annotations |
 | `target_chembl_id_curated` | Target ChEMBL ID if explicitly stated |
@@ -220,7 +221,7 @@ Uses a local LLM to extract and standardize biological context for each (`assay_
 | `atcc_id` | ATCC identifier, formatted as `ATCC <number>` |
 | `mutations` | Explicit mutations in one-letter format (e.g. `S450L`) |
 | `known_drug_resistances` | Drugs for which resistance is explicitly stated |
-| `media` | Growth or culture medium explicitly stated |
+| `culture_media` | Growth or culture medium explicitly stated |
 
 Target ChEMBL IDs extracted by the LLM are resolved against the ChEMBL target dictionary using a **multi-strategy exact-match lookup**: first by direct ID match, then by organism-prefix stripping, then by slash-split of compound names, and finally by gene-name reconstruction. IDs are never guessed — unresolvable names are left blank.
 
@@ -232,7 +233,8 @@ Outputs are saved to `output/<pathogen_code>/`:
 
 | File | Description |
 |------|-------------|
-| `09_assays_parameters.csv` | Curated assay parameters for all (`assay_id`, `activity_type`, `unit`) triplets. |
+| `09_assays_parameters.csv` | Intermediate per-batch output; appended incrementally to support resuming. |
+| `09_assays_parameters_full.csv` | Final merged output with curated parameters for all (`assay_id`, `activity_type`, `unit`) triplets. Used by step 12. |
 
 ⏳ ETA: ~5 seconds per assay on a GPU-enabled machine.
 
@@ -272,7 +274,7 @@ Outputs are saved to `output/<pathogen_code>/`:
 
 Produces binarized, ML-ready compound-level datasets for each (`assay_id`, `activity_type`, `unit`) triplet. Requires the outputs of steps 08 and 09.
 
-Each assay is processed through two parallel paths — **quantitative** (numeric values) and **qualitative** (text-based activity flags) — which are then combined into up to three dataset types per triplet.
+Each assay is processed through two independent paths — **quantitative** (numeric values) and **qualitative** (text-based activity flags). The result is classified as exactly one dataset type per (`assay_id`, `activity_type`, `unit`, `expert_cutoff`) combination, depending on what data is available: `quantitative`, `qualitative`, or `mixed` (both). If multiple expert cutoffs are defined for an assay, one dataset is produced per cutoff, all of the same type.
 
 #### Target type curation
 
@@ -346,7 +348,7 @@ Datasets are evaluated under two independent conditions that differ in size requ
 | Decoys added | No | Yes |
 | Purpose | Large, balanced datasets | Active-enriched datasets, decoy-balanced |
 
-The same assay can qualify under both conditions and will be modeled independently in each.
+Conditions A and B are **mutually exclusive by definition**: condition A requires an active ratio ≤ 0.5, while condition B requires ≥ 0.5, so no assay can satisfy both simultaneously. Assignment is nonetheless determined hierarchically using the middle expert cutoff (or the first available cutoff if only one exists): condition A is evaluated first, and only assays that fail it are considered for condition B.
 
 #### Condition B decoy strategy
 
@@ -388,13 +390,15 @@ Selects the single best dataset per assay triplet from the step 13 results, appl
 Only assays with a best AUROC > 0.7 (across all cutoffs tested) are retained. For assays with multiple expert cutoffs, one cutoff is chosen per the following rule:
 
 - **Prefer the mid cutoff** (the second value in the `expert_cutoffs.csv` list for that assay) as a default, since it represents the central activity threshold and is more interpretable.
-- **Switch to the best cutoff** only if the mid cutoff is unavailable or if the best cutoff achieves an AUROC more than 0.1 higher than the mid cutoff — indicating a meaningfully better model at that threshold.
+- **Switch to the best cutoff** only if the best cutoff achieves an AUROC more than 0.1 higher than the mid cutoff — indicating a meaningfully better model at that threshold.
+
+> ⚠️ Assays with fewer than two expert cutoffs defined are skipped at this step and will not appear in the output.
 
 The flag `is_mid_cutoff` records which rule was applied for each selected dataset.
 
 #### Per-label independence
 
-Selection is performed independently for conditions A and B. The same assay triplet can therefore appear in both — with potentially different cutoffs and AUROC scores — since the two conditions model different compound sets (condition B adds decoys).
+Selection is performed independently for conditions A and B. Because step 13 uses hierarchical assignment, each assay triplet appears under exactly one label in the input — so the same triplet cannot appear in both A and B outputs.
 
 Outputs are saved to `output/<pathogen_code>/`:
 
@@ -416,8 +420,10 @@ Many assays in ChEMBL are too small individually to meet the compound and positi
 
 Assay triplets that were **not** accepted in step 14 are grouped by shared experimental metadata. Two grouping strategies are applied independently:
 
-- **ORGANISM** — groups by (`activity_type`, `unit`, `direction`, `assay_type`, `target_type_curated_extra`, `bao_label`, `strain`). Captures whole-cell / phenotypic assay merges.
-- **SINGLE PROTEIN** — same keys plus `target_chembl_id`. Ensures that only assays against the same protein target are combined.
+- **ORGANISM** — whole-cell / phenotypic assay merges. Assays are split into two sub-groups before merging:
+  - *Strain-known*: groups by (`activity_type`, `unit`, `direction`, `assay_type`, `target_type_curated_extra`, `assay_strain_curated`).
+  - *NaN-strain*: groups by (`activity_type`, `unit`, `direction`, `assay_type`, `target_type_curated_extra`) — strain is absent and not used as a grouping key.
+- **SINGLE PROTEIN** — groups by (`activity_type`, `unit`, `direction`, `assay_type`, `target_type_curated_extra`, `bao_label`, `assay_strain_curated`, `target_chembl_id`). Ensures that only assays against the same protein target are combined. Assays without a curated `target_chembl_id` are excluded from merging.
 
 A group qualifies for merging if the **union** of compounds across all member assays exceeds 1,000 and the group contains at least 2 assays. Groups are ranked by union size.
 
@@ -450,6 +456,7 @@ Outputs are saved to `output/<pathogen_code>/`:
 | File | Description |
 |------|-------------|
 | `15_merged_LM.csv` | One row per merged group × cutoff — AUROC, compound counts, assay keys, metadata. |
+| `15_merging_analysis.csv` | One row per assay attempted — merge outcome and failure reason (used by step 18). |
 | `correlations/M/` | Reference set prediction probabilities (`.npz`) for each merged model. |
 | `datasets/M/` | Merged dataset files (`.csv.gz`), one per group × cutoff. |
 
@@ -466,7 +473,9 @@ Selects the single best dataset per merged group from the step 15 results, apply
 Only merged groups with a best AUROC > 0.7 (across all cutoffs tested) are retained. For groups with multiple expert cutoffs, one cutoff is chosen per the following rule:
 
 - **Prefer the mid cutoff** (the second value in the `expert_cutoffs.csv` list) as a default, since it represents the central activity threshold and is more interpretable.
-- **Switch to the best cutoff** only if the mid cutoff is unavailable or if the best cutoff achieves an AUROC more than 0.1 higher — indicating a meaningfully better model at that threshold.
+- **Switch to the best cutoff** only if the best cutoff achieves an AUROC more than 0.1 higher than the mid cutoff — indicating a meaningfully better model at that threshold.
+
+> Unlike step 14, groups with fewer than two expert cutoffs are not skipped — the best (only) cutoff is used directly.
 
 The flag `is_mid_cutoff` records which rule was applied for each selected dataset.
 
@@ -507,7 +516,7 @@ All pairwise combinations are computed and saved to `17_dataset_correlations.csv
 
 #### Greedy deduplication
 
-Datasets are sorted by size (largest first) and processed greedily: a dataset is discarded if it is simultaneously **model-correlated** and **compound-overlapping** with an already-selected dataset:
+Datasets are sorted by **label first** (A → B → M), then by size descending within each label, and processed greedily: a dataset is discarded if it is simultaneously **model-correlated** and **compound-overlapping** with an already-selected dataset. This means individual condition A datasets are always prioritized over condition B, which are always prioritized over merged M datasets, regardless of size.
 
 ```
 (spearman + hit_overlap_1000 + hit_overlap_100) / 3 > 0.5

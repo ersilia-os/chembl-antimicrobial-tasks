@@ -70,4 +70,4 @@ for c, thr in enumerate(thrs):
     assays_info[f'clusters_{thr}'] = np.array(clusters)[:, c]
 
 # Save cluster results
-assays_info.to_csv(os.path.join(root, OUTPATH, '10_assays_clusters.csv'), index=False)
+assays_info.to_csv(os.path.join(OUTPATH, '10_assays_clusters.csv'), index=False)

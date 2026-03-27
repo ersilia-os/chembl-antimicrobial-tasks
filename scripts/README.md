@@ -24,7 +24,7 @@ bash scripts/process_ChEMBL.sh --calculate_ecfps  # also compute fingerprints
 | 03 | `03_standardize_compounds.py` | Canonicalizes SMILES, removes salts/solvents, recalculates MW. ⏳ ~3–4 h | `data/chembl_processed/03_compound_info_standardized.csv` |
 | 04 | `04_merge_activity_and_compounds.py` | Joins activities, assays, targets, and compounds into a single table. | `data/chembl_processed/04_activities_all_raw.csv` |
 | 05 | `05_clean_activities.py` | Filters invalid entries, applies activity comment/text flags, converts units, harmonizes activity types, recalculates pChEMBL. ⏳ ~15 min | `data/chembl_processed/05_activities_preprocessed.csv` |
-| 06 | `06_calculate_ecfps.py` *(optional)* | Computes ECFP4 fingerprints (radius 3, 2048 bits) for all standardized compounds. ⏳ ~15 min | `data/chembl_processed/06_chembl_ecfps` |
+| 06 | `06_calculate_ecfps.py` *(optional)* | Computes ECFP4 fingerprints (radius 3, 2048 bits) for all standardized compounds. ⏳ ~15 min | `data/chembl_processed/06_chembl_ecfps.h5` |
 
 ### Manual curation required between steps 01 and 02
 
@@ -50,18 +50,19 @@ Exports the following raw tables from the local ChEMBL PostgreSQL database into 
 - `activities.csv`, `assays.csv`, `assay_parameters.csv`, `activity_stds_lookup.csv`
 - `bioassay_ontology.csv`, `compound_structures.csv`, `docs.csv`
 - `molecule_dictionary.csv`, `target_dictionary.csv`
+- `target_components.csv`, `component_synonyms.csv`, `component_sequences.csv`, `source.csv`
 
 For details on table contents see the [ChEMBL schema documentation](https://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/schema_documentation.txt).
 
-In addition, the script derives four frequency tables from the `ACTIVITIES` table:
+In addition, the script derives four frequency tables from the `ACTIVITIES` table and one reference table from the `ASSAYS` table, all saved to `data/chembl_processed/`:
 
-1. `activity_comments.csv` — frequency of values in `activity_comment` (e.g. `"active"`)
-2. `activity_std_units.csv` — frequency of (`standard_type`, `standard_units`) pairs (e.g. `"IC50 / nM"`)
-3. `standard_units.csv` — frequency of `standard_units` values
-4. `standard_text.csv` — frequency of values in `standard_text_value` (e.g. `"Compound metabolized"`)
-5. `assay_descriptions.csv` — assay IDs mapped to their text descriptions and ChEMBL IDs
+1. `00_activity_comments.csv` — frequency of values in `activity_comment` (e.g. `"active"`)
+2. `00_activity_std_units.csv` — frequency of (`standard_type`, `standard_units`) pairs (e.g. `"IC50 / nM"`)
+3. `00_standard_units.csv` — frequency of `standard_units` values
+4. `00_standard_text.csv` — frequency of values in `standard_text_value` (e.g. `"Compound metabolized"`)
+5. `00_assay_descriptions.csv` — assay IDs mapped to their text descriptions and ChEMBL IDs (from `ASSAYS`)
 
-The files `activity_comments.csv` and `standard_text.csv` were manually reviewed to assign an activity label to the most frequent entries, stored in `config/activity_comments_manual_curation.csv` and `config/standard_text_manual_curation.csv` (column `manual_curation_activity`): `1` = active, `-1` = inactive, `0` = inconclusive.
+The files `00_activity_comments.csv` and `00_standard_text.csv` were manually reviewed to assign an activity label to the most frequent entries, stored in `config/activity_comments_manual_curation.csv` and `config/standard_text_manual_curation.csv` (column `manual_curation_activity`): `1` = active, `-1` = inactive, `0` = inconclusive.
 
 ---
 
@@ -104,8 +105,8 @@ Produces the final preprocessed activity table `data/chembl_processed/05_activit
 2. **Flag activity comments** — maps each `activity_comment` to active (1), inactive (-1), or unknown (0) using `config/activity_comments_manual_curation.csv`.
 3. **Flag standard text** — same for `standard_text_value` using `config/standard_text_manual_curation.csv`.
 4. **Convert units and values** — normalizes unit strings and converts raw values using formulas from `config/ucum_manual.csv`.
-5. **Harmonize activity types** — strips punctuation/spaces and uppercases `standard_type`.
-6. **Standardize relations** — maps `>=`, `>>`, `~` etc. to simplified `>`, `<`, `=`.
+5. **Standardize relations** — maps `>=`, `>>`, `~` etc. to simplified `>`, `<`, `=`.
+6. **Harmonize activity types** — strips punctuation/spaces and uppercases `standard_type`.
 7. **Calculate pChEMBL** — recalculates pChEMBL values for records with `unit = umol.L-1` and a valid numeric value.
 8. **Convert doc IDs** — replaces internal `doc_id` with `doc_chembl_id`.
 9. **Map synonyms** — collapses activity type variants to their canonical name using `config/synonyms.csv`.
@@ -119,7 +120,7 @@ Also saves `data/chembl_processed/05_activity_std_units_curated_comments.csv`: a
 
 ### Step 06 — Calculate ECFPs (`06_calculate_ecfps.py`) *(optional)*
 
-Computes ECFP fingerprints (radius 3, 2048 bits) for all standardized compounds using RDKit. Failed SMILES are skipped. Results are stored in HDF5 format. Output: `data/chembl_processed/06_chembl_ecfps`.
+Computes ECFP fingerprints (radius 3, 2048 bits) for all standardized compounds using RDKit. Failed SMILES are skipped. Results are stored in HDF5 format. Output: `data/chembl_processed/06_chembl_ecfps.h5`.
 
 ⏳ ETA: ~15 minutes.
 

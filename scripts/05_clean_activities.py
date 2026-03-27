@@ -172,10 +172,10 @@ for canonical, syns in zip(synonyms["activity_type"], synonyms["synonyms"]):
     for syn in syns.split(";"):
         activities_all_raw.loc[activities_all_raw["activity_type"] == syn.strip(), "activity_type"] = canonical
 
-# 10. Merge comment and text flags into a single text_flag column
+# 11. Merge comment and text flags into a single text_flag column
 activities_all_raw = create_text_flag(activities_all_raw)
 
-# 11. Save diagnostic summary of text flags per (activity_type, unit)
+# 12. Save diagnostic summary of text flags per (activity_type, unit)
 flagged = activities_all_raw["text_flag"].isin([1, -1])
 text_flag_summary = (
     activities_all_raw[["activity_type", "unit", "text_flag"]]
@@ -189,7 +189,7 @@ text_flag_summary.to_csv(
     os.path.join(DATAPATH, "chembl_processed", "05_activity_std_units_curated_comments.csv"), index=False
 )
 
-# 12. Save final preprocessed activities
+# 13. Save final preprocessed activities
 print("Saving results...")
 activities_all_raw.to_csv(
     os.path.join(DATAPATH, "chembl_processed", "05_activities_preprocessed.csv"), index=False

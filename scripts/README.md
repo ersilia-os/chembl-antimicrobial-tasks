@@ -603,11 +603,78 @@ Outputs are saved to `output/<pathogen_code>/`:
 
 ### Step 20 — Diagnosis (`20_diagnosis.py`) *(optional)*
 
-Produces a diagnostic plot summarizing data quality, chemical diversity, assay coverage, and model correlations for the pathogen dataset.
+Produces a multi-panel diagnostic figure summarising data quality, chemical diversity, assay coverage, and model correlations for the pathogen. The figure layout adapts to pipeline progress: a **2×2 grid** (4 panels) is produced when no datasets have been selected yet (steps 13–17 not yet run), and a **3×3 grid** (9 panels) when at least one dataset has been selected.
+
+#### Input files
+
+| File | Used for |
+|------|----------|
+| `07_chembl_raw_data.csv.gz` | Raw activity and compound counts |
+| `07_assays_raw.csv` | Raw assay count |
+| `07_compound_counts.csv.gz` | Full pathogen compound set (denominator for coverage) |
+| `08_chembl_cleaned_data.csv.gz` | Cleaned activity counts, compound-per-assay mapping |
+| `08_assays_cleaned.csv` | Cleaned assay count, assay type / target type / unit distributions |
+| `09_assays_parameters_full.csv` | Strain distribution |
+| `17_final_datasets.csv` | Selected dataset names, labels, compound counts |
+| `17_dataset_correlations.csv` | Pairwise compound overlap and hit overlap between models |
+| `18_assays_master.csv` | Per-assay pipeline status comments (rejection analysis) |
+| `data/chembl_processed/06_chembl_ecfps.h5` | Morgan fingerprints for tSNE |
+
+#### Panels
+
+**Panel 1 — Raw vs cleaned data**
+Grouped bar chart comparing activities, compounds, and assays before and after the cleaning pipeline (steps 07–08). Gray = raw, blue = cleaned.
+
+**Panel 2 — Data classification**
+Five stacked fraction bars showing how assays and activities are distributed across categories:
+- *Assay type*: functional (F), binding (B), other
+- *Target type*: organism (ORG), single protein (SP), other
+- *Strain*: majoritarian strain, other strains, no strain
+- *Unit*: µM (`umol.L-1`), percentage (`%`), other
+- *Activity type*: quantitative-only, quantitative+qualitative mixed, other
+
+**Panel 3 — tSNE**
+2D tSNE embedding of Morgan fingerprints. Pathogen-tested compounds are shown colored by local density (yellow = dense, purple = sparse); background ChEMBL compounds (3× the pathogen set) are shown in light gray. Uses PCA (16 components) as a pre-processing step before tSNE.
+
+**Panel 4 — Chemical space coverage by assay**
+Dual-axis log–log plot showing, as assays are added in order: the number of compounds per assay (yellow, left axis) and the cumulative fraction of the pathogen chemical space covered (purple, right axis). Allows assessment of how quickly coverage saturates and how unevenly compounds are distributed across assays.
+
+> The following panels are only produced when at least one dataset has been selected (steps 13–17 completed).
+
+**Panel 5 — Compound overlap heatmap**
+Square heatmap of pairwise compound overlap between all selected ORGANISM models, hierarchically clustered by compound overlap distance. High values indicate models trained on largely overlapping compound sets.
+
+**Panel 6 — Top-100 hit overlap heatmap**
+Same layout as panel 5 but showing normalised hit overlap in the top-100 reference set predictions. High values indicate models that agree on which compounds are most likely to be active.
+
+**Panel 7 — Chemical space coverage by label**
+Bar chart showing the fraction of the pathogen chemical space covered by the final selected datasets, broken down by condition label (A, B, M) and combined (ALL).
+
+**Panel 8 — Compounds vs positives per selected dataset**
+Log–log scatter of total compounds vs active compounds for each selected dataset, colored by label (A = orange, B = blue, M = yellow). Allows quick assessment of dataset sizes and class balance.
+
+**Panel 9 — Dataset rejection reasons**
+Stacked bar chart showing, for each condition label (A, B, M), the proportion of all assays falling into each pipeline status category:
+
+| Category | Meaning |
+|----------|---------|
+| `selected` | Retained in final selection |
+| `already_accepted` | Accepted under a prior condition (hierarchical) |
+| `auroc_below` | Modeled but AUROC < 0.70 |
+| `correlation` | Good model but discarded due to high correlation |
+| `non_organism` | SINGLE PROTEIN — excluded from correlation analysis |
+| `too_few_positives` | Insufficient actives at all evaluated cutoffs |
+| `too_few_compounds` | Fewer than 1,000 compounds |
+| `ratio_out_of_range` | Active ratio outside the required range |
+| `middle_cutoff_failure` | Middle cutoff produces too few actives or wrong ratio |
+| `no_cutoff` | No expert cutoff defined |
+| `no_activity_data` | No activity data available |
+| `qualitative_only` | Only qualitative data — quantitative required |
+| `insufficient_compatible` | Too few compatible assays for merging (M only) |
 
 Output: `output/<pathogen_code>/20_diagnosis.png`
 
-⏳ ETA: ~2 minutes.
+⏳ ETA: ~2 minutes (dominated by tSNE computation).
 
 ---
 

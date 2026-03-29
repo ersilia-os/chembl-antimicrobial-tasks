@@ -44,7 +44,6 @@ assays_parameters = pd.read_csv(os.path.join(OUTPUT, "09_assays_parameters_full.
 assay_data_info = pd.read_csv(os.path.join(OUTPUT, "12_assay_data_info.csv"))[keys + columns_data_info]
 
 print("Merging tables...")
-#assays_parameters = assays_parameters.drop_duplicates(subset=keys, keep="last").reset_index(drop=True) #TODO REMOVE ONCE LLM RERUN
 assays_master = assays_cleaned.merge(assays_clusters, on=keys, how="left", validate="1:1")
 assays_master = assays_master.merge(assays_parameters, on=keys, how="left", validate="1:1")
 assays_master = assays_master.merge(assay_data_info, on=keys, how="left", validate="1:1")
@@ -121,7 +120,7 @@ individual_selected_lm = pd.read_csv(os.path.join(OUTPUT, "14_individual_selecte
 merged_selected_lm = pd.read_csv(os.path.join(OUTPUT, "16_merged_selected_LM.csv"))
 merging_analysis = pd.read_csv(os.path.join(OUTPUT, "15_merging_analysis.csv"))
 final_datasets = pd.read_csv(os.path.join(OUTPUT, "17_final_datasets.csv"))
-correlations = pd.read_csv(os.path.join(OUTPUT, "17_dataset_correlations.csv"))  # fix 1
+correlations = pd.read_csv(os.path.join(OUTPUT, "17_dataset_correlations.csv"))
 
 considered_a = set(tuple(r) for r in individual_lm[individual_lm["label"] == "A"][keys].values)
 considered_b = set(tuple(r) for r in individual_lm[individual_lm["label"] == "B"][keys].values)
@@ -150,10 +149,31 @@ final_selected_m = assay_keys_to_set(final_only, label="M")
 def _norm_key(key):
     """Normalize NaN unit to None so the tuple is hashable and equality works."""
     a, at, u = key
-    return (a, at, None if (not isinstance(u, str) and pd.isna(u)) else u)  # fix 2
+    return (a, at, None if (not isinstance(u, str) and pd.isna(u)) else u)
 
 # "Not modeled" reason: dataset_type and expert cutoff presence
 dataset_type_map = {_norm_key(tuple(r[:3])): r[3] for r in assay_data_info[keys + ["dataset_type"]].values}
+
+# Quantitative stats lookup (best case across all cutoffs) — for informative failure comments in A/B
+_qt_valid = datasets_12[datasets_12["cpds_qt"].notna()].copy()
+if len(_qt_valid) > 0:
+    _qt_agg = (
+        _qt_valid.groupby(keys, dropna=False)
+        .agg(cpds_qt=("cpds_qt", "max"), pos_qt=("pos_qt", "max"))
+        .reset_index()
+    )
+    _qt_agg["ratio_qt_max"] = _qt_agg["pos_qt"] / _qt_agg["cpds_qt"].replace(0, np.nan)
+    cpds_qt_map  = {_norm_key((r.assay_id, r.activity_type, r.unit)): r.cpds_qt      for r in _qt_agg.itertuples()}
+    pos_qt_map   = {_norm_key((r.assay_id, r.activity_type, r.unit)): r.pos_qt       for r in _qt_agg.itertuples()}
+    ratio_qt_map = {_norm_key((r.assay_id, r.activity_type, r.unit)): r.ratio_qt_max for r in _qt_agg.itertuples()}
+    # Per-cutoff stats — used to diagnose middle-cutoff failures in condition A
+    per_cutoff_qt_map = {
+        (_norm_key((r.assay_id, r.activity_type, r.unit)), r.expert_cutoff): (r.cpds_qt, r.pos_qt, r.ratio_qt)
+        for r in _qt_valid.itertuples()
+    }
+else:
+    cpds_qt_map = pos_qt_map = ratio_qt_map = {}
+    per_cutoff_qt_map = {}
 
 # Best AUROC per (label, assay_key) from step 13 — use _norm_key to avoid NaN!=NaN issue
 best_auroc_map = {}
@@ -181,7 +201,7 @@ for _, row in merged_lm.iterrows():
         assay_key = _norm_key(_parse_assay_key(assay_key_str))
         assay_to_merged_group[assay_key] = base_name
 
-# For each non-selected dataset, find the selected dataset it correlates most with (fix 3: no mutation)
+# For each non-selected dataset, find the selected dataset it correlates most with
 if len(final_datasets)>0:
     selected_names = set(final_datasets[final_datasets["selected"]]["name"])
     corr_cause = {}
@@ -227,26 +247,50 @@ def pipeline_comment(key, target_type_extra, lbl, considered, selected, final_co
     dtype = dataset_type_map.get(nkey, "none")
 
     if lbl == "M":
-        return _generate_m_comment(nkey, dtype, has_cutoff, considered, selected, final_considered, final_selected)
+        return _generate_m_comment(nkey, dtype, has_cutoff, target_type_extra, considered, selected, final_considered, final_selected)
     elif lbl == "B":
         return _generate_b_comment(nkey, dtype, has_cutoff, considered, selected, final_considered, final_selected)
     else:  # lbl == "A"
-        return _generate_a_comment(nkey, dtype, has_cutoff, considered, selected, final_considered, final_selected)
+        return _generate_a_comment(nkey, activity_type, unit, target_type_extra, dtype, has_cutoff, considered, selected, final_considered, final_selected)
 
 
-def _generate_a_comment(nkey, dtype, has_cutoff, considered, selected, final_considered, final_selected):
+def _generate_a_comment(nkey, activity_type, unit, target_type_extra, dtype, has_cutoff, considered, selected, final_considered, final_selected):
     """Generate standardized comments for condition A (Individual Modeling - Large, Balanced Datasets)."""
 
     # A1. Pre-modeling Issues
     if nkey not in considered:
-        if not has_cutoff:
-            return "Not considered for A: no expert cutoff defined for this (activity_type, unit, target_type) combination"
-        if dtype == "none":
-            return "Not considered for A: no activity data available"
         if dtype == "qualitative":
             return "Not considered for A: only qualitative data available, requires quantitative values"
-        # Default to insufficient compounds/positives for remaining cases
-        return "Not considered for A: insufficient compounds (<1000 total)"
+        if dtype == "none":
+            return "Not considered for A: no activity data available"
+        if not has_cutoff:
+            return "Not considered for A: no expert cutoff defined for this (activity_type, unit, target_type) combination"
+        cpds  = cpds_qt_map.get(nkey, 0)
+        pos   = pos_qt_map.get(nkey, 0)
+        ratio = ratio_qt_map.get(nkey, 0)
+        if cpds < 1000:
+            return f"Not considered for A: insufficient compounds ({int(cpds)}, need ≥1000)"
+        if pos < 50:
+            return f"Not considered for A: insufficient actives ({int(pos)}, need ≥50)"
+        if ratio > 0.5:
+            return f"Not considered for A: active ratio too high ({ratio:.3f}, need ≤0.5) — directed to condition B"
+        if ratio < 0.001:
+            return f"Not considered for A: active ratio too low ({ratio:.5f}, need ≥0.001)"
+        # Best-case stats look adequate — failure is due to the middle cutoff not qualifying.
+        # The hierarchical assignment in step 13 evaluates only the middle cutoff.
+        cutoff_list = expert_cutoffs.get((activity_type, unit, target_type_extra, pathogen_code), [])
+        if len(cutoff_list) >= 2:
+            mid_cutoff = cutoff_list[1]
+            mid_stats = per_cutoff_qt_map.get((nkey, mid_cutoff))
+            if mid_stats:
+                _, mid_pos, mid_ratio = mid_stats
+                if mid_pos < 50:
+                    return f"Not considered for A: middle cutoff ({mid_cutoff}) produces only {int(mid_pos)} actives (need ≥50) — consider revising expert cutoffs"
+                if mid_ratio > 0.5:
+                    return f"Not considered for A: middle cutoff ({mid_cutoff}) active ratio too high ({mid_ratio:.3f}, need ≤0.5) — directed to condition B"
+                if mid_ratio < 0.001:
+                    return f"Not considered for A: middle cutoff ({mid_cutoff}) active ratio too low ({mid_ratio:.5f}, need ≥0.001)"
+        return "Not considered for A: did not meet size or balance criteria"
 
     # A2. Modeling Completed - Not Selected
     if nkey not in selected:
@@ -278,15 +322,18 @@ def _generate_b_comment(nkey, dtype, has_cutoff, considered, selected, final_con
         if nkey in accepted_individual:
             return "Not considered for B: already accepted individually under condition A"
 
-        # B2. Pre-modeling Issues (same logic as A but different prefix)
-        if not has_cutoff:
-            return "Not considered for B: no expert cutoff defined for this (activity_type, unit, target_type) combination"
-        if dtype == "none":
-            return "Not considered for B: no activity data available"
+        # B2. Pre-modeling Issues
         if dtype == "qualitative":
             return "Not considered for B: only qualitative data available, requires quantitative values"
-        # Default to insufficient positives/ratio for remaining cases
-        return "Not considered for B: insufficient positives (<100) at all evaluated cutoffs"
+        if dtype == "none":
+            return "Not considered for B: no activity data available"
+        if not has_cutoff:
+            return "Not considered for B: no expert cutoff defined for this (activity_type, unit, target_type) combination"
+        pos   = pos_qt_map.get(nkey, 0)
+        ratio = ratio_qt_map.get(nkey, 0)
+        if ratio >= 0.5 and pos < 100:
+            return f"Not considered for B: insufficient actives ({int(pos)}, need ≥100)"
+        return f"Not considered for B: active ratio too low ({ratio:.3f}, need ≥0.5)"
 
     # B3. Modeling Completed - Not Selected
     if nkey not in selected:
@@ -310,7 +357,7 @@ def _generate_b_comment(nkey, dtype, has_cutoff, considered, selected, final_con
     return "Retained in final selection"
 
 
-def _generate_m_comment(nkey, dtype, has_cutoff, considered, selected, final_considered, final_selected):
+def _generate_m_comment(nkey, dtype, has_cutoff, target_type_extra, considered, selected, final_considered, final_selected):
     """Generate standardized comments for condition M (Merged Group Modeling)."""
 
     # Get the merged group name for this assay (if any)
@@ -322,6 +369,8 @@ def _generate_m_comment(nkey, dtype, has_cutoff, considered, selected, final_con
 
     # M2. Not considered for merging - use detailed failure analysis
     if nkey not in considered:
+        if target_type_extra == "DISCARDED":
+            return "Not considered for M: target type is DISCARDED, not eligible for merging"
         if dtype == "qualitative":
             return "Not considered for M: only qualitative data available, requires quantitative values"
         if not has_cutoff:

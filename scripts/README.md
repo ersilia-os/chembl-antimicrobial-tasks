@@ -547,11 +547,22 @@ The master table contains one row per (`assay_id`, `activity_type`, `unit`) trip
 | Source file | Fields added |
 |-------------|--------------|
 | `08_assays_cleaned.csv` | Base assay metadata: assay type, target, direction, compound counts, text flags |
-| `09_assays_parameters.csv` | LLM-curated fields: organism, target type, strain, ATCC ID, mutations, media |
+| `09_assays_parameters_full.csv` | LLM-curated fields: organism, target type, strain, ATCC ID, mutations, media |
 | `10_assays_clusters.csv` | Chemical diversity: cluster counts at Tanimoto 0.3, 0.6, 0.85 |
 | `12_assay_data_info.csv` | Dataset type, relation counts, activity value distribution (percentiles) |
+| `12_datasets.csv` | Active ratios per dataset type: `ratio_qt`, `ratio_ql`, `ratio_mx` |
+| `config/expert_cutoffs.csv` | `evaluated_cutoffs` — semicolon-separated cutoffs tested for each assay |
+| `13_individual_LM.csv` | `evaluated_aurocs` — AUROC per cutoff, aligned to `evaluated_cutoffs` |
+| `data/chembl_activities/` | `uniprot_accession` — UniProt accession(s) for the curated target |
+| `config/pubchem_aids/<pathogen>.csv` *(optional)* | `pubchem` — PubChem AID for the assay, if available |
 
-An `evaluated_cutoffs` column is added from `config/expert_cutoffs.csv`, listing the cutoffs that were tested for each assay.
+Pipeline results from steps 13–17 (`13_individual_LM.csv`, `14_individual_selected_LM.csv`, `15_merged_LM.csv`, `15_merging_analysis.csv`, `16_merged_selected_LM.csv`, `17_final_datasets.csv`, `17_dataset_correlations.csv`) are also loaded to populate the pipeline status and final selection columns.
+
+Three additional columns record the final selection outcome:
+
+- `selected` — boolean, whether the assay is part of the final non-redundant dataset set
+- `selected_cutoff` — the expert cutoff used in the selected dataset
+- `selected_label` — the condition label (A, B, or merged group name) under which the assay was selected
 
 #### Pipeline status annotations
 
@@ -579,7 +590,12 @@ Outputs are saved to `output/<pathogen_code>/`:
 
 Exports all selected datasets as simplified CSVs containing only SMILES and binary activity labels, bundled into a single ZIP file. Intended for researchers who want ML-ready data without navigating the full pipeline outputs.
 
-Output: `output/<pathogen_code>/19_final_datasets.zip`
+Outputs are saved to `output/<pathogen_code>/`:
+
+| File | Description |
+|------|-------------|
+| `19_final_datasets.zip` | One CSV per selected dataset, containing only `smiles` and `bin` columns. |
+| `19_final_datasets_metadata.csv` | One row per exported dataset — activity type, unit, target type, cutoff, AUROC, compound counts, label, and source (individual or merged). |
 
 ⏳ ETA: < 1 minute.
 

@@ -343,13 +343,13 @@ def _generate_b_comment(nkey, activity_type, unit, target_type_extra, dtype, has
 
         if mid_stats:
             _, mid_pos, mid_ratio = mid_stats
-            if mid_ratio >= 0.5 and mid_pos < 100:
+            if mid_pos < 100:
                 return f"Not considered for B: insufficient actives ({int(mid_pos)}, need ≥100) at middle cutoff ({mid_cutoff})"
             return f"Not considered for B: active ratio too low ({mid_ratio:.3f}, need ≥0.5) at middle cutoff ({mid_cutoff})"
         else:
             pos   = pos_qt_map.get(nkey, 0)
             ratio = ratio_qt_map.get(nkey, 0)
-            if ratio >= 0.5 and pos < 100:
+            if pos < 100:
                 return f"Not considered for B: insufficient actives ({int(pos)}, need ≥100)"
             return f"Not considered for B: active ratio too low ({ratio:.3f}, need ≥0.5)"
 
@@ -387,14 +387,14 @@ def _generate_m_comment(nkey, dtype, has_cutoff, target_type_extra, considered, 
 
     # M2. Not considered for merging - use detailed failure analysis
     if nkey not in considered:
+        if dtype == "none":
+            return "Not considered for M: no activity data available"
         if dtype == "qualitative":
             return "Not considered for M: only qualitative data available, requires quantitative values"
         if target_type_extra == "DISCARDED":
             return "Not considered for M: target type is DISCARDED, not eligible for merging"
         if not has_cutoff:
             return "Not considered for M: no expert cutoff defined for this (activity_type, unit, target_type) combination"
-        if dtype == "none":
-            return "Not considered for M: no activity data available"
 
         # Look up specific failure reason from merging analysis
         failure_info = merging_failure_lookup.get(nkey, {})
@@ -417,12 +417,12 @@ def _generate_m_comment(nkey, dtype, has_cutoff, target_type_extra, considered, 
         group_info = f" in group {merged_group}" if merged_group else ""
         return f"Modeled but not selected{group_info}: AUROC below 0.70 threshold"
 
-    # M4. Selected but excluded from correlation analysis
+    # M5. Selected but excluded from correlation analysis
     if nkey not in final_considered:
         group_info = f" from group {merged_group}" if merged_group else ""
         return f"Selected{group_info} but excluded from correlation analysis (non-ORGANISM target type)"
 
-    # M5. Selected but discarded due to correlation
+    # M6. Selected but discarded due to correlation
     if nkey not in final_selected:
         name = key_to_final_name.get(("M", nkey))
         cause = corr_cause.get(name)
@@ -431,7 +431,7 @@ def _generate_m_comment(nkey, dtype, has_cutoff, target_type_extra, considered, 
             return f"Discarded{group_info}: high correlation with dataset {cause}"
         return f"Discarded{group_info}: high correlation with another retained dataset"
 
-    # M6. Final selection
+    # M7. Final selection
     group_info = f" from group {merged_group}" if merged_group else ""
     return f"Retained in final selection{group_info}"
 

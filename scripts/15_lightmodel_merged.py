@@ -151,6 +151,9 @@ print(f"  Quantitative: {len(dfs_qt)} | Mixed: {len(dfs_mx)}")
 print("Identifying assays to merge...")
 not_accepted = assays_merged[~assays_merged["accepted_in_individual_lm"]]
 
+# Only quantitative/mixed assays can contribute data to merged models
+not_accepted = not_accepted[not_accepted["dataset_type"].isin(["quantitative", "mixed"])].copy()
+
 filtered_organism = not_accepted[not_accepted["target_type_curated_extra"] == "ORGANISM"].copy()
 
 # Strain-known ORGANISM: group by strain (no bao_label — ORGANISM target type is sufficient)

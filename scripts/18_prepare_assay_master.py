@@ -249,7 +249,7 @@ def pipeline_comment(key, target_type_extra, lbl, considered, selected, final_co
     if lbl == "M":
         return _generate_m_comment(nkey, dtype, has_cutoff, target_type_extra, considered, selected, final_considered, final_selected)
     elif lbl == "B":
-        return _generate_b_comment(nkey, dtype, has_cutoff, considered, selected, final_considered, final_selected)
+        return _generate_b_comment(nkey, activity_type, unit, target_type_extra, dtype, has_cutoff, considered, selected, final_considered, final_selected)
     else:  # lbl == "A"
         return _generate_a_comment(nkey, activity_type, unit, target_type_extra, dtype, has_cutoff, considered, selected, final_considered, final_selected)
 
@@ -265,31 +265,36 @@ def _generate_a_comment(nkey, activity_type, unit, target_type_extra, dtype, has
             return "Not considered for A: no activity data available"
         if not has_cutoff:
             return "Not considered for A: no expert cutoff defined for this (activity_type, unit, target_type) combination"
-        cpds  = cpds_qt_map.get(nkey, 0)
-        pos   = pos_qt_map.get(nkey, 0)
-        ratio = ratio_qt_map.get(nkey, 0)
-        if cpds < 1000:
-            return f"Not considered for A: insufficient compounds ({int(cpds)}, need ≥1000)"
-        if pos < 50:
-            return f"Not considered for A: insufficient actives ({int(pos)}, need ≥50)"
-        if ratio > 0.5:
-            return f"Not considered for A: active ratio too high ({ratio:.3f}, need ≤0.5) — directed to condition B"
-        if ratio < 0.001:
-            return f"Not considered for A: active ratio too low ({ratio:.5f}, need ≥0.001)"
-        # Best-case stats look adequate — failure is due to the middle cutoff not qualifying.
-        # The hierarchical assignment in step 13 evaluates only the middle cutoff.
+
+        # Use middle cutoff stats — the hierarchical assignment in step 13 is based on the middle
+        # cutoff ratio, so reporting max-across-cutoffs stats can produce contradictory messages.
         cutoff_list = expert_cutoffs.get((activity_type, unit, target_type_extra, pathogen_code), [])
-        if len(cutoff_list) >= 2:
-            mid_cutoff = cutoff_list[1]
-            mid_stats = per_cutoff_qt_map.get((nkey, mid_cutoff))
-            if mid_stats:
-                _, mid_pos, mid_ratio = mid_stats
-                if mid_pos < 50:
-                    return f"Not considered for A: middle cutoff ({mid_cutoff}) produces only {int(mid_pos)} actives (need ≥50) — consider revising expert cutoffs"
-                if mid_ratio > 0.5:
-                    return f"Not considered for A: middle cutoff ({mid_cutoff}) active ratio too high ({mid_ratio:.3f}, need ≤0.5) — directed to condition B"
-                if mid_ratio < 0.001:
-                    return f"Not considered for A: middle cutoff ({mid_cutoff}) active ratio too low ({mid_ratio:.5f}, need ≥0.001)"
+        mid_cutoff = cutoff_list[1] if len(cutoff_list) >= 2 else (cutoff_list[0] if cutoff_list else None)
+        mid_stats = per_cutoff_qt_map.get((nkey, mid_cutoff)) if mid_cutoff is not None else None
+
+        if mid_stats:
+            mid_cpds, mid_pos, mid_ratio = mid_stats
+            if mid_cpds < 1000:
+                return f"Not considered for A: insufficient compounds ({int(mid_cpds)}, need ≥1000) at middle cutoff ({mid_cutoff})"
+            if mid_pos < 50:
+                return f"Not considered for A: insufficient actives ({int(mid_pos)}, need ≥50) at middle cutoff ({mid_cutoff})"
+            if mid_ratio > 0.5:
+                return f"Not considered for A: active ratio too high ({mid_ratio:.3f}, need ≤0.5) at middle cutoff ({mid_cutoff}) — directed to condition B"
+            if mid_ratio < 0.001:
+                return f"Not considered for A: active ratio too low ({mid_ratio:.5f}, need ≥0.001) at middle cutoff ({mid_cutoff})"
+        else:
+            # Fallback to max-across-cutoffs stats when middle cutoff has no entry
+            cpds  = cpds_qt_map.get(nkey, 0)
+            pos   = pos_qt_map.get(nkey, 0)
+            ratio = ratio_qt_map.get(nkey, 0)
+            if cpds < 1000:
+                return f"Not considered for A: insufficient compounds ({int(cpds)}, need ≥1000)"
+            if pos < 50:
+                return f"Not considered for A: insufficient actives ({int(pos)}, need ≥50)"
+            if ratio > 0.5:
+                return f"Not considered for A: active ratio too high ({ratio:.3f}, need ≤0.5) — directed to condition B"
+            if ratio < 0.001:
+                return f"Not considered for A: active ratio too low ({ratio:.5f}, need ≥0.001)"
         return "Not considered for A: did not meet size or balance criteria"
 
     # A2. Modeling Completed - Not Selected
@@ -314,7 +319,7 @@ def _generate_a_comment(nkey, activity_type, unit, target_type_extra, dtype, has
     return "Retained in final selection"
 
 
-def _generate_b_comment(nkey, dtype, has_cutoff, considered, selected, final_considered, final_selected):
+def _generate_b_comment(nkey, activity_type, unit, target_type_extra, dtype, has_cutoff, considered, selected, final_considered, final_selected):
     """Generate standardized comments for condition B (Individual Modeling - Active-Enriched Datasets)."""
 
     # B1. Hierarchical Pre-qualification
@@ -329,11 +334,24 @@ def _generate_b_comment(nkey, dtype, has_cutoff, considered, selected, final_con
             return "Not considered for B: no activity data available"
         if not has_cutoff:
             return "Not considered for B: no expert cutoff defined for this (activity_type, unit, target_type) combination"
-        pos   = pos_qt_map.get(nkey, 0)
-        ratio = ratio_qt_map.get(nkey, 0)
-        if ratio >= 0.5 and pos < 100:
-            return f"Not considered for B: insufficient actives ({int(pos)}, need ≥100)"
-        return f"Not considered for B: active ratio too low ({ratio:.3f}, need ≥0.5)"
+
+        # Use middle cutoff stats — the hierarchical assignment is based on the middle cutoff ratio,
+        # so reporting max-across-cutoffs stats can produce contradictory messages.
+        cutoff_list = expert_cutoffs.get((activity_type, unit, target_type_extra, pathogen_code), [])
+        mid_cutoff = cutoff_list[1] if len(cutoff_list) >= 2 else (cutoff_list[0] if cutoff_list else None)
+        mid_stats = per_cutoff_qt_map.get((nkey, mid_cutoff)) if mid_cutoff is not None else None
+
+        if mid_stats:
+            _, mid_pos, mid_ratio = mid_stats
+            if mid_ratio >= 0.5 and mid_pos < 100:
+                return f"Not considered for B: insufficient actives ({int(mid_pos)}, need ≥100) at middle cutoff ({mid_cutoff})"
+            return f"Not considered for B: active ratio too low ({mid_ratio:.3f}, need ≥0.5) at middle cutoff ({mid_cutoff})"
+        else:
+            pos   = pos_qt_map.get(nkey, 0)
+            ratio = ratio_qt_map.get(nkey, 0)
+            if ratio >= 0.5 and pos < 100:
+                return f"Not considered for B: insufficient actives ({int(pos)}, need ≥100)"
+            return f"Not considered for B: active ratio too low ({ratio:.3f}, need ≥0.5)"
 
     # B3. Modeling Completed - Not Selected
     if nkey not in selected:
@@ -369,10 +387,10 @@ def _generate_m_comment(nkey, dtype, has_cutoff, target_type_extra, considered, 
 
     # M2. Not considered for merging - use detailed failure analysis
     if nkey not in considered:
-        if target_type_extra == "DISCARDED":
-            return "Not considered for M: target type is DISCARDED, not eligible for merging"
         if dtype == "qualitative":
             return "Not considered for M: only qualitative data available, requires quantitative values"
+        if target_type_extra == "DISCARDED":
+            return "Not considered for M: target type is DISCARDED, not eligible for merging"
         if not has_cutoff:
             return "Not considered for M: no expert cutoff defined for this (activity_type, unit, target_type) combination"
         if dtype == "none":

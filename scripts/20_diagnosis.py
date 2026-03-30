@@ -197,14 +197,22 @@ def _parse_assay_key(s):
 final_coverage = {label: set() for label in "ABM"}
 covered_triplets = {label: set() for label in "ABM"}
 all_assay_triplets = set(assay_to_compounds.keys())
+merged_dir = os.path.join(OUTPUT, "datasets", "M")
 if any_selected:
-    for label, assay_keys in final_datasets[final_datasets["selected"]][
-        ["label", "assay_keys"]
+    for label, name, assay_keys in final_datasets[final_datasets["selected"]][
+        ["label", "name", "assay_keys"]
     ].values:
         for s in assay_keys.split(";"):
             key = _parse_assay_key(s)
-            final_coverage[label] |= assay_to_compounds.get(key, set())
             covered_triplets[label].add(key)
+        if label == "M":
+            filepath = os.path.join(merged_dir, f"{name}.csv.gz")
+            if os.path.exists(filepath):
+                df_m = pd.read_csv(filepath)
+                final_coverage[label] |= set(df_m[df_m["smiles"] != "decoy"]["compound_chembl_id"])
+        else:
+            for s in assay_keys.split(";"):
+                final_coverage[label] |= assay_to_compounds.get(_parse_assay_key(s), set())
 
 all_covered_cpds = final_coverage["A"] | final_coverage["B"] | final_coverage["M"]
 all_covered_triplets = covered_triplets["A"] | covered_triplets["B"] | covered_triplets["M"]
@@ -248,7 +256,7 @@ ho_dict = {(r.name_1, r.name_2): r.hit_overlap_100 for r in correlations.itertup
 X_co = np.array([[co_dict[(n1, n2)] for n2 in names] for n1 in names])
 X_ho = np.array([[ho_dict[(n1, n2)] for n2 in names] for n1 in names])
 
-if len(names) > 0:
+if len(names) > 1:
     Z = linkage(squareform(1 - X_co, checks=False), method="average")
     idx = leaves_list(Z)
     X_co = X_co[np.ix_(idx, idx)]
@@ -313,44 +321,48 @@ def right_to_left(y_right):
 
 
 def parse_rejection_categories(comment_series):
-    """Parse rejection comments into standardized categories"""
-    categories = {
-        'selected': comment_series.str.contains('Retained in final selection', na=False),
-        'already_accepted': comment_series.str.contains('already accepted', na=False),
-        'too_few_positives': comment_series.str.contains('insufficient positives|insufficient actives', na=False, regex=True),
-        'too_few_compounds': comment_series.str.contains('insufficient compounds', na=False),
-        'ratio_out_of_range': comment_series.str.contains('active ratio', na=False),
+    """Parse rejection comments into mutually-exclusive categories.
+
+    Each comment is assigned to exactly one category (the first match in
+    priority order). An 'other' catch-all ensures every row is accounted for
+    so that the stacked bars always sum to 1.
+    """
+    named = {
+        'selected':              comment_series.str.contains('Retained in final selection', na=False),
+        'already_accepted':      comment_series.str.contains('already accepted', na=False),
+        'non_organism':          comment_series.str.contains('non-ORGANISM target type', na=False),
+        'qualitative_only':      comment_series.str.contains('only qualitative data', na=False),
+        'no_activity_data':      comment_series.str.contains('no activity data', na=False),
+        'no_cutoff':             comment_series.str.contains('no expert cutoff defined', na=False),
+        'too_few_compounds':     comment_series.str.contains('insufficient compounds', na=False),
+        'too_few_positives':     comment_series.str.contains('insufficient positives|insufficient actives', na=False, regex=True),
+        'ratio_out_of_range':    comment_series.str.contains('active ratio', na=False),
         'middle_cutoff_failure': comment_series.str.contains('middle cutoff', na=False),
-        'auroc_below': comment_series.str.contains('below 0.70 threshold', na=False),
-        'no_cutoff': comment_series.str.contains('no expert cutoff defined', na=False),
-        'no_activity_data': comment_series.str.contains('no activity data', na=False),
-        'qualitative_only': comment_series.str.contains('only qualitative data', na=False),
         'insufficient_compatible': comment_series.str.contains('insufficient compatible assays', na=False),
-        'correlation': comment_series.str.contains('high correlation', na=False),
-        'non_organism': comment_series.str.contains('non-ORGANISM target type', na=False),
+        'auroc_below':           comment_series.str.contains('below 0.70 threshold', na=False),
+        'correlation':           comment_series.str.contains('high correlation', na=False),
     }
+    # Build mutually-exclusive masks: each row takes the first category that matches
+    assigned = pd.Series(False, index=comment_series.index)
+    categories = {}
+    for name, mask in named.items():
+        categories[name] = mask & ~assigned
+        assigned |= categories[name]
+    categories['other'] = ~assigned
     return categories
 
 
 def calculate_rejection_proportions(df):
-    """Calculate proportions for each label with proper normalization"""
+    """Calculate proportions for each label. Bars are guaranteed to sum to 1."""
     results = {}
     total = len(df)
     if total == 0:
         empty = {cat: 0 for cat in parse_rejection_categories(pd.Series([], dtype=str))}
         return {"A": dict(empty), "B": dict(empty), "M": dict(empty)}
 
-    # Label A: All datasets can be considered
-    a_cats = parse_rejection_categories(df['comment_A'])
-    results['A'] = {cat: a_cats[cat].sum() / total for cat in a_cats}
-
-    # Label B: Exclude datasets already selected under A
-    b_cats = parse_rejection_categories(df['comment_B'])
-    results['B'] = {cat: b_cats[cat].sum() / total for cat in b_cats}
-
-    # Label M: Exclude datasets accepted individually under A or B
-    m_cats = parse_rejection_categories(df['comment_M'])
-    results['M'] = {cat: m_cats[cat].sum() / total for cat in m_cats}
+    for label, col in [('A', 'comment_A'), ('B', 'comment_B'), ('M', 'comment_M')]:
+        cats = parse_rejection_categories(df[col])
+        results[label] = {cat: cats[cat].sum() / total for cat in cats}
 
     return results
 
@@ -473,7 +485,7 @@ if any_selected:
     # [1][2] Compound overlap heatmap (clustered)
     ax = axs.next()
     if len(names) > 0:
-        im = ax.imshow(X_co, vmin=X_co.min(), vmax=X_co.max(), cmap=cmap2)
+        im = ax.imshow(X_co, vmin=0, vmax=1, cmap=cmap2)
         fig.colorbar(im, ax=ax, fraction=0.045)
     else:
         ax.text(0.5, 0.5, "No data available", ha="center", va="center",
@@ -485,7 +497,7 @@ if any_selected:
     # [2][0] Hit overlap heatmap (clustered)
     ax = axs.next()
     if len(names) > 0:
-        im2 = ax.imshow(X_ho, vmin=X_ho.min(), vmax=X_ho.max(), cmap=cmap2)
+        im2 = ax.imshow(X_ho, vmin=0, vmax=1, cmap=cmap2)
         fig.colorbar(im2, ax=ax, fraction=0.045)
     else:
         ax.text(0.5, 0.5, "No data available", ha="center", va="center",
@@ -543,6 +555,7 @@ if any_selected:
         'correlation':           nc.blue,
         'already_accepted':      "#d35400",
         'selected':              nc.mint,
+        'other':                 "#ecf0f1",
     }
 
     # Create stacked bars
@@ -564,6 +577,7 @@ if any_selected:
         'auroc_below',
         'correlation',
         'already_accepted',
+        'other',
         'selected',
     ]
 
@@ -583,10 +597,10 @@ if any_selected:
     ax.set_xticks(bar_positions)
     ax.set_xticklabels(bar_labels)
     ax.set_ylim(0, 1)
-    ax.set_ylabel('Proportion of datasets')
-    ax.set_xlabel('Dataset labels')
+    ax.set_ylabel('Proportion of assays')
+    ax.set_xlabel('Condition label')
     ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize='small')
-    stylia.label(ax, title='Dataset rejection reasons by label')
+    stylia.label(ax, title='Assay rejection reasons by condition')
 
 fig.suptitle(pathogen, size=8, y=1.01)
 

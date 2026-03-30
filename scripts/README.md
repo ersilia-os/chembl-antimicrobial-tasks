@@ -642,10 +642,10 @@ Dual-axis log–log plot showing, as assays are added in order: the number of co
 > The following panels are only produced when at least one dataset has been selected (steps 13–17 completed).
 
 **Panel 5 — Compound overlap heatmap**
-Square heatmap of pairwise compound overlap between all selected ORGANISM models, hierarchically clustered by compound overlap distance. High values indicate models trained on largely overlapping compound sets.
+Square heatmap of pairwise compound overlap between all selected ORGANISM models, hierarchically clustered by compound overlap distance. Colorbar is fixed to [0, 1]. High values indicate models trained on largely overlapping compound sets.
 
 **Panel 6 — Top-100 hit overlap heatmap**
-Same layout as panel 5 but showing normalised hit overlap in the top-100 reference set predictions. High values indicate models that agree on which compounds are most likely to be active.
+Same layout as panel 5 but showing normalised hit overlap in the top-100 reference set predictions. Colorbar is fixed to [0, 1]. High values indicate models that agree on which compounds are most likely to be active.
 
 **Panel 7 — Chemical space coverage by label**
 Bar chart showing the fraction of the pathogen chemical space covered by the final selected datasets, broken down by condition label (A, B, M) and combined (ALL).
@@ -653,24 +653,25 @@ Bar chart showing the fraction of the pathogen chemical space covered by the fin
 **Panel 8 — Compounds vs positives per selected dataset**
 Log–log scatter of total compounds vs active compounds for each selected dataset, colored by label (A = orange, B = blue, M = yellow). Allows quick assessment of dataset sizes and class balance.
 
-**Panel 9 — Dataset rejection reasons**
-Stacked bar chart showing, for each condition label (A, B, M), the proportion of all assays falling into each pipeline status category:
+**Panel 9 — Assay rejection reasons**
+Stacked bar chart showing, for each condition label (A, B, M), the proportion of all **assay triplets** (one per `assay_id` × `activity_type` × `unit` combination) falling into each pipeline status category. Each assay triplet is assigned to exactly one category (first match in priority order), so the bars always sum to 1.
 
 | Category | Meaning |
 |----------|---------|
 | `selected` | Retained in final selection |
 | `already_accepted` | Accepted under a prior condition (hierarchical) |
-| `auroc_below` | Modeled but AUROC < 0.70 |
-| `correlation` | Good model but discarded due to high correlation |
 | `non_organism` | SINGLE PROTEIN — excluded from correlation analysis |
-| `too_few_positives` | Insufficient actives at all evaluated cutoffs |
+| `qualitative_only` | Only qualitative data — quantitative required |
+| `no_activity_data` | No activity data available |
+| `no_cutoff` | No expert cutoff defined |
 | `too_few_compounds` | Fewer than 1,000 compounds |
+| `too_few_positives` | Insufficient actives at all evaluated cutoffs |
 | `ratio_out_of_range` | Active ratio outside the required range |
 | `middle_cutoff_failure` | Middle cutoff produces too few actives or wrong ratio |
-| `no_cutoff` | No expert cutoff defined |
-| `no_activity_data` | No activity data available |
-| `qualitative_only` | Only qualitative data — quantitative required |
 | `insufficient_compatible` | Too few compatible assays for merging (M only) |
+| `auroc_below` | Modeled but AUROC < 0.70 |
+| `correlation` | Good model but discarded due to high correlation |
+| `other` | Comment does not match any known category |
 
 Output: `output/<pathogen_code>/20_diagnosis.png`
 

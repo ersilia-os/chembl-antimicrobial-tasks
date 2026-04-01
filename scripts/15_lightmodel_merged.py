@@ -417,6 +417,7 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
 
             outdir = os.path.join(OUTPUT, "datasets", "M")
             os.makedirs(outdir, exist_ok=True)
+            data = data[data["smiles"] != "decoy"].reset_index(drop=True)
             data.to_csv(os.path.join(outdir, f"{name_}.csv.gz"), index=False, compression="gzip")
 
 # ---------------------------------------------------------------------------

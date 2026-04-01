@@ -31,7 +31,7 @@ from pathogen_utils import load_pathogen
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
 
-print("Step 20: Diagnosis plots")
+print(f"Step 20: Diagnosis plots for {pathogen_code} ({pathogen})")
 
 OUTPUT = os.path.join(root, "..", "output", pathogen_code)
 
@@ -39,7 +39,7 @@ OUTPUT = os.path.join(root, "..", "output", pathogen_code)
 # Load data
 # ---------------------------------------------------------------------------
 
-print("Loading data...")
+print("Loading data (raw/cleaned activities, assay metadata, final datasets, assay master)...")
 
 raw = pd.read_csv(os.path.join(OUTPUT, "07_chembl_raw_data.csv.gz"), low_memory=False)
 cleaned = pd.read_csv(os.path.join(OUTPUT, "08_chembl_cleaned_data.csv.gz"), low_memory=False)
@@ -55,8 +55,16 @@ correlations = pd.read_csv(os.path.join(OUTPUT, "17_dataset_correlations.csv"))
 # Load assays master data for rejection analysis
 assays_master = pd.read_csv(os.path.join(OUTPUT, "18_assays_master.csv"))
 
-any_selected = len(final_datasets) > 0 and bool(final_datasets["selected"].any())
-print(f"Any assays selected: {any_selected}")
+n_selected = int(final_datasets["selected"].sum()) if len(final_datasets) > 0 else 0
+any_selected = n_selected > 0
+print(f"  Unique compounds in ChEMBL: {len(compound_counts):,}")
+print(f"  Assays (raw / cleaned): {len(assays_raw_df):,} / {len(assays_cleaned_df):,}")
+print(f"  Final datasets (total / selected): {len(final_datasets):,} / {n_selected:,}")
+if any_selected:
+    label_counts = final_datasets[final_datasets["selected"]]["label"].value_counts().to_dict()
+    print(f"    Selected by label: A={label_counts.get('A', 0)}, B={label_counts.get('B', 0)}, M={label_counts.get('M', 0)}")
+else:
+    print("  No datasets selected — figure will use 2×2 layout")
 
 pathogen_compounds = set(compound_counts["compound_chembl_id"])
 
@@ -119,7 +127,7 @@ if total_strain > 0:
     no_strain_frac = null_strain_count / total_strain
     other_strains_frac = other_strains_count / total_strain
     majoritarian_frac = majoritarian_count / total_strain
-    print(no_strain_frac, other_strains_frac, majoritarian_frac, majoritarian_strain)
+    print(f"  Strain distribution: no-strain={no_strain_frac:.1%}, other={other_strains_frac:.1%}, majoritarian='{majoritarian_strain}' ({majoritarian_frac:.1%})")
 
     strain_bars = [
         majoritarian_frac,
@@ -141,13 +149,11 @@ unit_bars = [
 # Compound occurrence rank plot
 # ---------------------------------------------------------------------------
 
-count_cpds = sorted(Counter(cleaned["compound_chembl_id"]).values(), reverse=True)
-
 # ---------------------------------------------------------------------------
 # Cumulative chemical space coverage per assay
 # ---------------------------------------------------------------------------
 
-print("Computing cumulative coverage...")
+print(f"Computing cumulative chemical space coverage across {len(assays_cleaned_df):,} assays...")
 
 assay_ids_set = set(assays_cleaned_df["assay_id"])
 assay_to_compounds = defaultdict(set)
@@ -168,6 +174,15 @@ for assay_id, activity_type, unit in tqdm(
     cum_prop.append(len(cum_cpds_set) / len(pathogen_compounds))
     cpds_per_assay.append(len(assay_to_compounds[key]))
 
+print(f"  Coverage after all assays: {cum_prop[-1]:.1%} of the pathogen chemical space" if cum_prop else "  No assays to compute coverage.")
+
+# Count activities per (assay, activity_type, unit) triplet — needed for activity coverage later
+triplet_to_n_activities = (
+    cleaned[cleaned["assay_chembl_id"].isin(assay_ids_set)]
+    .groupby(["assay_chembl_id", "activity_type", "unit"], dropna=False)
+    .size()
+    .to_dict()
+)
 del cleaned
 
 # ---------------------------------------------------------------------------
@@ -180,18 +195,59 @@ def _parse_assay_key(s):
 
 
 final_coverage = {label: set() for label in "ABM"}
+covered_triplets = {label: set() for label in "ABM"}
+all_assay_triplets = set(assay_to_compounds.keys())
+merged_dir = os.path.join(OUTPUT, "datasets", "M")
 if any_selected:
-    for label, assay_keys in final_datasets[final_datasets["selected"]][
-        ["label", "assay_keys"]
+    for label, name, assay_keys in final_datasets[final_datasets["selected"]][
+        ["label", "name", "assay_keys"]
     ].values:
         for s in assay_keys.split(";"):
-            final_coverage[label] |= assay_to_compounds.get(_parse_assay_key(s), set())
+            key = _parse_assay_key(s)
+            covered_triplets[label].add(key)
+        if label == "M":
+            filepath = os.path.join(merged_dir, f"{name}.csv.gz")
+            if os.path.exists(filepath):
+                df_m = pd.read_csv(filepath)
+                final_coverage[label] |= set(df_m[df_m["smiles"] != "decoy"]["compound_chembl_id"])
+        else:
+            for s in assay_keys.split(";"):
+                final_coverage[label] |= assay_to_compounds.get(_parse_assay_key(s), set())
+
+all_covered_cpds = final_coverage["A"] | final_coverage["B"] | final_coverage["M"]
+all_covered_triplets = covered_triplets["A"] | covered_triplets["B"] | covered_triplets["M"]
+n_total_triplets = len(all_assay_triplets)
+
+activities_in_selected = sum(triplet_to_n_activities.get(k, 0) for k in all_covered_triplets)
+n_total_activities_cleaned = sum(triplet_to_n_activities.values())
+
+if any_selected:
+    print("Final dataset coverage (selected datasets only):")
+    print(
+        f"  Compound coverage (fraction of {len(pathogen_compounds):,} unique compounds): "
+        f"A={len(final_coverage['A'])/len(pathogen_compounds):.1%}  "
+        f"B={len(final_coverage['B'])/len(pathogen_compounds):.1%}  "
+        f"M={len(final_coverage['M'])/len(pathogen_compounds):.1%}  "
+        f"ALL={len(all_covered_cpds)/len(pathogen_compounds):.1%}"
+    )
+    print(
+        f"  Assay coverage (fraction of {n_total_triplets:,} assays): "
+        f"A={len(covered_triplets['A'])/n_total_triplets:.1%}  "
+        f"B={len(covered_triplets['B'])/n_total_triplets:.1%}  "
+        f"M={len(covered_triplets['M'])/n_total_triplets:.1%}  "
+        f"ALL={len(all_covered_triplets)}/{n_total_triplets} ({len(all_covered_triplets)/n_total_triplets:.1%})"
+    )
+    print(
+        f"  Bioactivity endpoint coverage: {activities_in_selected:,} endpoints in selected datasets  "
+        f"/ {activities_cleaned:,} cleaned ({activities_in_selected/activities_cleaned:.1%})  "
+        f"/ {activities_raw:,} raw ({activities_in_selected/activities_raw:.1%})"
+    )
 
 # ---------------------------------------------------------------------------
 # Correlation matrices (clustered by compound overlap)
 # ---------------------------------------------------------------------------
 
-print("Building correlation matrices...")
+print(f"Building correlation matrices for {len(set(correlations['name_1']))} datasets (compound overlap + top-100 hit overlap)...")
 
 names = sorted(set(correlations["name_1"]))
 co_dict = {(r.name_1, r.name_2): r.compound_overlap for r in correlations.itertuples()}
@@ -200,7 +256,7 @@ ho_dict = {(r.name_1, r.name_2): r.hit_overlap_100 for r in correlations.itertup
 X_co = np.array([[co_dict[(n1, n2)] for n2 in names] for n1 in names])
 X_ho = np.array([[ho_dict[(n1, n2)] for n2 in names] for n1 in names])
 
-if len(names) > 0:
+if len(names) > 1:
     Z = linkage(squareform(1 - X_co, checks=False), method="average")
     idx = leaves_list(Z)
     X_co = X_co[np.ix_(idx, idx)]
@@ -213,7 +269,7 @@ if len(names) > 0:
 from sklearn.decomposition import PCA
 from openTSNE import TSNE as openTSNE
 
-print("Loading ECFPs for tSNE...")
+print("Loading ECFPs for tSNE (up to 10,000 pathogen + 30,000 background compounds)...")
 h5_path = os.path.join(DATAPATH, "chembl_processed", "06_chembl_ecfps.h5")
 with h5py.File(h5_path, "r") as f:
     all_ids_h5 = f["smiles"][:, 3].astype(str)
@@ -229,9 +285,10 @@ bg_ids = rng.choice(pool, size=n_ref * 3, replace=False)
 all_ids = np.concatenate([reference_ids, bg_ids])
 
 X_tsne = (np.stack([ecfps[i] for i in all_ids]) > 0).astype(np.float32)
-print("  PCA...")
+print(f"  Input matrix: {X_tsne.shape[0]:,} compounds × {X_tsne.shape[1]} ECFP bits")
+print("  PCA (reducing to 16 components before tSNE)...")
 X_tsne = PCA(n_components=16, random_state=42, svd_solver="randomized").fit_transform(X_tsne)
-print("  tSNE...")
+print("  tSNE (2D embedding)...")
 perp = min(30.0, max(5.0, (X_tsne.shape[0] - 1) / 3.0))
 emb = np.asarray(
     openTSNE(
@@ -264,42 +321,48 @@ def right_to_left(y_right):
 
 
 def parse_rejection_categories(comment_series):
-    """Parse rejection comments into standardized categories"""
-    categories = {
-        'selected': comment_series.str.contains('Retained in final selection', na=False),
-        'already_accepted': comment_series.str.contains('already accepted', na=False),
-        'too_few_positives': comment_series.str.contains('insufficient positives', na=False),
-        'too_few_compounds': comment_series.str.contains('insufficient compounds', na=False),
-        'auroc_below': comment_series.str.contains('below 0.70 threshold', na=False, regex=True),
-        'no_cutoff': comment_series.str.contains('no expert cutoff defined', na=False),
-        'qualitative_only': comment_series.str.contains('only qualitative data', na=False),
-        'insufficient_data': comment_series.str.contains('insufficient data for merging', na=False),
+    """Parse rejection comments into mutually-exclusive categories.
+
+    Each comment is assigned to exactly one category (the first match in
+    priority order). An 'other' catch-all ensures every row is accounted for
+    so that the stacked bars always sum to 1.
+    """
+    named = {
+        'selected':              comment_series.str.contains('Retained in final selection', na=False),
+        'already_accepted':      comment_series.str.contains('already accepted', na=False),
+        'non_organism':          comment_series.str.contains('non-ORGANISM target type', na=False),
+        'qualitative_only':      comment_series.str.contains('only qualitative data', na=False),
+        'no_activity_data':      comment_series.str.contains('no activity data', na=False),
+        'no_cutoff':             comment_series.str.contains('no expert cutoff defined', na=False),
+        'too_few_compounds':     comment_series.str.contains('insufficient compounds', na=False),
+        'too_few_positives':     comment_series.str.contains('insufficient positives|insufficient actives', na=False, regex=True),
+        'ratio_out_of_range':    comment_series.str.contains('active ratio', na=False),
+        'middle_cutoff_failure': comment_series.str.contains('middle cutoff', na=False),
         'insufficient_compatible': comment_series.str.contains('insufficient compatible assays', na=False),
-        'correlation': comment_series.str.contains('high correlation', na=False),      
-        'non_organism': comment_series.str.contains('non-ORGANISM target type', na=False)  
+        'auroc_below':           comment_series.str.contains('below 0.70 threshold', na=False),
+        'correlation':           comment_series.str.contains('high correlation', na=False),
     }
+    # Build mutually-exclusive masks: each row takes the first category that matches
+    assigned = pd.Series(False, index=comment_series.index)
+    categories = {}
+    for name, mask in named.items():
+        categories[name] = mask & ~assigned
+        assigned |= categories[name]
+    categories['other'] = ~assigned
     return categories
 
 
 def calculate_rejection_proportions(df):
-    """Calculate proportions for each label with proper normalization"""
+    """Calculate proportions for each label. Bars are guaranteed to sum to 1."""
     results = {}
     total = len(df)
     if total == 0:
         empty = {cat: 0 for cat in parse_rejection_categories(pd.Series([], dtype=str))}
         return {"A": dict(empty), "B": dict(empty), "M": dict(empty)}
 
-    # Label A: All datasets can be considered
-    a_cats = parse_rejection_categories(df['comment_A'])
-    results['A'] = {cat: a_cats[cat].sum() / total for cat in a_cats}
-
-    # Label B: Exclude datasets already selected under A
-    b_cats = parse_rejection_categories(df['comment_B'])
-    results['B'] = {cat: b_cats[cat].sum() / total for cat in b_cats}
-
-    # Label M: Exclude datasets accepted individually under A or B
-    m_cats = parse_rejection_categories(df['comment_M'])
-    results['M'] = {cat: m_cats[cat].sum() / total for cat in m_cats}
+    for label, col in [('A', 'comment_A'), ('B', 'comment_B'), ('M', 'comment_M')]:
+        cats = parse_rejection_categories(df[col])
+        results[label] = {cat: cats[cat].sum() / total for cat in cats}
 
     return results
 
@@ -308,7 +371,8 @@ def calculate_rejection_proportions(df):
 # Plot
 # ---------------------------------------------------------------------------
 
-print("Plotting...")
+layout = "3×3" if any_selected else "2×2"
+print(f"Plotting {layout} diagnostic figure ({layout} panels)...")
 stylia.set_style("ersilia")
 nc = stylia.NamedColors()  
 
@@ -421,7 +485,7 @@ if any_selected:
     # [1][2] Compound overlap heatmap (clustered)
     ax = axs.next()
     if len(names) > 0:
-        im = ax.imshow(X_co, vmin=X_co.min(), vmax=X_co.max(), cmap=cmap2)
+        im = ax.imshow(X_co, vmin=0, vmax=1, cmap=cmap2)
         fig.colorbar(im, ax=ax, fraction=0.045)
     else:
         ax.text(0.5, 0.5, "No data available", ha="center", va="center",
@@ -433,7 +497,7 @@ if any_selected:
     # [2][0] Hit overlap heatmap (clustered)
     ax = axs.next()
     if len(names) > 0:
-        im2 = ax.imshow(X_ho, vmin=X_ho.min(), vmax=X_ho.max(), cmap=cmap2)
+        im2 = ax.imshow(X_ho, vmin=0, vmax=1, cmap=cmap2)
         fig.colorbar(im2, ax=ax, fraction=0.045)
     else:
         ax.text(0.5, 0.5, "No data available", ha="center", va="center",
@@ -471,24 +535,27 @@ if any_selected:
     stylia.label(ax, xlabel="Number of compounds", ylabel="Number of positives",
                  title=f"Number of datasets: {len(selected_df)}")
 
-    # [3][0] Dataset rejection reasons stacked barplot
+    # [2][2] Dataset rejection reasons stacked barplot
     ax = axs.next()
 
     rejection_props = calculate_rejection_proportions(assays_master)
 
     # Define colors for each rejection category
     colors = {
-        'non_organism': nc.gray,
-        'qualitative_only': nc.plum,
-        'no_cutoff': nc.purple,
-        'insufficient_data': nc.blue,
+        'non_organism':          nc.gray,
+        'qualitative_only':      nc.plum,
+        'no_activity_data':      "#95a5a6",
+        'no_cutoff':             nc.purple,
         'insufficient_compatible': nc.orange,
-        'too_few_positives': nc.yellow,
-        'too_few_compounds': nc.pink,
-        'auroc_below': nc.purple,
-        'correlation': nc.blue,
-        'selected': nc.mint,
-        'already_accepted': nc.plum,
+        'too_few_compounds':     nc.pink,
+        'too_few_positives':     nc.yellow,
+        'ratio_out_of_range':    "#e74c3c",
+        'middle_cutoff_failure': "#9b59b6",
+        'auroc_below':           "#27ae60",
+        'correlation':           nc.blue,
+        'already_accepted':      "#d35400",
+        'selected':              nc.mint,
+        'other':                 "#ecf0f1",
     }
 
     # Create stacked bars
@@ -500,14 +567,17 @@ if any_selected:
     stack_order = [
         'non_organism',
         'qualitative_only',
+        'no_activity_data',
         'no_cutoff',
-        'insufficient_data',
         'insufficient_compatible',
-        'too_few_positives',
         'too_few_compounds',
+        'too_few_positives',
+        'ratio_out_of_range',
+        'middle_cutoff_failure',
         'auroc_below',
         'correlation',
         'already_accepted',
+        'other',
         'selected',
     ]
 
@@ -527,10 +597,10 @@ if any_selected:
     ax.set_xticks(bar_positions)
     ax.set_xticklabels(bar_labels)
     ax.set_ylim(0, 1)
-    ax.set_ylabel('Proportion of datasets')
-    ax.set_xlabel('Dataset labels')
+    ax.set_ylabel('Proportion of assays')
+    ax.set_xlabel('Condition label')
     ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize='small')
-    stylia.label(ax, title='Dataset rejection reasons by label')
+    stylia.label(ax, title='Assay rejection reasons by condition')
 
 fig.suptitle(pathogen, size=8, y=1.01)
 
@@ -539,4 +609,4 @@ plt.tight_layout()
 
 outpath = os.path.join(OUTPUT, "20_diagnosis.png")
 stylia.save_figure(outpath)
-print(f"Saved -> {outpath}")
+print(f"Saved {layout} diagnostic figure -> {outpath}")

@@ -4,25 +4,25 @@ Step 01 — Prepare config files for manual curation.
 Generates two files that require human review before the pipeline
 can proceed to step 05 and step 08:
 
-1. data/01_activity_std_units_converted.csv — (activity_type, unit) pairs with
+1. data/chembl_processed/01_activity_std_units_converted.csv — (activity_type, unit) pairs with
    counts, where activity_type is harmonized and units are converted via
    ucum_manual.csv. A curator fills in the manual_curation_direction column
    (1 = higher value means more active, -1 = lower value means more active)
    and saves the result as:
-   config/activity_std_units_curated_manual_curation.csv
+   config/activity_std_units_manual_curation.csv
    This is required by step 08.
 
-2. data/01_harmonized_types_map.csv — maps each harmonized activity_type to
+2. data/chembl_processed/01_harmonized_types_map.csv — maps each harmonized activity_type to
    the count and list of raw standard_type strings that collapse into it.
    Used by step 05.
 
 Run this script after step 00 and before step 05/08.
 
-Input:  data/chembl_activities/activity_std_units.csv
+Input:  data/chembl_processed/00_activity_std_units.csv
         config/ucum_manual.csv
         config/synonyms.csv
-Output: data/01_activity_std_units_converted.csv  (requires manual curation -> config/activity_std_units_curated_manual_curation.csv)
-        data/01_harmonized_types_map.csv
+Output: data/chembl_processed/01_activity_std_units_converted.csv  (requires manual curation -> config/activity_std_units_manual_curation.csv)
+        data/chembl_processed/01_harmonized_types_map.csv
 """
 
 import pandas as pd
@@ -73,10 +73,10 @@ def prepare_unit_curation_file(activity_std_units):
     maps standard_units to final_unit via ucum_manual.csv, collapses synonyms via
     synonyms.csv, then re-aggregates counts by (activity_type, unit).
 
-    Produces data/01_activity_std_units_converted.csv for manual curation.
+    Produces data/chembl_processed/01_activity_std_units_converted.csv for manual curation.
     A curator should fill in the manual_curation_direction column (1 = higher value
     means more active, -1 = lower value means more active) and save the result as
-    config/activity_std_units_curated_manual_curation.csv before running step 08.
+    config/activity_std_units_manual_curation.csv before running step 08.
     """
     def harmonize(x):
         return re.sub(r"[_\s./\\]", "", str(x).upper().strip())
@@ -110,12 +110,12 @@ def prepare_unit_curation_file(activity_std_units):
     print(f"  {n_mapped}/{n_total} (activity_type, unit) pairs mapped to a final_unit")
     print(f"  Saved -> {outfile}")
     print("  ACTION REQUIRED: fill in manual_curation_direction and save as:")
-    print(f"  {os.path.join(CONFIGPATH, 'activity_std_units_curated_manual_curation.csv')}")
+    print(f"  {os.path.join(CONFIGPATH, 'activity_std_units_manual_curation.csv')}")
 
 if __name__ == "__main__":
     print("Step 01")
     activity_std_units = pd.read_csv(
-        os.path.join(DATAPATH, "chembl_activities", "activity_std_units.csv"),
+        os.path.join(DATAPATH, "chembl_processed", "00_activity_std_units.csv"),
         low_memory=False
     )
     print("Preparing harmonized activity types map...")

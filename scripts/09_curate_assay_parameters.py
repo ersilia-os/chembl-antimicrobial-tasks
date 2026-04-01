@@ -54,7 +54,7 @@ ORGANISM_CHEMBL_IDS = {
 
 # Get pathogen code from command line
 if len(sys.argv) != 2:
-    print("Usage: python 09_extract_assay_details.py <pathogen_code>")
+    print("Usage: python 09_curate_assay_parameters.py <pathogen_code>")
     sys.exit(1)
 
 pathogen_code = sys.argv[1]
@@ -88,7 +88,7 @@ assay_info = assays_data.set_index("chembl_id")[["doc_id", "description", "assay
 
 # Detailed assay descriptions
 try:
-    assay_descriptions = pd.read_csv(os.path.join(DATAPATH, "chembl_activities", "assay_descriptions.csv"))
+    assay_descriptions = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "00_assay_descriptions.csv"))
     descriptions = assay_descriptions.set_index("chembl_id")["description"].to_dict()
 except:
     descriptions = {}

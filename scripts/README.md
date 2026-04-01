@@ -24,7 +24,7 @@ bash scripts/process_ChEMBL.sh --calculate_ecfps  # also compute fingerprints
 | 03 | `03_standardize_compounds.py` | Canonicalizes SMILES, removes salts/solvents, recalculates MW. ⏳ ~3–4 h | `data/chembl_processed/03_compound_info_standardized.csv` |
 | 04 | `04_merge_activity_and_compounds.py` | Joins activities, assays, targets, and compounds into a single table. | `data/chembl_processed/04_activities_all_raw.csv` |
 | 05 | `05_clean_activities.py` | Filters invalid entries, applies activity comment/text flags, converts units, harmonizes activity types, recalculates pChEMBL. ⏳ ~15 min | `data/chembl_processed/05_activities_preprocessed.csv` |
-| 06 | `06_calculate_ecfps.py` *(optional)* | Computes ECFP4 fingerprints (radius 3, 2048 bits) for all standardized compounds. ⏳ ~15 min | `data/chembl_processed/06_chembl_ecfps` |
+| 06 | `06_calculate_ecfps.py` *(optional)* | Computes ECFP4 fingerprints (radius 3, 2048 bits) for all standardized compounds. ⏳ ~15 min | `data/chembl_processed/06_chembl_ecfps.h5` |
 
 ### Manual curation required between steps 01 and 02
 
@@ -50,18 +50,19 @@ Exports the following raw tables from the local ChEMBL PostgreSQL database into 
 - `activities.csv`, `assays.csv`, `assay_parameters.csv`, `activity_stds_lookup.csv`
 - `bioassay_ontology.csv`, `compound_structures.csv`, `docs.csv`
 - `molecule_dictionary.csv`, `target_dictionary.csv`
+- `target_components.csv`, `component_synonyms.csv`, `component_sequences.csv`, `source.csv`
 
 For details on table contents see the [ChEMBL schema documentation](https://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/schema_documentation.txt).
 
-In addition, the script derives four frequency tables from the `ACTIVITIES` table:
+In addition, the script derives four frequency tables from the `ACTIVITIES` table and one reference table from the `ASSAYS` table, all saved to `data/chembl_processed/`:
 
-1. `activity_comments.csv` — frequency of values in `activity_comment` (e.g. `"active"`)
-2. `activity_std_units.csv` — frequency of (`standard_type`, `standard_units`) pairs (e.g. `"IC50 / nM"`)
-3. `standard_units.csv` — frequency of `standard_units` values
-4. `standard_text.csv` — frequency of values in `standard_text_value` (e.g. `"Compound metabolized"`)
-5. `assay_descriptions.csv` — assay IDs mapped to their text descriptions and ChEMBL IDs
+1. `00_activity_comments.csv` — frequency of values in `activity_comment` (e.g. `"active"`)
+2. `00_activity_std_units.csv` — frequency of (`standard_type`, `standard_units`) pairs (e.g. `"IC50 / nM"`)
+3. `00_standard_units.csv` — frequency of `standard_units` values
+4. `00_standard_text.csv` — frequency of values in `standard_text_value` (e.g. `"Compound metabolized"`)
+5. `00_assay_descriptions.csv` — assay IDs mapped to their text descriptions and ChEMBL IDs (from `ASSAYS`)
 
-The files `activity_comments.csv` and `standard_text.csv` were manually reviewed to assign an activity label to the most frequent entries, stored in `config/activity_comments_manual_curation.csv` and `config/standard_text_manual_curation.csv` (column `manual_curation_activity`): `1` = active, `-1` = inactive, `0` = inconclusive.
+The files `00_activity_comments.csv` and `00_standard_text.csv` were manually reviewed to assign an activity label to the most frequent entries, stored in `config/activity_comments_manual_curation.csv` and `config/standard_text_manual_curation.csv` (column `manual_curation_activity`): `1` = active, `-1` = inactive, `0` = inconclusive.
 
 ---
 
@@ -104,8 +105,8 @@ Produces the final preprocessed activity table `data/chembl_processed/05_activit
 2. **Flag activity comments** — maps each `activity_comment` to active (1), inactive (-1), or unknown (0) using `config/activity_comments_manual_curation.csv`.
 3. **Flag standard text** — same for `standard_text_value` using `config/standard_text_manual_curation.csv`.
 4. **Convert units and values** — normalizes unit strings and converts raw values using formulas from `config/ucum_manual.csv`.
-5. **Harmonize activity types** — strips punctuation/spaces and uppercases `standard_type`.
-6. **Standardize relations** — maps `>=`, `>>`, `~` etc. to simplified `>`, `<`, `=`.
+5. **Standardize relations** — maps `>=`, `>>`, `~` etc. to simplified `>`, `<`, `=`.
+6. **Harmonize activity types** — strips punctuation/spaces and uppercases `standard_type`.
 7. **Calculate pChEMBL** — recalculates pChEMBL values for records with `unit = umol.L-1` and a valid numeric value.
 8. **Convert doc IDs** — replaces internal `doc_id` with `doc_chembl_id`.
 9. **Map synonyms** — collapses activity type variants to their canonical name using `config/synonyms.csv`.
@@ -119,7 +120,7 @@ Also saves `data/chembl_processed/05_activity_std_units_curated_comments.csv`: a
 
 ### Step 06 — Calculate ECFPs (`06_calculate_ecfps.py`) *(optional)*
 
-Computes ECFP fingerprints (radius 3, 2048 bits) for all standardized compounds using RDKit. Failed SMILES are skipped. Results are stored in HDF5 format. Output: `data/chembl_processed/06_chembl_ecfps`.
+Computes ECFP fingerprints (radius 3, 2048 bits) for all standardized compounds using RDKit. Failed SMILES are skipped. Results are stored in HDF5 format. Output: `data/chembl_processed/06_chembl_ecfps.h5`.
 
 ⏳ ETA: ~15 minutes.
 
@@ -156,6 +157,7 @@ Supported codes are in `config/pathogens.csv`. All outputs go to `output/<pathog
 
 | File | Step | Purpose |
 |------|------|---------|
+| `config/assays/<pathogen_code>.csv` | 07 | Manual assay allowlist — ChEMBL assay IDs to include regardless of organism matching (one ID per line, no header). Optional: missing file is treated as an empty list. |
 | `config/activity_std_units_manual_curation.csv` | 08 | Biological direction per (activity\_type, unit) pair |
 | `config/expert_cutoffs.csv` | 12 | Binarization thresholds per (activity\_type, unit, target\_type, pathogen\_code) |
 | `config/pathogens.csv` | all | Pathogen codes and names |
@@ -164,7 +166,7 @@ Supported codes are in `config/pathogens.csv`. All outputs go to `output/<pathog
 
 ### Step 07 — Get pathogen assays (`07_get_pathogen_assays.py`)
 
-Filters the full preprocessed ChEMBL dataset to extract all bioactivity records associated with the target pathogen. Matching is done by text search on `target_organism` and `assay_organism`, plus any assay ChEMBL IDs listed in `config/assays/<pathogen_code>.csv`.
+Filters the full preprocessed ChEMBL dataset to extract all bioactivity records associated with the target pathogen. Matching is done by case-insensitive text search on `target_organism` and `assay_organism`. Additionally, any assay ChEMBL IDs listed in `config/assays/<pathogen_code>.csv` are included regardless of organism match — this allowlist is intended for assays that the organism-name filter misses (e.g. assays annotated under a strain name or a non-standard organism string). The file contains one ChEMBL assay ID per line with no header; if the file does not exist it is silently ignored.
 
 Outputs are saved to `output/<pathogen_code>/`:
 
@@ -211,7 +213,7 @@ Uses a local LLM to extract and standardize biological context for each (`assay_
 
 | Field | Description |
 |-------|-------------|
-| `organism_curated` | Biological species explicitly stated (e.g. `Mycobacterium tuberculosis`) |
+| `assay_organism_curated` | Biological species explicitly stated (e.g. `Mycobacterium tuberculosis`) |
 | `target_type_curated` | Curated target type: `SINGLE PROTEIN`, `ORGANISM`, `DISCARDED`, or the verbatim ChEMBL target type |
 | `target_name_curated` | Target name explicitly stated in the annotations |
 | `target_chembl_id_curated` | Target ChEMBL ID if explicitly stated |
@@ -219,7 +221,7 @@ Uses a local LLM to extract and standardize biological context for each (`assay_
 | `atcc_id` | ATCC identifier, formatted as `ATCC <number>` |
 | `mutations` | Explicit mutations in one-letter format (e.g. `S450L`) |
 | `known_drug_resistances` | Drugs for which resistance is explicitly stated |
-| `media` | Growth or culture medium explicitly stated |
+| `culture_media` | Growth or culture medium explicitly stated |
 
 Target ChEMBL IDs extracted by the LLM are resolved against the ChEMBL target dictionary using a **multi-strategy exact-match lookup**: first by direct ID match, then by organism-prefix stripping, then by slash-split of compound names, and finally by gene-name reconstruction. IDs are never guessed — unresolvable names are left blank.
 
@@ -231,7 +233,8 @@ Outputs are saved to `output/<pathogen_code>/`:
 
 | File | Description |
 |------|-------------|
-| `09_assays_parameters.csv` | Curated assay parameters for all (`assay_id`, `activity_type`, `unit`) triplets. |
+| `09_assays_parameters.csv` | Intermediate per-batch output; appended incrementally to support resuming. |
+| `09_assays_parameters_full.csv` | Final merged output with curated parameters for all (`assay_id`, `activity_type`, `unit`) triplets. Used by step 12. |
 
 ⏳ ETA: ~5 seconds per assay on a GPU-enabled machine.
 
@@ -271,7 +274,7 @@ Outputs are saved to `output/<pathogen_code>/`:
 
 Produces binarized, ML-ready compound-level datasets for each (`assay_id`, `activity_type`, `unit`) triplet. Requires the outputs of steps 08 and 09.
 
-Each assay is processed through two parallel paths — **quantitative** (numeric values) and **qualitative** (text-based activity flags) — which are then combined into up to three dataset types per triplet.
+Each assay is processed through two independent paths — **quantitative** (numeric values) and **qualitative** (text-based activity flags). The result is classified as exactly one dataset type per (`assay_id`, `activity_type`, `unit`, `expert_cutoff`) combination, depending on what data is available: `quantitative`, `qualitative`, or `mixed` (both). If multiple expert cutoffs are defined for an assay, one dataset is produced per cutoff, all of the same type.
 
 #### Target type curation
 
@@ -345,7 +348,7 @@ Datasets are evaluated under two independent conditions that differ in size requ
 | Decoys added | No | Yes |
 | Purpose | Large, balanced datasets | Active-enriched datasets, decoy-balanced |
 
-The same assay can qualify under both conditions and will be modeled independently in each.
+Conditions A and B are **mutually exclusive by definition**: condition A requires an active ratio ≤ 0.5, while condition B requires ≥ 0.5, so no assay can satisfy both simultaneously. Assignment is nonetheless determined hierarchically using the middle expert cutoff (or the first available cutoff if only one exists): condition A is evaluated first, and only assays that fail it are considered for condition B.
 
 #### Condition B decoy strategy
 
@@ -387,13 +390,15 @@ Selects the single best dataset per assay triplet from the step 13 results, appl
 Only assays with a best AUROC > 0.7 (across all cutoffs tested) are retained. For assays with multiple expert cutoffs, one cutoff is chosen per the following rule:
 
 - **Prefer the mid cutoff** (the second value in the `expert_cutoffs.csv` list for that assay) as a default, since it represents the central activity threshold and is more interpretable.
-- **Switch to the best cutoff** only if the mid cutoff is unavailable or if the best cutoff achieves an AUROC more than 0.1 higher than the mid cutoff — indicating a meaningfully better model at that threshold.
+- **Switch to the best cutoff** only if the best cutoff achieves an AUROC more than 0.1 higher than the mid cutoff — indicating a meaningfully better model at that threshold.
+
+> ⚠️ Assays with fewer than two expert cutoffs defined are skipped at this step and will not appear in the output.
 
 The flag `is_mid_cutoff` records which rule was applied for each selected dataset.
 
 #### Per-label independence
 
-Selection is performed independently for conditions A and B. The same assay triplet can therefore appear in both — with potentially different cutoffs and AUROC scores — since the two conditions model different compound sets (condition B adds decoys).
+Selection is performed independently for conditions A and B. Because step 13 uses hierarchical assignment, each assay triplet appears under exactly one label in the input — so the same triplet cannot appear in both A and B outputs.
 
 Outputs are saved to `output/<pathogen_code>/`:
 
@@ -415,8 +420,10 @@ Many assays in ChEMBL are too small individually to meet the compound and positi
 
 Assay triplets that were **not** accepted in step 14 are grouped by shared experimental metadata. Two grouping strategies are applied independently:
 
-- **ORGANISM** — groups by (`activity_type`, `unit`, `direction`, `assay_type`, `target_type_curated_extra`, `bao_label`, `strain`). Captures whole-cell / phenotypic assay merges.
-- **SINGLE PROTEIN** — same keys plus `target_chembl_id`. Ensures that only assays against the same protein target are combined.
+- **ORGANISM** — whole-cell / phenotypic assay merges. Assays are split into two sub-groups before merging:
+  - *Strain-known*: groups by (`activity_type`, `unit`, `direction`, `assay_type`, `target_type_curated_extra`, `assay_strain_curated`).
+  - *NaN-strain*: groups by (`activity_type`, `unit`, `direction`, `assay_type`, `target_type_curated_extra`) — strain is absent and not used as a grouping key.
+- **SINGLE PROTEIN** — groups by (`activity_type`, `unit`, `direction`, `assay_type`, `target_type_curated_extra`, `bao_label`, `assay_strain_curated`, `target_chembl_id`). Ensures that only assays against the same protein target are combined. Assays without a curated `target_chembl_id` are excluded from merging.
 
 A group qualifies for merging if the **union** of compounds across all member assays exceeds 1,000 and the group contains at least 2 assays. Groups are ranked by union size.
 
@@ -449,6 +456,7 @@ Outputs are saved to `output/<pathogen_code>/`:
 | File | Description |
 |------|-------------|
 | `15_merged_LM.csv` | One row per merged group × cutoff — AUROC, compound counts, assay keys, metadata. |
+| `15_merging_analysis.csv` | One row per assay attempted — merge outcome and failure reason (used by step 18). |
 | `correlations/M/` | Reference set prediction probabilities (`.npz`) for each merged model. |
 | `datasets/M/` | Merged dataset files (`.csv.gz`), one per group × cutoff. |
 
@@ -465,7 +473,9 @@ Selects the single best dataset per merged group from the step 15 results, apply
 Only merged groups with a best AUROC > 0.7 (across all cutoffs tested) are retained. For groups with multiple expert cutoffs, one cutoff is chosen per the following rule:
 
 - **Prefer the mid cutoff** (the second value in the `expert_cutoffs.csv` list) as a default, since it represents the central activity threshold and is more interpretable.
-- **Switch to the best cutoff** only if the mid cutoff is unavailable or if the best cutoff achieves an AUROC more than 0.1 higher — indicating a meaningfully better model at that threshold.
+- **Switch to the best cutoff** only if the best cutoff achieves an AUROC more than 0.1 higher than the mid cutoff — indicating a meaningfully better model at that threshold.
+
+> Unlike step 14, groups with fewer than two expert cutoffs are not skipped — the best (only) cutoff is used directly.
 
 The flag `is_mid_cutoff` records which rule was applied for each selected dataset.
 
@@ -506,7 +516,7 @@ All pairwise combinations are computed and saved to `17_dataset_correlations.csv
 
 #### Greedy deduplication
 
-Datasets are sorted by size (largest first) and processed greedily: a dataset is discarded if it is simultaneously **model-correlated** and **compound-overlapping** with an already-selected dataset:
+Datasets are sorted by **label first** (A → B → M), then by size descending within each label, and processed greedily: a dataset is discarded if it is simultaneously **model-correlated** and **compound-overlapping** with an already-selected dataset. This means individual condition A datasets are always prioritized over condition B, which are always prioritized over merged M datasets, regardless of size.
 
 ```
 (spearman + hit_overlap_1000 + hit_overlap_100) / 3 > 0.5
@@ -537,11 +547,22 @@ The master table contains one row per (`assay_id`, `activity_type`, `unit`) trip
 | Source file | Fields added |
 |-------------|--------------|
 | `08_assays_cleaned.csv` | Base assay metadata: assay type, target, direction, compound counts, text flags |
-| `09_assays_parameters.csv` | LLM-curated fields: organism, target type, strain, ATCC ID, mutations, media |
+| `09_assays_parameters_full.csv` | LLM-curated fields: organism, target type, strain, ATCC ID, mutations, media |
 | `10_assays_clusters.csv` | Chemical diversity: cluster counts at Tanimoto 0.3, 0.6, 0.85 |
 | `12_assay_data_info.csv` | Dataset type, relation counts, activity value distribution (percentiles) |
+| `12_datasets.csv` | Active ratios per dataset type: `ratio_qt`, `ratio_ql`, `ratio_mx` |
+| `config/expert_cutoffs.csv` | `evaluated_cutoffs` — semicolon-separated cutoffs tested for each assay |
+| `13_individual_LM.csv` | `evaluated_aurocs` — AUROC per cutoff, aligned to `evaluated_cutoffs` |
+| `data/chembl_activities/` | `uniprot_accession` — UniProt accession(s) for the curated target |
+| `config/pubchem_aids/<pathogen>.csv` *(optional)* | `pubchem` — PubChem AID for the assay, if available |
 
-An `evaluated_cutoffs` column is added from `config/expert_cutoffs.csv`, listing the cutoffs that were tested for each assay.
+Pipeline results from steps 13–17 (`13_individual_LM.csv`, `14_individual_selected_LM.csv`, `15_merged_LM.csv`, `15_merging_analysis.csv`, `16_merged_selected_LM.csv`, `17_final_datasets.csv`, `17_dataset_correlations.csv`) are also loaded to populate the pipeline status and final selection columns.
+
+Three additional columns record the final selection outcome:
+
+- `selected` — boolean, whether the assay is part of the final non-redundant dataset set
+- `selected_cutoff` — the expert cutoff used in the selected dataset
+- `selected_label` — the condition label (A, B, or merged group name) under which the assay was selected
 
 #### Pipeline status annotations
 
@@ -569,7 +590,12 @@ Outputs are saved to `output/<pathogen_code>/`:
 
 Exports all selected datasets as simplified CSVs containing only SMILES and binary activity labels, bundled into a single ZIP file. Intended for researchers who want ML-ready data without navigating the full pipeline outputs.
 
-Output: `output/<pathogen_code>/19_final_datasets.zip`
+Outputs are saved to `output/<pathogen_code>/`:
+
+| File | Description |
+|------|-------------|
+| `19_final_datasets.zip` | One CSV per selected dataset, containing only `smiles` and `bin` columns. |
+| `19_final_datasets_metadata.csv` | One row per exported dataset — activity type, unit, target type, cutoff, AUROC, compound counts, label, and source (individual or merged). |
 
 ⏳ ETA: < 1 minute.
 
@@ -577,11 +603,79 @@ Output: `output/<pathogen_code>/19_final_datasets.zip`
 
 ### Step 20 — Diagnosis (`20_diagnosis.py`) *(optional)*
 
-Produces a diagnostic plot summarizing data quality, chemical diversity, assay coverage, and model correlations for the pathogen dataset.
+Produces a multi-panel diagnostic figure summarising data quality, chemical diversity, assay coverage, and model correlations for the pathogen. The figure layout adapts to pipeline progress: a **2×2 grid** (4 panels) is produced when no datasets have been selected yet (steps 13–17 not yet run), and a **3×3 grid** (9 panels) when at least one dataset has been selected.
+
+#### Input files
+
+| File | Used for |
+|------|----------|
+| `07_chembl_raw_data.csv.gz` | Raw activity and compound counts |
+| `07_assays_raw.csv` | Raw assay count |
+| `07_compound_counts.csv.gz` | Full pathogen compound set (denominator for coverage) |
+| `08_chembl_cleaned_data.csv.gz` | Cleaned activity counts, compound-per-assay mapping |
+| `08_assays_cleaned.csv` | Cleaned assay count, assay type / target type / unit distributions |
+| `09_assays_parameters_full.csv` | Strain distribution |
+| `17_final_datasets.csv` | Selected dataset names, labels, compound counts |
+| `17_dataset_correlations.csv` | Pairwise compound overlap and hit overlap between models |
+| `18_assays_master.csv` | Per-assay pipeline status comments (rejection analysis) |
+| `data/chembl_processed/06_chembl_ecfps.h5` | Morgan fingerprints for tSNE |
+
+#### Panels
+
+**Panel 1 — Raw vs cleaned data**
+Grouped bar chart comparing activities, compounds, and assays before and after the cleaning pipeline (steps 07–08). Gray = raw, blue = cleaned.
+
+**Panel 2 — Data classification**
+Five stacked fraction bars showing how assays and activities are distributed across categories:
+- *Assay type*: functional (F), binding (B), other
+- *Target type*: organism (ORG), single protein (SP), other
+- *Strain*: majoritarian strain, other strains, no strain
+- *Unit*: µM (`umol.L-1`), percentage (`%`), other
+- *Activity type*: quantitative-only, quantitative+qualitative mixed, other
+
+**Panel 3 — tSNE**
+2D tSNE embedding of Morgan fingerprints. Pathogen-tested compounds are shown colored by local density (yellow = dense, purple = sparse); background ChEMBL compounds (3× the pathogen set) are shown in light gray. Uses PCA (16 components) as a pre-processing step before tSNE.
+
+**Panel 4 — Chemical space coverage by assay**
+Dual-axis log–log plot showing, as assays are added in order: the number of compounds per assay (yellow, left axis) and the cumulative fraction of the pathogen chemical space covered (purple, right axis). Allows assessment of how quickly coverage saturates and how unevenly compounds are distributed across assays.
+
+> The following panels are only produced when at least one dataset has been selected (steps 13–17 completed).
+
+**Panel 5 — Compound overlap heatmap**
+Square heatmap of pairwise compound overlap between all selected ORGANISM models, hierarchically clustered by compound overlap distance. Colorbar is fixed to [0, 1]. High values indicate models trained on largely overlapping compound sets.
+
+**Panel 6 — Top-100 hit overlap heatmap**
+Same layout as panel 5 but showing normalised hit overlap in the top-100 reference set predictions. Colorbar is fixed to [0, 1]. High values indicate models that agree on which compounds are most likely to be active.
+
+**Panel 7 — Chemical space coverage by label**
+Bar chart showing the fraction of the pathogen chemical space covered by the final selected datasets, broken down by condition label (A, B, M) and combined (ALL).
+
+**Panel 8 — Compounds vs positives per selected dataset**
+Log–log scatter of total compounds vs active compounds for each selected dataset, colored by label (A = orange, B = blue, M = yellow). Allows quick assessment of dataset sizes and class balance.
+
+**Panel 9 — Assay rejection reasons**
+Stacked bar chart showing, for each condition label (A, B, M), the proportion of all **assay triplets** (one per `assay_id` × `activity_type` × `unit` combination) falling into each pipeline status category. Each assay triplet is assigned to exactly one category (first match in priority order), so the bars always sum to 1.
+
+| Category | Meaning |
+|----------|---------|
+| `selected` | Retained in final selection |
+| `already_accepted` | Accepted under a prior condition (hierarchical) |
+| `non_organism` | SINGLE PROTEIN — excluded from correlation analysis |
+| `qualitative_only` | Only qualitative data — quantitative required |
+| `no_activity_data` | No activity data available |
+| `no_cutoff` | No expert cutoff defined |
+| `too_few_compounds` | Fewer than 1,000 compounds |
+| `too_few_positives` | Insufficient actives at all evaluated cutoffs |
+| `ratio_out_of_range` | Active ratio outside the required range |
+| `middle_cutoff_failure` | Middle cutoff produces too few actives or wrong ratio |
+| `insufficient_compatible` | Too few compatible assays for merging (M only) |
+| `auroc_below` | Modeled but AUROC < 0.70 |
+| `correlation` | Good model but discarded due to high correlation |
+| `other` | Comment does not match any known category |
 
 Output: `output/<pathogen_code>/20_diagnosis.png`
 
-⏳ ETA: ~2 minutes.
+⏳ ETA: ~2 minutes (dominated by tSNE computation).
 
 ---
 

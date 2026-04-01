@@ -52,8 +52,8 @@ print(f"Directions assigned. Summary: {count_directions}")
 print(f"Assigned directions [-1, 0, +1]: {round((count_directions[1] + count_directions[-1] + count_directions[0]) / len(chembl_pathogen) * 100, 1)}%")
 print(f"Assigned directions [-1, +1]: {round((count_directions[1] + count_directions[-1]) / len(chembl_pathogen) * 100, 1)}%")
 
-# Keeping only directed activities
-chembl_pathogen = chembl_pathogen[(chembl_pathogen['direction'].isin([1, -1]) == True) | 
+# 6. Remove unmodelable activities — keep only those with a direction OR an active/inactive text flag
+chembl_pathogen = chembl_pathogen[(chembl_pathogen['direction'].isin([1, -1]) == True) |
                                     (chembl_pathogen['text_flag'].isin([1, -1]))].reset_index(drop=True)
 print(f"Keeping only activities with a direction [-1,+1] OR active/inactive text_flag")
 print(f"Number of activities (compounds): {len(chembl_pathogen)} ({len(set(chembl_pathogen['compound_chembl_id']))})")

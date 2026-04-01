@@ -110,6 +110,15 @@ name_to_compounds = {
     for name, assays in name_to_assay_keys.items()
 }
 
+# Override compound sets for M datasets using actual saved files (assay_to_compounds lookups are unreliable for merged groups)
+merged_dir = os.path.join(OUTPUT, "datasets", "M")
+for name in list(name_to_compounds.keys()):
+    if name.startswith("M_"):
+        filepath = os.path.join(merged_dir, f"{name}.csv.gz")
+        if os.path.exists(filepath):
+            df = pd.read_csv(filepath)
+            name_to_compounds[name] = set(df[df["smiles"] != "decoy"]["compound_chembl_id"])
+
 # ---------------------------------------------------------------------------
 # Pairwise correlation metrics
 # ---------------------------------------------------------------------------
@@ -178,9 +187,15 @@ else:
 # ---------------------------------------------------------------------------
 
 coverage = {label: set() for label in labels}
-for label, assay_keys in final_datasets[["label", "assay_keys"]].values:
-    for s in assay_keys.split(";"):
-        coverage[label].update(assay_to_compounds[_parse_assay_key(s)])
+for label, name, assay_keys in final_datasets[["label", "name", "assay_keys"]].values:
+    if label == "M":
+        filepath = os.path.join(merged_dir, f"{name}.csv.gz")
+        if os.path.exists(filepath):
+            df = pd.read_csv(filepath)
+            coverage[label].update(df[df["smiles"] != "decoy"]["compound_chembl_id"])
+    else:
+        for s in assay_keys.split(";"):
+            coverage[label].update(assay_to_compounds[_parse_assay_key(s)])
 
 for label in labels:
     pct = round(100 * len(coverage[label]) / len(pathogen_compounds), 1)

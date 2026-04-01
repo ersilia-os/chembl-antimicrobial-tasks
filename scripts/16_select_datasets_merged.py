@@ -1,4 +1,3 @@
-from collections import defaultdict
 import pandas as pd
 import numpy as np
 import sys
@@ -17,24 +16,11 @@ print("Step 16: Selecting merged datasets")
 
 OUTPUT = os.path.join(root, "..", "output", pathogen_code)
 
-
-def _parse_assay_key(s):
-    assay_id, activity_type, unit = s.split("|")
-    return (assay_id, activity_type, np.nan if unit == "" else unit)
-
 # Load expert cutoffs
 expert_cutoffs = load_expert_cutoffs(CONFIGPATH)
 
 # Load merged LM results
 merged_lm = pd.read_csv(os.path.join(OUTPUT, "15_merged_LM.csv"))
-
-# Build assay → compound set mapping for coverage stats
-print("Mapping assays to compounds...")
-chembl = pd.read_csv(os.path.join(OUTPUT, "08_chembl_cleaned_data.csv.gz"), low_memory=False)
-assay_to_compounds = defaultdict(set)
-for assay_id, activity_type, unit, compound_chembl_id in chembl[["assay_chembl_id", "activity_type", "unit", "compound_chembl_id"]].values:
-    assay_to_compounds[(assay_id, activity_type, unit)].add(compound_chembl_id)
-del chembl
 
 pathogen_compounds = set(pd.read_csv(os.path.join(OUTPUT, "07_compound_counts.csv.gz"))["compound_chembl_id"])
 
@@ -61,19 +47,10 @@ cols_to_keep = [
 ]
 
 selected = []
-original_compounds = {"ORG": set(), "SP": set()}
-selected_compounds = {"ORG": set(), "SP": set()}
 
 for base_name, activity_type, unit, target_type in groups:
 
-    ty = "ORG" if "ORG" in base_name else "SP"
-
     group_rows = merged_lm[merged_lm["base_name"] == base_name].reset_index(drop=True)
-
-    # Accumulate compounds across all assays in this group for coverage tracking
-    for assay_key_str in group_rows["assay_keys"]:
-        for s in assay_key_str.split(";"):
-            original_compounds[ty].update(assay_to_compounds[tuple(s.split("|"))])
 
     # Mid cutoff: second value in the expert cutoffs list for this key
     cutoff_list = expert_cutoffs.get((activity_type, unit, target_type, pathogen_code), [])
@@ -97,10 +74,6 @@ for base_name, activity_type, unit, target_type in groups:
         info = mid_rows[cols_to_keep].iloc[0].tolist()
         selected.append([activity_type, unit, target_type, mid_cutoff, mid_auroc, True] + info)
 
-    assay_keys = [_parse_assay_key(s) for s in selected[-1][-1].split(";")]
-    for assay in assay_keys:
-        selected_compounds[ty].update(assay_to_compounds[assay])
-
 # ---------------------------------------------------------------------------
 # Save
 # ---------------------------------------------------------------------------
@@ -111,6 +84,27 @@ selected_df = pd.DataFrame(selected, columns=[
     "n_assays", "n_cpds_union", "positives", "ratio", "avg", "std", "assay_keys",
 ])
 selected_df.to_csv(os.path.join(OUTPUT, "16_merged_selected_LM.csv"), index=False)
+
+# Coverage from actual saved merged datasets (avoids assay-key lookup issues)
+merged_dir = os.path.join(OUTPUT, "datasets", "M")
+original_compounds = {"ORG": set(), "SP": set()}
+selected_compounds = {"ORG": set(), "SP": set()}
+
+if os.path.exists(merged_dir):
+    for filename in os.listdir(merged_dir):
+        if not filename.endswith(".csv.gz"):
+            continue
+        base = "_".join(filename.replace(".csv.gz", "").split("_")[:2])
+        ty = "ORG" if "ORG" in base else "SP"
+        df = pd.read_csv(os.path.join(merged_dir, filename))
+        original_compounds[ty].update(df[df["smiles"] != "decoy"]["compound_chembl_id"].tolist())
+
+for _, row in selected_df.iterrows():
+    ty = "ORG" if "ORG" in row["name"] else "SP"
+    filepath = os.path.join(merged_dir, f"{row['name']}.csv.gz")
+    if os.path.exists(filepath):
+        df = pd.read_csv(filepath)
+        selected_compounds[ty].update(df[df["smiles"] != "decoy"]["compound_chembl_id"].tolist())
 
 print("Chemical space coverage:")
 for ty in ["ORG", "SP"]:

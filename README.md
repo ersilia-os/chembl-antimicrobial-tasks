@@ -30,7 +30,7 @@ eosvc download --path output
 
 ## Pipeline overview
 
-The pipeline is divided into two main stages: (i) processing ChEMBL (steps 00-06) and (ii) creating binarized bioactivity datasets and training ML models for a given pathogen of interest (steps 07-18). Look at the README file under `/scripts` for detailed information.
+The pipeline is divided into two main stages: (i) processing ChEMBL (steps 00-06) and (ii) creating binarized bioactivity datasets and training ML models for a given pathogen of interest (steps 07-21). Look at the README file under `/scripts` for detailed information.
 
 
 ## Repository architecture

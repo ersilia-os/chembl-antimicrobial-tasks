@@ -1,17 +1,16 @@
 """
 Step 00 — Export ChEMBL tables and generate curation summaries.
 
-Exports 10 raw tables from a local PostgreSQL ChEMBL installation to CSV
+Exports 13 raw tables from a local PostgreSQL ChEMBL installation to CSV
 (data/chembl_activities/). Then generates frequency-count summary CSVs of
-key activity fields.
+key activity fields (saved to data/chembl_processed/).
 
-IMPORTANT: The summary files produced here (activity_comments.csv,
-standard_text.csv, activity_std_units.csv) informing the manual curation process.
+IMPORTANT: The summary files produced here (00_activity_comments.csv,
+00_standard_text.csv, 00_activity_std_units.csv) inform the manual curation process.
 After running this step, a curator must create/update:
-  config/activity_comments_manual_curation.csv
-  config/standard_text_manual_curation.csv
-  config/activity_std_units_curated_manual_curation.csv
-These config files are required by step 05 (clean_activities).
+  config/activity_comments_manual_curation.csv   (required by step 05)
+  config/standard_text_manual_curation.csv        (required by step 05)
+  config/activity_std_units_manual_curation.csv   (required by step 08)
 """
 
 import psycopg
@@ -185,7 +184,7 @@ def build_target_dictionary_synonyms():
 if __name__ == "__main__":
     print("Step 00")
     print("Getting files from ChEMBL DB")
-    #get_files_from_db()
+    get_files_from_db()
     print("Curating activity files")
     curate_activity_files()
     print("Curating assay description")

@@ -9,18 +9,6 @@ sys.path.append(os.path.join(root, "..", "src"))
 from model_utils import load_all_gz_csvs_from_zip
 
 
-def _norm_key(key):
-    """Normalize NaN unit to None so the tuple is hashable and equality works."""
-    a, at, u = key
-    return (a, at, None if (not isinstance(u, str) and pd.isna(u)) else u)
-
-
-def _parse_assay_key(s):
-    """Parse assay key string into (assay_id, activity_type, unit) tuple."""
-    assay_id, activity_type, unit = s.split("|")
-    return (assay_id, activity_type, np.nan if unit == "" else unit)
-
-
 def main(pathogen_code: str) -> None:
     """
     Create final datasets using selected assays from table 18 with original names from tables 16 and 17.
@@ -35,67 +23,38 @@ def main(pathogen_code: str) -> None:
     # Define paths
     base_path = os.path.join(os.path.dirname(__file__), "..", "output", pathogen_code)
     datasets_path = os.path.join(base_path, "datasets")
-    assay_master_csv = os.path.join(base_path, "18_assays_master.csv")
     final_datasets_17 = os.path.join(base_path, "17_final_datasets.csv")
     output_zip = os.path.join(base_path, "19_final_datasets.zip")
     metadata_csv = os.path.join(base_path, "19_final_datasets_metadata.csv")
 
-    # Check required files
-    for required_file in [assay_master_csv, final_datasets_17]:
-        if not os.path.exists(required_file):
-            raise FileNotFoundError(f"Required input file not found: {required_file}")
+    if not os.path.exists(final_datasets_17):
+        raise FileNotFoundError(f"Required input file not found: {final_datasets_17}")
 
-    # Read table 18 to get all selected assays
-    print(f"Reading selected datasets from {assay_master_csv}")
-    assay_master = pd.read_csv(assay_master_csv)
-    selected_assays = assay_master[assay_master['selected'] == True].copy()
-    print(f"Found {len(selected_assays)} selected assays")
+    # Selected datasets are determined by step 17's 'selected' column
+    print(f"Reading selected datasets from {final_datasets_17}")
+    final_17 = pd.read_csv(final_datasets_17)
+    selected_rows = final_17[final_17['selected'] == True].reset_index(drop=True)
+    print(f"Found {len(selected_rows)} selected datasets")
 
-    if len(selected_assays) == 0:
+    if len(selected_rows) == 0:
         print("No selected datasets found. Nothing to process.")
         return
 
-    # Create a set of selected assay keys for fast lookup
-    selected_keys = set()
-    for _, row in selected_assays.iterrows():
-        key = _norm_key((row['assay_id'], row['activity_type'], row['unit']))
-        selected_keys.add(key)
-
-    print(f"Created lookup set with {len(selected_keys)} selected assay keys")
-
-    # Get datasets to export from table 17 (contains all final selected datasets)
     datasets_to_export = []
-
-    # Get all datasets from table 17 (both individual and merged)
-    print(f"Reading all final dataset names from {final_datasets_17}")
-    final_17 = pd.read_csv(final_datasets_17)
-
-    for _, row in final_17.iterrows():
-        # Check if any assays in this dataset are selected
-        dataset_selected = False
-        for assay_key_str in row['assay_keys'].split(';'):
-            assay_key = _norm_key(_parse_assay_key(assay_key_str))
-            if assay_key in selected_keys:
-                dataset_selected = True
-                break
-
-        if dataset_selected:
-            # Determine if this is a merged dataset based on name
-            is_merged = row['name'].startswith('M_')
-            source = 'merged' if is_merged else 'individual'
-
-            datasets_to_export.append({
-                'name': row['name'],
-                'label': row['label'],
-                'activity_type': row.get('activity_type', 'MULTIPLE' if is_merged else ''),
-                'unit': row.get('unit', 'MULTIPLE' if is_merged else ''),
-                'target_type': row.get('target_type', ''),
-                'cutoff': row.get('cutoff', ''),
-                'auroc': row.get('auroc', np.nan),
-                'cpds': row.get('cpds', 0),
-                'positives': row.get('positives', 0),
-                'source': source
-            })
+    for _, row in selected_rows.iterrows():
+        is_merged = row['name'].startswith('M_')
+        datasets_to_export.append({
+            'name': row['name'],
+            'label': row['label'],
+            'activity_type': row.get('activity_type', ''),
+            'unit': row.get('unit', ''),
+            'target_type': row.get('target_type', ''),
+            'cutoff': row.get('cutoff', ''),
+            'auroc': row.get('auroc', np.nan),
+            'cpds': row.get('cpds', 0),
+            'positives': row.get('positives', 0),
+            'source': 'merged' if is_merged else 'individual',
+        })
 
     print(f"Found {len(datasets_to_export)} datasets to export")
 

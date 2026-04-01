@@ -151,6 +151,9 @@ print(f"  Quantitative: {len(dfs_qt)} | Mixed: {len(dfs_mx)}")
 print("Identifying assays to merge...")
 not_accepted = assays_merged[~assays_merged["accepted_in_individual_lm"]]
 
+# Only quantitative/mixed assays can contribute data to merged models
+not_accepted = not_accepted[not_accepted["dataset_type"].isin(["quantitative", "mixed"])].copy()
+
 filtered_organism = not_accepted[not_accepted["target_type_curated_extra"] == "ORGANISM"].copy()
 
 # Strain-known ORGANISM: group by strain (no bao_label — ORGANISM target type is sufficient)
@@ -249,6 +252,7 @@ if len(filtered_single_protein) > 0:
 # ---------------------------------------------------------------------------
 
 merged_lm = []
+label_compounds = {"ORGANISM": set(), "SINGLE PROTEIN": set()}
 merge_candidates = {
     "ORGANISM": (to_merge_organism, filtered_organism),
     "SINGLE PROTEIN": (to_merge_single_protein, filtered_single_protein),
@@ -351,6 +355,7 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
             X = np.array(data["compound_chembl_id"].map(ecfps).tolist())
             Y = np.array(data["bin"].tolist())
             n_positives = int(Y.sum())
+            n_real_cpds = len(X)
 
             if n_positives <= 50:
                 print(f"  Skipping {name_}: too few positives ({n_positives})")
@@ -364,10 +369,11 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
                             entry["failure_reason"] == "group_qualified"):
                             merging_analysis[i]["failure_reason"] = "insufficient_positives_after_merging"
                             merging_analysis[i]["n_positives"] = n_positives
+                            merging_analysis[i]["group_compounds"] = n_real_cpds
                 continue
-
             print(f"  {name_} | {activity_type} | {unit} | cutoff={expert_cutoff} | strain={filter_strain} | target={target_chembl_id}")
-            print(f"    Compounds: {len(X)}, Positives: {n_positives} ({round(100 * n_positives / len(Y), 1)}%)")
+            print(f"    Compounds: {n_real_cpds}, Positives: {n_positives} ({round(100 * n_positives / len(Y), 1)}%)")
+            label_compounds[target_type].update(data["compound_chembl_id"].tolist())
 
             if n_positives / len(Y) > 0.5:
                 n_decoys = int(n_positives / decoy_ratio - (len(Y) - 1))
@@ -393,13 +399,14 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
                         entry["failure_reason"] == "group_qualified"):
                         merging_analysis[i]["failure_reason"] = "successfully_merged"
                         merging_analysis[i]["merged_group_name"] = name_
+                        merging_analysis[i]["group_compounds"] = n_real_cpds
                         merging_analysis[i]["n_positives"] = n_positives
                         merging_analysis[i]["auroc"] = avg_auroc
 
             merged_lm.append([
                 name_, activity_type, unit, expert_cutoff, direction, assay_type,
                 target_type_curated_extra, filter_strain, target_chembl_id,
-                n_assays, n_cpds_union, n_positives, round(n_positives / len(Y), 3),
+                n_assays, n_real_cpds, n_positives, round(n_positives / len(Y), 3),
                 avg_auroc, std_auroc, assay_keys,
             ])
 
@@ -410,6 +417,7 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
 
             outdir = os.path.join(OUTPUT, "datasets", "M")
             os.makedirs(outdir, exist_ok=True)
+            data = data[data["smiles"] != "decoy"].reset_index(drop=True)
             data.to_csv(os.path.join(outdir, f"{name_}.csv.gz"), index=False, compression="gzip")
 
 # ---------------------------------------------------------------------------
@@ -436,16 +444,11 @@ if len(merging_analysis_df) > 0:
 merging_analysis_df.to_csv(os.path.join(OUTPUT, "15_merging_analysis.csv"), index=False)
 print(f"Saved merging analysis for {len(merging_analysis_df)} assay attempts")
 
-def parse_assay_key(s):
-    assay_id, activity_type, unit = s.split("|")
-    return (assay_id, activity_type, np.nan if unit == "" else unit)
-
 for tt, label in [("ORGANISM", "ORG"), ("SINGLE PROTEIN", "SP")]:
     sub = merged_lm_df[merged_lm_df["target_type_curated_extra"] == tt]
-    assay_strs = set(s for row in sub["assay_keys"] for s in row.split(";"))
-    cpds = set(cpd for s in assay_strs for cpd in assay_to_compounds[parse_assay_key(s)])
-    print(f"{label} — datasets: {len(sub)}, assays: {len(assay_strs)}, coverage: {round(100 * len(cpds) / len(pathogen_compounds), 1)}%")
+    n_assays = len(set(s for row in sub["assay_keys"] for s in row.split(";")))
+    cpds = label_compounds[tt]
+    print(f"{label} — datasets: {len(sub)}, assays: {n_assays}, coverage: {round(100 * len(cpds) / len(pathogen_compounds), 1)}%")
 
-all_assay_strs = set(s for row in merged_lm_df["assay_keys"] for s in row.split(";"))
-all_cpds = set(cpd for s in all_assay_strs for cpd in assay_to_compounds[parse_assay_key(s)])
+all_cpds = label_compounds["ORGANISM"] | label_compounds["SINGLE PROTEIN"]
 print(f"Overall coverage: {round(100 * len(all_cpds) / len(pathogen_compounds), 1)}%")

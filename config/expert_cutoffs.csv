@@ -104,21 +104,21 @@ IC50,umol.L-1,ORGANISM,-1.0,pfalciparum,5;10;20
 IC50,umol.L-1,ORGANISM,-1.0,saureus,5;10;20
 IC50,umol.L-1,ORGANISM,-1.0,smansoni,5;10;20
 IC50,umol.L-1,ORGANISM,-1.0,spneumoniae,5;10;20
-IZ,mm,ORGANISM,1.0,abaumannii,5;10;20
-IZ,mm,ORGANISM,1.0,calbicans,5;10;20
-IZ,mm,ORGANISM,1.0,campylobacter,5;10;20
-IZ,mm,ORGANISM,1.0,ecoli,5;10;20
-IZ,mm,ORGANISM,1.0,efaecium,5;10;20
-IZ,mm,ORGANISM,1.0,enterobacter,5;10;20
-IZ,mm,ORGANISM,1.0,hpylori,5;10;20
-IZ,mm,ORGANISM,1.0,kpneumoniae,5;10;20
-IZ,mm,ORGANISM,1.0,mtuberculosis,5;10;20
-IZ,mm,ORGANISM,1.0,ngonorrhoeae,5;10;20
-IZ,mm,ORGANISM,1.0,paeruginosa,5;10;20
-IZ,mm,ORGANISM,1.0,pfalciparum,5;10;20
-IZ,mm,ORGANISM,1.0,saureus,5;10;20
-IZ,mm,ORGANISM,1.0,smansoni,5;10;20
-IZ,mm,ORGANISM,1.0,spneumoniae,5;10;20
+IZ,mm,ORGANISM,1.0,abaumannii,10;20;30
+IZ,mm,ORGANISM,1.0,calbicans,10;20;30
+IZ,mm,ORGANISM,1.0,campylobacter,10;20;30
+IZ,mm,ORGANISM,1.0,ecoli,10;20;30
+IZ,mm,ORGANISM,1.0,efaecium,10;20;30
+IZ,mm,ORGANISM,1.0,enterobacter,10;20;30
+IZ,mm,ORGANISM,1.0,hpylori,10;20;30
+IZ,mm,ORGANISM,1.0,kpneumoniae,10;20;30
+IZ,mm,ORGANISM,1.0,mtuberculosis,10;20;30
+IZ,mm,ORGANISM,1.0,ngonorrhoeae,10;20;30
+IZ,mm,ORGANISM,1.0,paeruginosa,10;20;30
+IZ,mm,ORGANISM,1.0,pfalciparum,10;20;30
+IZ,mm,ORGANISM,1.0,saureus,10;20;30
+IZ,mm,ORGANISM,1.0,smansoni,10;20;30
+IZ,mm,ORGANISM,1.0,spneumoniae,10;20;30
 IC50,umol.L-1,SINGLE PROTEIN,-1.0,abaumannii,0.5;1;5
 IC50,umol.L-1,SINGLE PROTEIN,-1.0,calbicans,0.5;1;5
 IC50,umol.L-1,SINGLE PROTEIN,-1.0,campylobacter,0.5;1;5

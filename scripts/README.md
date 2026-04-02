@@ -348,7 +348,7 @@ Datasets are evaluated under two independent conditions that differ in size requ
 | Decoys added | No | Yes |
 | Purpose | Large, balanced datasets | Active-enriched datasets, decoy-balanced |
 
-Conditions A and B are **mutually exclusive by definition**: condition A requires an active ratio ≤ 0.5, while condition B requires ≥ 0.5, so no assay can satisfy both simultaneously. Assignment is nonetheless determined hierarchically using the middle expert cutoff (or the first available cutoff if only one exists): condition A is evaluated first, and only assays that fail it are considered for condition B.
+Conditions A and B are **mutually exclusive by definition**: condition A requires an active ratio ≤ 0.5, while condition B requires ≥ 0.5, so no assay can satisfy both simultaneously. Assignment is determined hierarchically by checking **all available expert cutoffs**: an assay is assigned to condition A if *any* of its cutoffs produces a dataset meeting condition A criteria; only assays that fail condition A at every cutoff are then considered for condition B (again across all cutoffs). This means a dataset can qualify for A even if the middle cutoff alone would not pass the size or balance thresholds.
 
 #### Condition B decoy strategy
 

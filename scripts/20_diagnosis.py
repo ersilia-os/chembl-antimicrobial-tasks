@@ -25,8 +25,8 @@ import matplotlib.pyplot as plt
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import DATAPATH
-from pathogen_utils import load_pathogen
+from default import DATAPATH, CONFIGPATH
+from pathogen_utils import load_pathogen, load_expert_cutoffs
 
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
@@ -34,6 +34,13 @@ pathogen = load_pathogen(pathogen_code)
 print(f"Step 20: Diagnosis plots for {pathogen_code} ({pathogen})")
 
 OUTPUT = os.path.join(root, "..", "output", pathogen_code)
+
+
+def load_if_exists(path, **kwargs):
+    if os.path.exists(path):
+        return pd.read_csv(path, **kwargs)
+    return pd.DataFrame()
+
 
 # ---------------------------------------------------------------------------
 # Load data
@@ -54,6 +61,16 @@ correlations = pd.read_csv(os.path.join(OUTPUT, "17_dataset_correlations.csv"))
 
 # Load assays master data for rejection analysis
 assays_master = pd.read_csv(os.path.join(OUTPUT, "18_assays_master.csv"))
+
+# Additional loads for summary table (step 23 merged)
+datasets_12      = load_if_exists(os.path.join(OUTPUT, "12_datasets.csv"))
+individual_lm    = load_if_exists(os.path.join(OUTPUT, "13_individual_LM.csv"))
+indiv_selected   = load_if_exists(os.path.join(OUTPUT, "14_individual_selected_LM.csv"))
+merged_lm        = load_if_exists(os.path.join(OUTPUT, "15_merged_LM.csv"))
+merging_analysis = load_if_exists(os.path.join(OUTPUT, "15_merging_analysis.csv"))
+merged_selected  = load_if_exists(os.path.join(OUTPUT, "16_merged_selected_LM.csv"))
+general_model    = load_if_exists(os.path.join(OUTPUT, "22_general_model.csv"))
+expert_cutoffs   = load_expert_cutoffs(CONFIGPATH)
 
 n_selected = int(final_datasets["selected"].sum()) if len(final_datasets) > 0 else 0
 any_selected = n_selected > 0
@@ -610,3 +627,325 @@ plt.tight_layout()
 outpath = os.path.join(OUTPUT, "20_diagnosis.png")
 stylia.save_figure(outpath)
 print(f"Saved {layout} diagnostic figure -> {outpath}")
+
+# ---------------------------------------------------------------------------
+# Summary table (4-sheet Excel workbook)
+# ---------------------------------------------------------------------------
+
+print("\nBuilding summary table (20_summary_table.xlsx)...")
+
+sel_df = final_datasets[final_datasets["selected"]] if len(final_datasets) > 0 else pd.DataFrame()
+
+# ---- Sheet 1: Pipeline Funnel ----
+
+print("  Sheet 1: Pipeline Funnel...")
+
+
+def _row(stage, n_assays, n_compounds, notes=""):
+    return {"Stage": stage, "N assays / datasets": n_assays,
+            "N compounds": n_compounds, "Notes": notes}
+
+
+funnel = []
+
+funnel.append(_row(
+    "Raw assays (step 07)", len(assays_raw_df), len(pathogen_compounds),
+    "All assays from ChEMBL for this pathogen before any curation"
+))
+funnel.append(_row(
+    "Cleaned assays (step 08)", len(assays_cleaned_df), "",
+    "After organism, unit, direction and activity-type curation"
+))
+
+if len(datasets_12) > 0:
+    eligible = datasets_12[datasets_12["dataset_type"].isin(["quantitative", "mixed"])]
+    n_eligible = eligible[["assay_id", "activity_type", "unit"]].drop_duplicates().shape[0]
+else:
+    n_eligible = 0
+funnel.append(_row(
+    "Assays with quantitative/mixed datasets (step 12)", n_eligible, "",
+    "Have numeric measurements binarizable at ≥1 expert cutoff"
+))
+
+if len(individual_lm) > 0:
+    n_modelled_ab = individual_lm[["assay_id", "activity_type", "unit"]].drop_duplicates().shape[0]
+else:
+    n_modelled_ab = 0
+funnel.append(_row(
+    "Modelled individually A+B (step 13)", n_modelled_ab, "",
+    "Met condition A or B criteria; RF model trained (4-fold CV)"
+))
+
+funnel.append(_row(
+    "Selected individually A+B (step 14)", len(indiv_selected), "",
+    "Best-cutoff AUROC > 0.7; one dataset per assay triplet"
+))
+
+if len(merging_analysis) > 0:
+    n_merge_cands = merging_analysis[["assay_id", "activity_type", "unit"]].drop_duplicates().shape[0]
+else:
+    n_merge_cands = 0
+funnel.append(_row(
+    "Sent to merging (step 15)", n_merge_cands, "",
+    "Not accepted individually; compatible assays pooled"
+))
+
+if len(merged_lm) > 0:
+    base_names = merged_lm["name"].apply(lambda n: "_".join(n.split("_")[:2]))
+    n_merged_groups = base_names.nunique()
+    n_merged_combos = len(merged_lm)
+else:
+    n_merged_groups = 0
+    n_merged_combos = 0
+funnel.append(_row(
+    "Merged groups modelled (step 15)", n_merged_groups, "",
+    f"{n_merged_combos} group-cutoff combinations across {n_merged_groups} unique groups"
+))
+
+funnel.append(_row(
+    "Merged groups selected (step 16)", len(merged_selected), "",
+    "Best cutoff per group with AUROC > 0.7"
+))
+
+funnel.append(_row(
+    "Before deduplication (step 17)", len(final_datasets), "",
+    "All A+B+M candidates combined before correlation-based deduplication"
+))
+
+n_final = len(sel_df)
+cpds_final = len(all_covered_cpds) if any_selected else 0
+pct_coverage = round(100 * cpds_final / len(pathogen_compounds), 1) if len(pathogen_compounds) > 0 else ""
+funnel.append(_row(
+    "Final selected datasets (step 17)", n_final, cpds_final,
+    f"After greedy deduplication (A→B→M priority); ~{pct_coverage}% of pathogen chemical space"
+))
+
+if len(general_model) > 0:
+    funnel.append(_row(
+        "General organism model (step 22)", len(general_model),
+        int(general_model["n_compounds"].sum()),
+        "One dataset per (activity_type, unit) pair; all ORGANISM assays pooled at middle cutoff"
+    ))
+
+sheet1 = pd.DataFrame(funnel)
+
+# ---- Sheet 2: By Condition ----
+
+print("  Sheet 2: By Condition...")
+
+
+def _cond_stats(label, sub, cpds_col, pos_col, auroc_col):
+    if sub is None or len(sub) == 0:
+        return {"Condition": label, "N datasets": 0, "N compounds (total)": 0,
+                "N actives (total)": 0, "N inactives (total)": 0,
+                "Mean active ratio": np.nan, "AUROC mean": np.nan,
+                "AUROC median": np.nan, "AUROC std": np.nan,
+                "AUROC min": np.nan, "AUROC max": np.nan}
+    n_cpds = int(sub[cpds_col].sum()) if cpds_col in sub.columns else 0
+    n_pos  = int(sub[pos_col].sum())  if pos_col  in sub.columns else 0
+    aurocs = sub[auroc_col].dropna()  if auroc_col in sub.columns else pd.Series(dtype=float)
+    return {
+        "Condition": label,
+        "N datasets": len(sub),
+        "N compounds (total)": n_cpds,
+        "N actives (total)": n_pos,
+        "N inactives (total)": n_cpds - n_pos,
+        "Mean active ratio": round(n_pos / n_cpds, 4) if n_cpds > 0 else np.nan,
+        "AUROC mean":   round(aurocs.mean(),   3) if len(aurocs) > 0 else np.nan,
+        "AUROC median": round(aurocs.median(), 3) if len(aurocs) > 0 else np.nan,
+        "AUROC std":    round(aurocs.std(),    3) if len(aurocs) > 0 else np.nan,
+        "AUROC min":    round(aurocs.min(),    3) if len(aurocs) > 0 else np.nan,
+        "AUROC max":    round(aurocs.max(),    3) if len(aurocs) > 0 else np.nan,
+    }
+
+
+cond_rows = []
+for lbl in ["A", "B"]:
+    sub = sel_df[sel_df["label"] == lbl] if len(sel_df) > 0 else pd.DataFrame()
+    cond_rows.append(_cond_stats(lbl, sub, "cpds", "positives", "auroc"))
+
+m_sub = sel_df[sel_df["label"] == "M"] if len(sel_df) > 0 else pd.DataFrame()
+cond_rows.append(_cond_stats("M", m_sub, "cpds", "positives", "auroc"))
+
+if len(general_model) > 0:
+    g_row = _cond_stats("G — General (step 22)", general_model, "n_compounds", "n_actives", "auroc")
+    g_row["% using middle cutoff"] = 100.0
+    cond_rows.append(g_row)
+
+sheet2 = pd.DataFrame(cond_rows)
+
+# ---- Sheet 3: By (activity_type, unit) pair ----
+
+print("  Sheet 3: By Activity-Unit...")
+
+all_pairs = set()
+for df in [datasets_12, indiv_selected, merged_lm, general_model]:
+    if len(df) > 0 and "activity_type" in df.columns and "unit" in df.columns:
+        for at, u in df[["activity_type", "unit"]].drop_duplicates().values:
+            all_pairs.add((at, u))
+
+
+def _mid_cutoff(activity_type, unit, target_type="ORGANISM"):
+    key = (activity_type, unit, target_type, pathogen_code)
+    cl = expert_cutoffs.get(key)
+    if not cl:
+        return np.nan
+    return cl[1] if len(cl) >= 2 else cl[0]
+
+
+assay_counts = {}
+if len(datasets_12) > 0:
+    for (at, u), grp in datasets_12.groupby(["activity_type", "unit"], dropna=False):
+        org = grp[grp["target_type_curated_extra"] == "ORGANISM"]["assay_id"].nunique()
+        sp  = grp[grp["target_type_curated_extra"] == "SINGLE PROTEIN"]["assay_id"].nunique()
+        assay_counts[(at, u)] = (org, sp)
+
+
+def _selected_for_pair(label_filter, at, u):
+    if len(sel_df) == 0:
+        return pd.DataFrame()
+    unit_mask = sel_df["unit"].eq(u) if isinstance(u, str) else sel_df["unit"].isna()
+    sub = sel_df[(sel_df["activity_type"] == at) & unit_mask]
+    if label_filter:
+        sub = sub[sub["label"] == label_filter]
+    return sub
+
+
+pair_rows = []
+for activity_type, unit in sorted(all_pairs, key=lambda x: (x[0], "" if pd.isna(x[1]) else str(x[1]))):
+    unit_str = str(unit) if not (isinstance(unit, float) and np.isnan(unit)) else ""
+    mid = _mid_cutoff(activity_type, unit)
+    org_count, sp_count = assay_counts.get((activity_type, unit), (0, 0))
+    sel_a = _selected_for_pair("A", activity_type, unit)
+    sel_b = _selected_for_pair("B", activity_type, unit)
+    sel_m = _selected_for_pair("M", activity_type, unit)
+    if len(general_model) > 0 and "activity_type" in general_model.columns:
+        unit_mask_g = general_model["unit"].eq(unit) if isinstance(unit, str) else general_model["unit"].isna()
+        g_row_df = general_model[(general_model["activity_type"] == activity_type) & unit_mask_g]
+    else:
+        g_row_df = pd.DataFrame()
+    all_sel = pd.concat([sel_a, sel_b, sel_m], ignore_index=True)
+    best_auroc = all_sel["auroc"].max() if len(all_sel) > 0 else np.nan
+    best_label = all_sel.loc[all_sel["auroc"].idxmax(), "label"] if len(all_sel) > 0 else ""
+    pair_rows.append({
+        "activity_type": activity_type,
+        "unit": unit_str,
+        "middle_cutoff": mid,
+        "N ORGANISM assays (total)": org_count,
+        "N SINGLE PROTEIN assays (total)": sp_count,
+        "N selected A": len(sel_a),
+        "N selected B": len(sel_b),
+        "N selected M": len(sel_m),
+        "N selected G (general)": len(g_row_df),
+        "Best AUROC (A/B/M)": round(best_auroc, 3) if not (isinstance(best_auroc, float) and np.isnan(best_auroc)) else np.nan,
+        "Best condition": best_label,
+        "Compounds in best dataset": int(all_sel.loc[all_sel["auroc"].idxmax(), "cpds"]) if len(all_sel) > 0 else 0,
+        "Actives in best dataset": int(all_sel.loc[all_sel["auroc"].idxmax(), "positives"]) if len(all_sel) > 0 else 0,
+        "General model AUROC": round(g_row_df["auroc"].iloc[0], 3) if len(g_row_df) > 0 else np.nan,
+        "General model compounds": int(g_row_df["n_compounds"].iloc[0]) if len(g_row_df) > 0 else 0,
+        "General model actives": int(g_row_df["n_actives"].iloc[0]) if len(g_row_df) > 0 else 0,
+    })
+
+sheet3 = pd.DataFrame(pair_rows)
+
+# ---- Sheet 4: Rejection Reasons ----
+
+print("  Sheet 4: Rejection Reasons...")
+
+_CATEGORIES = {
+    "selected":               "Retained in final selection",
+    "already_accepted":       "already accepted",
+    "non_organism":           "non-ORGANISM target type",
+    "qualitative_only":       "only qualitative data",
+    "no_activity_data":       "no activity data",
+    "no_cutoff":              "no expert cutoff defined",
+    "too_few_compounds":      "insufficient compounds",
+    "too_few_positives":      r"insufficient positives|insufficient actives",
+    "ratio_out_of_range":     "active ratio",
+    "fractional_contribution":"insufficient_fractional_contribution",
+    "middle_cutoff_failure":  "middle cutoff",
+    "insufficient_compatible":"insufficient compatible assays",
+    "auroc_below":            "below 0.70 threshold",
+    "correlation":            "high correlation",
+}
+_CATEGORY_LABELS = {
+    "selected":               "Selected",
+    "already_accepted":       "Already accepted in prior condition",
+    "non_organism":           "Non-ORGANISM target type",
+    "qualitative_only":       "Qualitative data only",
+    "no_activity_data":       "No activity data",
+    "no_cutoff":              "No expert cutoff defined",
+    "too_few_compounds":      "Too few compounds",
+    "too_few_positives":      "Too few positives/actives",
+    "ratio_out_of_range":     "Active ratio out of range",
+    "fractional_contribution":"Insufficient fractional contribution (merging)",
+    "middle_cutoff_failure":  "Middle cutoff failure",
+    "insufficient_compatible":"Insufficient compatible assays for merging",
+    "auroc_below":            "AUROC below 0.70 threshold",
+    "correlation":            "Removed: high correlation with higher-priority dataset",
+    "other":                  "Other / unclassified",
+}
+
+
+def _parse_cats(series):
+    assigned = pd.Series(False, index=series.index)
+    cats = {}
+    for name, pattern in _CATEGORIES.items():
+        regex = "|" in pattern
+        mask = series.str.contains(pattern, na=False, regex=regex) & ~assigned
+        cats[name] = mask
+        assigned |= mask
+    cats["other"] = ~assigned
+    return cats
+
+
+rejection_rows = []
+if len(assays_master) > 0:
+    n_total = len(assays_master)
+    for cond_label, col in [("A", "comment_A"), ("B", "comment_B"), ("M", "comment_M")]:
+        if col not in assays_master.columns:
+            continue
+        cats = _parse_cats(assays_master[col])
+        for cat_key, mask in cats.items():
+            n = int(mask.sum())
+            if n == 0:
+                continue
+            rejection_rows.append({
+                "Condition": cond_label,
+                "Category": _CATEGORY_LABELS.get(cat_key, cat_key),
+                "N assays": n,
+                "% of all assays": round(100 * n / n_total, 1),
+            })
+
+sheet4 = pd.DataFrame(rejection_rows) if rejection_rows else pd.DataFrame(
+    columns=["Condition", "Category", "N assays", "% of all assays"]
+)
+
+# ---- Write workbook ----
+
+xl_path = os.path.join(OUTPUT, "20_summary_table.xlsx")
+with pd.ExcelWriter(xl_path, engine="openpyxl") as writer:
+    sheet1.to_excel(writer, sheet_name="1. Pipeline Funnel",    index=False)
+    sheet2.to_excel(writer, sheet_name="2. By Condition",       index=False)
+    sheet3.to_excel(writer, sheet_name="3. By Activity-Unit",   index=False)
+    sheet4.to_excel(writer, sheet_name="4. Rejection Reasons",  index=False)
+
+    for sheet_name, df in [
+        ("1. Pipeline Funnel",   sheet1),
+        ("2. By Condition",      sheet2),
+        ("3. By Activity-Unit",  sheet3),
+        ("4. Rejection Reasons", sheet4),
+    ]:
+        ws = writer.sheets[sheet_name]
+        for col_idx, col in enumerate(df.columns, start=1):
+            max_len = max(
+                len(str(col)),
+                df[col].astype(str).str.len().max() if len(df) > 0 else 0,
+            )
+            ws.column_dimensions[ws.cell(1, col_idx).column_letter].width = min(max_len + 2, 60)
+
+print(f"Saved summary table -> {xl_path}")
+print(f"  Sheet 1 (Pipeline Funnel):   {len(sheet1)} rows")
+print(f"  Sheet 2 (By Condition):      {len(sheet2)} rows")
+print(f"  Sheet 3 (By Activity-Unit):  {len(sheet3)} rows")
+print(f"  Sheet 4 (Rejection Reasons): {len(sheet4)} rows")

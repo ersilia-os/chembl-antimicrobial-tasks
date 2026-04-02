@@ -161,7 +161,7 @@ keys_organism_strain = ["activity_type", "unit", "direction", "assay_type", "tar
 filtered_organism_known = filtered_organism[filtered_organism["assay_strain_curated"].notna()].copy()
 to_merge_organism_strain = to_merge_unique_cpds(filtered_organism_known, keys_organism_strain, assay_to_compounds)
 to_merge_organism_strain = to_merge_organism_strain[
-    (to_merge_organism_strain["n_cpds_union"] > 1000) & (to_merge_organism_strain["n_assays"] > 1)
+    (to_merge_organism_strain["n_cpds_union"] >= 100) & (to_merge_organism_strain["n_assays"] > 1)
 ].reset_index(drop=True)
 
 # NaN-strain ORGANISM: group only by activity metadata (no strain, no bao_label)
@@ -170,7 +170,7 @@ filtered_organism_nan = filtered_organism[filtered_organism["assay_strain_curate
 to_merge_organism_no_strain = to_merge_unique_cpds(filtered_organism_nan, keys_organism_no_strain, assay_to_compounds)
 to_merge_organism_no_strain["assay_strain_curated"] = np.nan
 to_merge_organism_no_strain = to_merge_organism_no_strain[
-    (to_merge_organism_no_strain["n_cpds_union"] > 1000) & (to_merge_organism_no_strain["n_assays"] > 1)
+    (to_merge_organism_no_strain["n_cpds_union"] >= 100) & (to_merge_organism_no_strain["n_assays"] > 1)
 ].reset_index(drop=True)
 
 to_merge_organism = pd.concat([to_merge_organism_strain, to_merge_organism_no_strain], ignore_index=True)
@@ -181,7 +181,7 @@ filtered_single_protein = not_accepted[not_accepted["target_type_curated_extra"]
 to_merge_single_protein = to_merge_unique_cpds(filtered_single_protein, keys_single_protein, assay_to_compounds)
 col = to_merge_single_protein["target_chembl_id_curated"]
 to_merge_single_protein = to_merge_single_protein[
-    (to_merge_single_protein["n_cpds_union"] > 1000) &
+    (to_merge_single_protein["n_cpds_union"] >= 100) &
     (to_merge_single_protein["n_assays"] > 1) &
     (col.notna()) & (col != "")
 ].reset_index(drop=True)
@@ -221,7 +221,7 @@ def track_all_groups(df_all, group_keys, target_type_name, assay_to_compounds):
         # Determine failure reason
         if n_assays < 2:
             reason = "insufficient_compatible_assays"
-        elif n_cpds_union <= 1000:
+        elif n_cpds_union < 100:
             reason = "insufficient_compounds_after_merging"
         else:
             reason = "group_qualified"  # Will be updated if positives are insufficient
@@ -305,120 +305,196 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
         if not cutoff_list:
             print(f"Warning: Missing expert cutoffs for {activity_type}, {unit}, {target_type_curated_extra}, {pathogen_code}")
             continue
-        for expert_cutoff in cutoff_list:
+        # ---------------------------------------------------------------------------
+        # Two-pass fractional contribution filter (5% of union per pass)
+        # Pass 1: qualified assays from the full group
+        # Pass 2 (rescue): rejected assays from pass 1, filtered among themselves
+        # ---------------------------------------------------------------------------
+        MIN_FRACTION = 0.05
+        raw_keys = [parse_assay_key(ak) for ak in assay_keys.split(";")]
+        union_total = len(set(cid for k in raw_keys for cid in assay_to_compounds.get(k, set())))
+        qualified_keys = [k for k in raw_keys if len(assay_to_compounds.get(k, set())) >= MIN_FRACTION * union_total]
+        rejected_keys = [k for k in raw_keys if k not in set(qualified_keys)]
 
-            name_ = f"{name}_{expert_cutoff}"
+        # Rescue pass: apply fractional filter among rejected assays
+        if len(rejected_keys) >= 2:
+            rescue_union = len(set(cid for k in rejected_keys for cid in assay_to_compounds.get(k, set())))
+            rescue_keys = [k for k in rejected_keys if len(assay_to_compounds.get(k, set())) >= MIN_FRACTION * rescue_union]
+        else:
+            rescue_keys = []
+        truly_rejected = [k for k in rejected_keys if k not in set(rescue_keys)]
 
-            # Load and concatenate quantitative datasets
-            data_quant_list = [
-                dfs_qt[make_dataset_filename(a, activity_type, unit, "quantitative", expert_cutoff)].assign(assay_id=a)
-                for a in df_quant["assay_id"]
-                if make_dataset_filename(a, activity_type, unit, "quantitative", expert_cutoff) in dfs_qt
-            ]
-            data_quant = pd.concat(data_quant_list, ignore_index=True) if data_quant_list else pd.DataFrame()
+        # Mark truly rejected assays in merging analysis
+        for assay_key in truly_rejected:
+            for i, entry in enumerate(merging_analysis):
+                if (entry["assay_id"] == assay_key[0] and
+                    entry["activity_type"] == assay_key[1] and
+                    entry["unit"] == assay_key[2] and
+                    entry["failure_reason"] == "group_qualified"):
+                    merging_analysis[i]["failure_reason"] = "insufficient_fractional_contribution"
 
-            # Load and concatenate mixed datasets
-            data_mixed_list = [
-                dfs_mx[make_dataset_filename(a, activity_type, unit, "mixed", expert_cutoff)].assign(assay_id=a)
-                for a in df_mixed["assay_id"]
-                if make_dataset_filename(a, activity_type, unit, "mixed", expert_cutoff) in dfs_mx
-            ]
-            if data_mixed_list:
-                data_mixed = pd.concat(data_mixed_list, ignore_index=True)
-                data_mixed_quant = data_mixed[data_mixed["value"].notna()].reset_index(drop=True)
-                data_mixed_qual = data_mixed[data_mixed["value"].isna()].reset_index(drop=True)
-            else:
-                data_mixed_quant, data_mixed_qual = pd.DataFrame(), pd.DataFrame()
+        passes = []
+        if len(qualified_keys) >= 2:
+            passes.append(("", qualified_keys))
+        if len(rescue_keys) >= 2:
+            passes.append(("_r", rescue_keys))
 
-            # Merge quantitative portions
-            if len(data_quant) > 0 and len(data_mixed_quant) > 0:
-                data = pd.concat([data_quant, data_mixed_quant], ignore_index=True)
-            elif len(data_quant) > 0:
-                data = data_quant
-            elif len(data_mixed_quant) > 0:
-                data = data_mixed_quant
-            else:
-                raise ValueError(f"No quantitative data available for merging {name_}")
+        if not passes:
+            print(f"  Skipping {name}: no viable pass after fractional filter")
+            continue
 
-            # Deduplicate: keep most active measurement per compound
-            ascending = direction == -1
-            data = (data.sort_values("value", ascending=ascending)
-                        .drop_duplicates("compound_chembl_id", keep="first")
-                        .reset_index(drop=True))
+        for pass_suffix, pass_keys in passes:
+            pass_assay_ids = {k[0] for k in pass_keys}
+            pass_df_quant = df[
+                (df["dataset_type"] == "quantitative") & df["assay_id"].isin(pass_assay_ids)
+            ].reset_index(drop=True)
+            pass_df_mixed = df[
+                (df["dataset_type"] == "mixed") & df["assay_id"].isin(pass_assay_ids)
+            ].reset_index(drop=True)
+            pass_assay_keys_str = ";".join(
+                "|".join("" if (not isinstance(x, str) and pd.isna(x)) else str(x) for x in k)
+                for k in pass_keys
+            )
 
-            # Append qualitative inactives from mixed datasets
-            if len(data_mixed_qual) > 0:
-                data = (pd.concat([data, data_mixed_qual], ignore_index=True)
-                          .drop_duplicates("compound_chembl_id", keep="first")
-                          .reset_index(drop=True))
+            for expert_cutoff in cutoff_list:
 
-            X = np.array(data["compound_chembl_id"].map(ecfps).tolist())
-            Y = np.array(data["bin"].tolist())
-            n_positives = int(Y.sum())
-            n_real_cpds = len(X)
+                name_ = f"{name}{pass_suffix}_{expert_cutoff}"
 
-            if n_positives <= 50:
-                print(f"  Skipping {name_}: too few positives ({n_positives})")
-                # Update merging analysis for assays in this group - they failed due to insufficient positives
-                assay_keys_in_group = [parse_assay_key(ak) for ak in assay_keys.split(";")]
-                for assay_key in assay_keys_in_group:
+                # Load and concatenate quantitative datasets
+                data_quant_list = [
+                    dfs_qt[make_dataset_filename(a, activity_type, unit, "quantitative", expert_cutoff)].assign(assay_id=a)
+                    for a in pass_df_quant["assay_id"]
+                    if make_dataset_filename(a, activity_type, unit, "quantitative", expert_cutoff) in dfs_qt
+                ]
+                data_quant = pd.concat(data_quant_list, ignore_index=True) if data_quant_list else pd.DataFrame()
+
+                # Load and concatenate mixed datasets
+                data_mixed_list = [
+                    dfs_mx[make_dataset_filename(a, activity_type, unit, "mixed", expert_cutoff)].assign(assay_id=a)
+                    for a in pass_df_mixed["assay_id"]
+                    if make_dataset_filename(a, activity_type, unit, "mixed", expert_cutoff) in dfs_mx
+                ]
+                if data_mixed_list:
+                    data_mixed = pd.concat(data_mixed_list, ignore_index=True)
+                    data_mixed_quant = data_mixed[data_mixed["value"].notna()].reset_index(drop=True)
+                    data_mixed_qual = data_mixed[data_mixed["value"].isna()].reset_index(drop=True)
+                else:
+                    data_mixed_quant, data_mixed_qual = pd.DataFrame(), pd.DataFrame()
+
+                # Merge quantitative portions
+                if len(data_quant) > 0 and len(data_mixed_quant) > 0:
+                    data = pd.concat([data_quant, data_mixed_quant], ignore_index=True)
+                elif len(data_quant) > 0:
+                    data = data_quant
+                elif len(data_mixed_quant) > 0:
+                    data = data_mixed_quant
+                else:
+                    raise ValueError(f"No quantitative data available for merging {name_}")
+
+                # Deduplicate: keep most active measurement per compound
+                ascending = direction == -1
+                data = (data.sort_values("value", ascending=ascending)
+                            .drop_duplicates("compound_chembl_id", keep="first")
+                            .reset_index(drop=True))
+
+                # Append qualitative inactives from mixed datasets
+                if len(data_mixed_qual) > 0:
+                    data = (pd.concat([data, data_mixed_qual], ignore_index=True)
+                              .drop_duplicates("compound_chembl_id", keep="first")
+                              .reset_index(drop=True))
+
+                X = np.array(data["compound_chembl_id"].map(ecfps).tolist())
+                Y = np.array(data["bin"].tolist())
+                n_positives = int(Y.sum())
+                n_real_cpds = len(X)
+
+                ratio_before_decoys = n_positives / len(Y)
+                min_cpds = 1000 if ratio_before_decoys < 0.5 else 100
+
+                if n_real_cpds < min_cpds:
+                    print(f"  Skipping {name_}: too few compounds ({n_real_cpds} < {min_cpds}, ratio={round(ratio_before_decoys, 2)})")
+                    for assay_key in pass_keys:
+                        for i, entry in enumerate(merging_analysis):
+                            if (entry["assay_id"] == assay_key[0] and
+                                entry["activity_type"] == assay_key[1] and
+                                entry["unit"] == assay_key[2] and
+                                entry["failure_reason"] == "group_qualified"):
+                                merging_analysis[i]["failure_reason"] = "insufficient_compounds_after_merging"
+                                merging_analysis[i]["n_positives"] = n_positives
+                                merging_analysis[i]["group_compounds"] = n_real_cpds
+                    continue
+
+                if n_positives <= 50:
+                    print(f"  Skipping {name_}: too few positives ({n_positives})")
+                    for assay_key in pass_keys:
+                        for i, entry in enumerate(merging_analysis):
+                            if (entry["assay_id"] == assay_key[0] and
+                                entry["activity_type"] == assay_key[1] and
+                                entry["unit"] == assay_key[2] and
+                                entry["failure_reason"] == "group_qualified"):
+                                merging_analysis[i]["failure_reason"] = "insufficient_positives_after_merging"
+                                merging_analysis[i]["n_positives"] = n_positives
+                                merging_analysis[i]["group_compounds"] = n_real_cpds
+                    continue
+
+                print(f"  {name_} | {activity_type} | {unit} | cutoff={expert_cutoff} | strain={filter_strain} | target={target_chembl_id}")
+                print(f"    Compounds: {n_real_cpds}, Positives: {n_positives} ({round(100 * n_positives / len(Y), 1)}%)")
+                label_compounds[target_type].update(data["compound_chembl_id"].tolist())
+
+                if n_positives / len(Y) > 0.5:
+                    n_decoys = int(n_positives / decoy_ratio - (len(Y) - 1))
+                    print(f"    Adding {n_decoys} decoys")
+                    rng = random.Random(42)
+                    decoy_ids = rng.sample(list(decoys_pool), n_decoys)
+                    X_decoys = np.array([ecfps[i] for i in decoy_ids])
+                    X = np.vstack([X, X_decoys])
+                    Y = np.concatenate([Y, np.zeros(len(X_decoys), dtype=Y.dtype)])
+                    print(f"    After decoys: {len(X)} compounds, {n_positives} positives ({round(100 * n_positives / len(Y), 1)}%)")
+                    data = pd.concat([data, pd.DataFrame({"compound_chembl_id": decoy_ids, "bin": 0, "smiles": "decoy"})], ignore_index=True)
+
+                # Downsample negatives for modeling if active ratio < 5%
+                active_ratio_model = n_positives / len(Y)
+                if active_ratio_model < 0.05:
+                    n_neg_target = int(n_positives / 0.10) - n_positives
+                    neg_idx = np.where(Y == 0)[0]
+                    rng_ds = np.random.RandomState(42)
+                    sampled_neg = rng_ds.choice(neg_idx, size=min(n_neg_target, len(neg_idx)), replace=False)
+                    keep = np.sort(np.concatenate([np.where(Y == 1)[0], sampled_neg]))
+                    X, Y = X[keep], Y[keep]
+                    print(f"    Downsampled negatives for modeling: {len(neg_idx)} → {len(sampled_neg)} (ratio {active_ratio_model:.3f} → {n_positives/len(Y):.3f})")
+
+                avg_auroc, std_auroc = KFoldTrain(X, Y)
+                print(f"    AUROC: {avg_auroc} ± {std_auroc}")
+
+                # Update merging analysis for successful assays
+                for assay_key in pass_keys:
                     for i, entry in enumerate(merging_analysis):
                         if (entry["assay_id"] == assay_key[0] and
                             entry["activity_type"] == assay_key[1] and
                             entry["unit"] == assay_key[2] and
                             entry["failure_reason"] == "group_qualified"):
-                            merging_analysis[i]["failure_reason"] = "insufficient_positives_after_merging"
-                            merging_analysis[i]["n_positives"] = n_positives
+                            merging_analysis[i]["failure_reason"] = "successfully_merged"
+                            merging_analysis[i]["merged_group_name"] = name_
                             merging_analysis[i]["group_compounds"] = n_real_cpds
-                continue
-            print(f"  {name_} | {activity_type} | {unit} | cutoff={expert_cutoff} | strain={filter_strain} | target={target_chembl_id}")
-            print(f"    Compounds: {n_real_cpds}, Positives: {n_positives} ({round(100 * n_positives / len(Y), 1)}%)")
-            label_compounds[target_type].update(data["compound_chembl_id"].tolist())
+                            merging_analysis[i]["n_positives"] = n_positives
+                            merging_analysis[i]["auroc"] = avg_auroc
 
-            if n_positives / len(Y) > 0.5:
-                n_decoys = int(n_positives / decoy_ratio - (len(Y) - 1))
-                print(f"    Adding {n_decoys} decoys")
-                rng = random.Random(42)
-                decoy_ids = rng.sample(list(decoys_pool), n_decoys)
-                X_decoys = np.array([ecfps[i] for i in decoy_ids])
-                X = np.vstack([X, X_decoys])
-                Y = np.concatenate([Y, np.zeros(len(X_decoys), dtype=Y.dtype)])
-                print(f"    After decoys: {len(X)} compounds, {n_positives} positives ({round(100 * n_positives / len(Y), 1)}%)")
-                data = pd.concat([data, pd.DataFrame({"compound_chembl_id": decoy_ids, "bin": 0, "smiles": "decoy"})], ignore_index=True)
+                merged_lm.append([
+                    name_, activity_type, unit, expert_cutoff, direction, assay_type,
+                    target_type_curated_extra, filter_strain, target_chembl_id,
+                    len(pass_keys), n_real_cpds, n_positives, round(n_positives / len(Y), 3),
+                    avg_auroc, std_auroc, pass_assay_keys_str,
+                ])
 
-            avg_auroc, std_auroc = KFoldTrain(X, Y)
-            print(f"    AUROC: {avg_auroc} ± {std_auroc}")
+                # Train final model, save reference predictions and merged dataset
+                rf = TrainRF(X, Y)
+                y_prob_ref = rf.predict_proba(x_ref)[:, 1]
+                np.savez_compressed(os.path.join(path_to_correlations, "M", f"{name_}_ref_probs.npz"), y_prob_ref=y_prob_ref)
 
-            # Update merging analysis for successful assays
-            assay_keys_in_group = [parse_assay_key(ak) for ak in assay_keys.split(";")]
-            for assay_key in assay_keys_in_group:
-                for i, entry in enumerate(merging_analysis):
-                    if (entry["assay_id"] == assay_key[0] and
-                        entry["activity_type"] == assay_key[1] and
-                        entry["unit"] == assay_key[2] and
-                        entry["failure_reason"] == "group_qualified"):
-                        merging_analysis[i]["failure_reason"] = "successfully_merged"
-                        merging_analysis[i]["merged_group_name"] = name_
-                        merging_analysis[i]["group_compounds"] = n_real_cpds
-                        merging_analysis[i]["n_positives"] = n_positives
-                        merging_analysis[i]["auroc"] = avg_auroc
-
-            merged_lm.append([
-                name_, activity_type, unit, expert_cutoff, direction, assay_type,
-                target_type_curated_extra, filter_strain, target_chembl_id,
-                n_assays, n_real_cpds, n_positives, round(n_positives / len(Y), 3),
-                avg_auroc, std_auroc, assay_keys,
-            ])
-
-            # Train final model, save reference predictions and merged dataset
-            rf = TrainRF(X, Y)
-            y_prob_ref = rf.predict_proba(x_ref)[:, 1]
-            np.savez_compressed(os.path.join(path_to_correlations, "M", f"{name_}_ref_probs.npz"), y_prob_ref=y_prob_ref)
-
-            outdir = os.path.join(OUTPUT, "datasets", "M")
-            os.makedirs(outdir, exist_ok=True)
-            data = data[data["smiles"] != "decoy"].reset_index(drop=True)
-            data.to_csv(os.path.join(outdir, f"{name_}.csv.gz"), index=False, compression="gzip")
+                outdir = os.path.join(OUTPUT, "datasets", "M")
+                os.makedirs(outdir, exist_ok=True)
+                data = data[data["smiles"] != "decoy"].reset_index(drop=True)
+                data.to_csv(os.path.join(outdir, f"{name_}.csv.gz"), index=False, compression="gzip")
 
 # ---------------------------------------------------------------------------
 # Save results

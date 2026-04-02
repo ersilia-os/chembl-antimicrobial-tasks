@@ -97,50 +97,39 @@ os.makedirs(PATH_TO_CORRELATIONS, exist_ok=True)
 # ---------------------------------------------------------------------------
 
 def determine_hierarchical_assignment(assay_datasets, expert_cutoffs, pathogen_code):
-    """Determine which assays qualify for A vs B based on middle cutoff evaluation."""
+    """Determine which assays qualify for A vs B by checking all available cutoffs."""
     qualified_for_a = set()
     qualified_for_b = set()
     qualified_for_neither = set()
 
     print("Hierarchical assignment analysis:")
     total_assays = 0
-    middle_cutoff_available = 0
-    fallback_used = 0
 
     for assay_key, group in assay_datasets.groupby(["assay_id", "activity_type", "unit"]):
         total_assays += 1
         target_type = group["target_type_curated_extra"].iloc[0]
         cutoff_key = (assay_key[1], assay_key[2], target_type, pathogen_code)
-        cutoff_list = expert_cutoffs.get(cutoff_key)
+        cutoff_list = expert_cutoffs.get(cutoff_key) or []
 
-        if cutoff_list and len(cutoff_list) >= 2:
-            middle_cutoff_available += 1
-            middle_cutoff = cutoff_list[1]  # Index 1 is middle cutoff
-            middle_row = group[group["expert_cutoff"] == middle_cutoff]
+        qualified_a = any(
+            not group[group["expert_cutoff"] == c].empty and
+            condition_a(pd.DataFrame([group[group["expert_cutoff"] == c].iloc[0]])).iloc[0]
+            for c in cutoff_list
+        )
+        qualified_b = (not qualified_a) and any(
+            not group[group["expert_cutoff"] == c].empty and
+            condition_b(pd.DataFrame([group[group["expert_cutoff"] == c].iloc[0]])).iloc[0]
+            for c in cutoff_list
+        )
 
-            if not middle_row.empty:
-                middle_data = pd.DataFrame([middle_row.iloc[0]])
-                if condition_a(middle_data).iloc[0]:
-                    qualified_for_a.add(assay_key)
-                elif condition_b(middle_data).iloc[0]:  # ✅ Explicit check
-                    qualified_for_b.add(assay_key)
-                else:
-                    qualified_for_neither.add(assay_key)  # ✅ Track neither case
+        if qualified_a:
+            qualified_for_a.add(assay_key)
+        elif qualified_b:
+            qualified_for_b.add(assay_key)
         else:
-            # Fallback for edge cases: use first available cutoff
-            fallback_used += 1
-            if not group.empty:
-                fallback_data = pd.DataFrame([group.iloc[0]])
-                if condition_a(fallback_data).iloc[0]:
-                    qualified_for_a.add(assay_key)
-                elif condition_b(fallback_data).iloc[0]:  # ✅ Explicit check
-                    qualified_for_b.add(assay_key)
-                else:
-                    qualified_for_neither.add(assay_key)  # ✅ Track neither case
+            qualified_for_neither.add(assay_key)
 
     print(f"  Total assays evaluated: {total_assays}")
-    print(f"  Middle cutoff available: {middle_cutoff_available}")
-    print(f"  Fallback used: {fallback_used}")
     print(f"  Qualified for A: {len(qualified_for_a)}")
     print(f"  Qualified for B: {len(qualified_for_b)}")
     print(f"  Qualified for neither: {len(qualified_for_neither)}")
@@ -189,6 +178,17 @@ def run_model(assay, label):
         X = np.vstack([X, X_decoys])
         Y = np.concatenate([Y, np.zeros(len(X_decoys), dtype=Y.dtype)])
         print(f"    After decoys: {len(X)} compounds, {n_positives} positives ({round(100 * n_positives / len(Y), 1)}%)")
+
+    # Downsample negatives for modeling if active ratio < 5%
+    active_ratio = n_positives / len(Y)
+    if active_ratio < 0.05:
+        n_neg_target = int(n_positives / 0.10) - n_positives
+        neg_idx = np.where(Y == 0)[0]
+        rng_ds = np.random.RandomState(42)
+        sampled_neg = rng_ds.choice(neg_idx, size=min(n_neg_target, len(neg_idx)), replace=False)
+        keep = np.sort(np.concatenate([np.where(Y == 1)[0], sampled_neg]))
+        X, Y = X[keep], Y[keep]
+        print(f"    Downsampled negatives for modeling: {len(neg_idx)} → {len(sampled_neg)} (ratio {active_ratio:.3f} → {n_positives/len(Y):.3f})")
 
     avg_auroc, std_auroc = KFoldTrain(X, Y)
     print(f"    AUROC: {avg_auroc} ± {std_auroc}")

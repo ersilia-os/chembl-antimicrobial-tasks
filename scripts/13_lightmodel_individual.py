@@ -9,11 +9,12 @@ import os
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import DATAPATH
+from default import DATAPATH, DECOY_RATIO, MIN_CPDS_CONDITION_A, MIN_POSITIVES_CONDITION_A, MIN_POSITIVES_CONDITION_B
 from pathogen_utils import load_pathogen
 from dataset_utils import make_dataset_filename
 from model_utils import (
     load_ecfp_all, load_data_from_zip, KFoldTrain, TrainRF,
+    add_decoys, downsample_negatives,
 )
 
 # ---------------------------------------------------------------------------
@@ -24,21 +25,18 @@ from model_utils import (
 def condition_a(df):
     return (
         df["dataset_type"].isin(["quantitative", "mixed"])
-        & (df["cpds_qt"] >= 1000)
-        & (df["pos_qt"] >= 50)
-        & df["ratio_qt"].between(0.001, 0.5, inclusive="both")
+        & (df["cpds_qt"] >= MIN_CPDS_CONDITION_A)
+        & (df["pos_qt"] >= MIN_POSITIVES_CONDITION_A)
+        & df["ratio_qt"].between(0.001, 0.5, inclusive="left")
     )
 
 # Condition B: active-enriched datasets — random ChEMBL decoys added to reach target ratio
 def condition_b(df):
     return (
         df["dataset_type"].isin(["quantitative", "mixed"])
-        & (df["pos_qt"] >= 100)
+        & (df["pos_qt"] >= MIN_POSITIVES_CONDITION_B)
         & (df["ratio_qt"] >= 0.5)
     )
-
-# Target active ratio when adding decoys for condition B
-decoy_ratio = 0.1
 
 conditions = {"A": condition_a, "B": condition_b}
 
@@ -89,7 +87,7 @@ pd.DataFrame(reference_set, columns=["reference_compounds"]).to_csv(
 x_ref = np.array([ecfps[cid] for cid in reference_set])
 
 # Output directory for reference set predictions
-PATH_TO_CORRELATIONS = os.path.join(OUTPUT, "correlations")
+PATH_TO_CORRELATIONS = os.path.join(OUTPUT, "13_correlations")
 os.makedirs(PATH_TO_CORRELATIONS, exist_ok=True)
 
 # ---------------------------------------------------------------------------
@@ -159,7 +157,7 @@ def run_model(assay, label):
 
     filename = make_dataset_filename(assay_id, activity_type, unit, dataset_type, expert_cutoff)
     zip_name = "datasets_qt.zip" if dataset_type == "quantitative" else "datasets_mx.zip"
-    df = load_data_from_zip(os.path.join(OUTPUT, "datasets", zip_name), filename)
+    df = load_data_from_zip(os.path.join(OUTPUT, "12_datasets", zip_name), filename)
 
     compound_ids = set(df["compound_chembl_id"].astype(str))
     X = np.array(df["compound_chembl_id"].map(ecfps).tolist())
@@ -170,25 +168,15 @@ def run_model(assay, label):
     print(f"    Compounds: {len(X)}, Positives: {n_positives} ({round(100 * n_positives / len(Y), 1)}%)")
 
     if label == "B":
-        n_decoys = max(0, int(n_positives / decoy_ratio) - len(Y))
-        print(f"    Adding {n_decoys} decoys from ChEMBL")
-        rng = random.Random(42)
-        decoy_ids = rng.sample(list(decoys_pool), n_decoys)
-        X_decoys = np.array([ecfps[i] for i in decoy_ids])
-        X = np.vstack([X, X_decoys])
-        Y = np.concatenate([Y, np.zeros(len(X_decoys), dtype=Y.dtype)])
+        X, Y, decoy_ids = add_decoys(X, Y, decoys_pool, ecfps, DECOY_RATIO)
+        print(f"    Added {len(decoy_ids)} decoys from ChEMBL")
         print(f"    After decoys: {len(X)} compounds, {n_positives} positives ({round(100 * n_positives / len(Y), 1)}%)")
 
     # Downsample negatives for modeling if active ratio < 5%
     active_ratio = n_positives / len(Y)
-    if active_ratio < 0.05:
-        n_neg_target = int(n_positives / 0.10) - n_positives
-        neg_idx = np.where(Y == 0)[0]
-        rng_ds = np.random.RandomState(42)
-        sampled_neg = rng_ds.choice(neg_idx, size=min(n_neg_target, len(neg_idx)), replace=False)
-        keep = np.sort(np.concatenate([np.where(Y == 1)[0], sampled_neg]))
-        X, Y = X[keep], Y[keep]
-        print(f"    Downsampled negatives for modeling: {len(neg_idx)} → {len(sampled_neg)} (ratio {active_ratio:.3f} → {n_positives/len(Y):.3f})")
+    X, Y = downsample_negatives(X, Y)
+    if n_positives / len(Y) != active_ratio:
+        print(f"    Downsampled negatives for modeling: ratio {active_ratio:.3f} → {n_positives/len(Y):.3f}")
 
     avg_auroc, std_auroc = KFoldTrain(X, Y)
     print(f"    AUROC: {avg_auroc} ± {std_auroc}")

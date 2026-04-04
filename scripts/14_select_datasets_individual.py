@@ -7,7 +7,7 @@ import os
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import CONFIGPATH
+from default import CONFIGPATH, AUROC_MIN_THRESHOLD, AUROC_IMPROVEMENT_THRESHOLD
 from pathogen_utils import load_pathogen, load_expert_cutoffs
 
 pathogen_code = sys.argv[1]
@@ -36,8 +36,6 @@ individual_lm = pd.read_csv(os.path.join(OUTPUT, "13_individual_LM.csv"))
 # All pathogen compounds (for coverage stats)
 pathogen_compounds = set(pd.read_csv(os.path.join(OUTPUT, "07_compound_counts.csv.gz"))["compound_chembl_id"])
 
-# AUROC improvement threshold: use best cutoff if improvement > 10% AUROC
-AUROC_IMPROVEMENT_THRESHOLD = 0.1
 
 labels = ["A", "B"]
 cols_to_keep = ["dataset_type", "pos_qt", "ratio_qt", "cpds_qt", "pos_ql", "ratio_ql", "cpds_ql", "overlap_mx", "pos_mx", "ratio_mx", "cpds_mx"]
@@ -99,7 +97,7 @@ for label in labels:
         if len(mid_rows) == 0:
             print(f"Info: Mid cutoff {mid_cutoff} not found for {assay_id}, {activity_type}, {unit}, using best: {best_cutoff}")
 
-        if best_auroc > 0.7:
+        if best_auroc > AUROC_MIN_THRESHOLD:
 
             # Prefer the mid cutoff unless the best is substantially better (> threshold AUROC)
             if np.isnan(mid_auroc) or (best_auroc - mid_auroc) > AUROC_IMPROVEMENT_THRESHOLD:

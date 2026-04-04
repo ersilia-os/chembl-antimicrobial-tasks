@@ -1,5 +1,4 @@
 import io
-import random
 import sys
 import os
 import zipfile
@@ -9,19 +8,18 @@ import pandas as pd
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import DATAPATH, CONFIGPATH
+from default import DATAPATH, CONFIGPATH, DECOY_RATIO, MIN_CPDS_CONDITION_A, MIN_POSITIVES_CONDITION_A, MIN_POSITIVES_CONDITION_B
 from pathogen_utils import load_pathogen, load_expert_cutoffs
 from dataset_utils import make_dataset_filename
-from model_utils import load_ecfp_all, load_all_gz_csvs_from_zip, KFoldTrain, TrainRF
+from model_utils import load_ecfp_all, load_all_gz_csvs_from_zip, KFoldTrain, TrainRF, add_decoys, downsample_negatives
 
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
 
-print("Step 22: General organism-level modeling")
+print("Step 20: General organism-level modeling")
 
 OUTPUT = os.path.join(root, "..", "output", pathogen_code)
 
-decoy_ratio = 0.1
 
 # ---------------------------------------------------------------------------
 # Load inputs
@@ -48,19 +46,15 @@ expert_cutoffs = load_expert_cutoffs(CONFIGPATH)
 print("Loading ECFPs...")
 ecfps = load_ecfp_all(os.path.join(DATAPATH, "chembl_processed", "06_chembl_ecfps.h5"))
 
-print("Loading reference set and building decoy pool...")
-reference_set = pd.read_csv(
-    os.path.join(OUTPUT, "13_reference_set.csv.gz")
-)["reference_compounds"].tolist()
-x_ref = np.array([ecfps[cid] for cid in reference_set if cid in ecfps])
+print("Loading decoy pool...")
 pathogen_compounds = set(
     pd.read_csv(os.path.join(OUTPUT, "07_compound_counts.csv.gz"))["compound_chembl_id"]
 )
 decoys_pool = set(i for i in ecfps if i not in pathogen_compounds)
 
 print("Loading individual datasets from zip archives...")
-dfs_qt = load_all_gz_csvs_from_zip(os.path.join(OUTPUT, "datasets", "datasets_qt.zip"))
-dfs_mx = load_all_gz_csvs_from_zip(os.path.join(OUTPUT, "datasets", "datasets_mx.zip"))
+dfs_qt = load_all_gz_csvs_from_zip(os.path.join(OUTPUT, "12_datasets", "datasets_qt.zip"))
+dfs_mx = load_all_gz_csvs_from_zip(os.path.join(OUTPUT, "12_datasets", "datasets_mx.zip"))
 print(f"  Quantitative: {len(dfs_qt)} | Mixed: {len(dfs_mx)}")
 
 # ---------------------------------------------------------------------------
@@ -138,11 +132,11 @@ for _, pair in activity_unit_pairs.iterrows():
         continue
 
     active_ratio = n_actives / n_compounds
-    min_cpds = 1000 if active_ratio < 0.5 else 100
+    min_cpds = MIN_CPDS_CONDITION_A if active_ratio < 0.5 else MIN_POSITIVES_CONDITION_B
     if n_compounds < min_cpds:
         print(f"  Skipping {activity_type} / {unit_label}: too few compounds ({n_compounds} < {min_cpds})")
         continue
-    if n_actives < 50:
+    if n_actives < MIN_POSITIVES_CONDITION_A:
         print(f"  Skipping {activity_type} / {unit_label}: too few actives ({n_actives})")
         continue
 
@@ -154,23 +148,13 @@ for _, pair in activity_unit_pairs.iterrows():
 
     # Add decoys for modeling if active ratio > 0.5
     if active_ratio > 0.5:
-        n_decoys = int(n_actives / decoy_ratio - n_inactives)
-        print(f"    Adding {n_decoys} decoys for modeling")
-        rng = random.Random(42)
-        decoy_ids = rng.sample(list(decoys_pool), n_decoys)
-        X_decoys = np.array([ecfps[i] for i in decoy_ids])
-        X = np.vstack([X, X_decoys])
-        Y = np.concatenate([Y, np.zeros(len(X_decoys), dtype=Y.dtype)])
+        X, Y, decoy_ids = add_decoys(X, Y, decoys_pool, ecfps, DECOY_RATIO)
+        print(f"    Added {len(decoy_ids)} decoys for modeling")
 
     # Downsample negatives for modeling if active ratio < 5%
     active_ratio_model = n_actives / len(Y)
-    if active_ratio_model < 0.05:
-        n_neg_target = int(n_actives / 0.10) - n_actives
-        neg_idx = np.where(Y == 0)[0]
-        rng_ds = np.random.RandomState(42)
-        sampled_neg = rng_ds.choice(neg_idx, size=min(n_neg_target, len(neg_idx)), replace=False)
-        keep = np.sort(np.concatenate([np.where(Y == 1)[0], sampled_neg]))
-        X, Y = X[keep], Y[keep]
+    X, Y = downsample_negatives(X, Y)
+    if n_actives / len(Y) != active_ratio_model:
         print(f"    Downsampled negatives for modeling: ratio {active_ratio_model:.3f} → {n_actives/len(Y):.3f}")
 
     avg_auroc, std_auroc = KFoldTrain(X, Y)
@@ -197,10 +181,10 @@ for _, pair in activity_unit_pairs.iterrows():
 # ---------------------------------------------------------------------------
 
 results_df = pd.DataFrame(results)
-results_df.to_csv(os.path.join(OUTPUT, "22_general_model.csv"), index=False)
-print(f"\nSaved {len(results_df)} modeled datasets to 22_general_model.csv")
+results_df.to_csv(os.path.join(OUTPUT, "20_general_model.csv"), index=False)
+print(f"\nSaved {len(results_df)} modeled datasets to 20_general_model.csv")
 
-zip_path = os.path.join(OUTPUT, "datasets", "22_general_datasets.zip")
+zip_path = os.path.join(OUTPUT, "12_datasets", "20_general_datasets.zip")
 with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
     for name, df in out_datasets.items():
         filename = f"{name}.csv.gz"

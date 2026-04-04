@@ -28,11 +28,11 @@ Output: data/chembl_processed/01_activity_std_units_converted.csv  (requires man
 import pandas as pd
 import sys
 import os
-import re
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import DATAPATH, CONFIGPATH
+from pathogen_utils import harmonize
 
 
 def prepare_harmonized_types_map(activity_std_units):
@@ -43,9 +43,6 @@ def prepare_harmonized_types_map(activity_std_units):
 
     Produces data/01_harmonized_types_map.csv for use in step 05.
     """
-    def harmonize(x):
-        return re.sub(r"[_\s./\\]", "", str(x).upper().strip())
-
     unique_types = activity_std_units["standard_type"].dropna().unique()
     flat = pd.DataFrame({
         "old_type": unique_types,
@@ -78,9 +75,6 @@ def prepare_unit_curation_file(activity_std_units):
     means more active, -1 = lower value means more active) and save the result as
     config/activity_std_units_manual_curation.csv before running step 08.
     """
-    def harmonize(x):
-        return re.sub(r"[_\s./\\]", "", str(x).upper().strip())
-
     ucum = pd.read_csv(os.path.join(CONFIGPATH, "ucum_manual.csv"))
     unit_to_final_unit = dict(zip(ucum["units"], ucum["final_unit"]))
 

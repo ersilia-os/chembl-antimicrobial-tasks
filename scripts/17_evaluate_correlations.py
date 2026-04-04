@@ -8,6 +8,7 @@ import os
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
+from default import CORRELATION_THRESHOLD
 from pathogen_utils import load_pathogen
 from dataset_utils import make_dataset_filename
 
@@ -22,7 +23,7 @@ OUTPUT = os.path.join(root, "..", "output", pathogen_code)
 def _parse_assay_key(s):
     assay_id, activity_type, unit = s.split("|")
     return (assay_id, activity_type, np.nan if unit == "" else unit)
-path_to_correlations = os.path.join(OUTPUT, "correlations")
+path_to_correlations = os.path.join(OUTPUT, "13_correlations")
 labels = ["A", "B", "M"]
 
 # ---------------------------------------------------------------------------
@@ -111,7 +112,7 @@ name_to_compounds = {
 }
 
 # Override compound sets for M datasets using actual saved files (assay_to_compounds lookups are unreliable for merged groups)
-merged_dir = os.path.join(OUTPUT, "datasets", "M")
+merged_dir = os.path.join(OUTPUT, "12_datasets", "M")
 for name in list(name_to_compounds.keys()):
     if name.startswith("M_"):
         filepath = os.path.join(merged_dir, f"{name}.csv.gz")
@@ -165,7 +166,7 @@ for label, name in dataset_labels:
     keep = True
     for prev_label, prev_name in selected:
         sp, ho1000, ho100, co = results_dict[(label, name, prev_label, prev_name)]
-        if (sp + ho1000 + ho100) / 3 > 0.5 and co > 0.5:
+        if (sp + ho1000 + ho100) / 3 > CORRELATION_THRESHOLD and co > CORRELATION_THRESHOLD:
             keep = False
             break
     if keep:

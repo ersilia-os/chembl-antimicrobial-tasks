@@ -1,12 +1,12 @@
 """
-Step 20 — Diagnosis plots.
+Step 21 — Diagnosis plots.
 
 Produces a 3×3 diagnostic figure for a given pathogen and saves it to
-output/<pathogen_code>/20_diagnosis.png.
+output/<pathogen_code>/21_diagnosis.png.
 
 Usage
 -----
-    python scripts/20_diagnosis.py <pathogen_code>
+    python scripts/21_diagnosis.py <pathogen_code>
 """
 
 from collections import Counter, defaultdict
@@ -17,6 +17,7 @@ import matplotlib as mpl
 import pandas as pd
 import numpy as np
 import stylia
+from stylia import SpectralColormap
 import h5py
 from tqdm import tqdm
 import sys
@@ -24,6 +25,7 @@ import os
 import matplotlib.pyplot as plt
 
 root = os.path.dirname(os.path.abspath(__file__))
+
 sys.path.append(os.path.join(root, "..", "src"))
 from default import DATAPATH, CONFIGPATH
 from pathogen_utils import load_pathogen, load_expert_cutoffs
@@ -31,7 +33,7 @@ from pathogen_utils import load_pathogen, load_expert_cutoffs
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
 
-print(f"Step 20: Diagnosis plots for {pathogen_code} ({pathogen})")
+print(f"Step 21: Diagnosis plots for {pathogen_code} ({pathogen})")
 
 OUTPUT = os.path.join(root, "..", "output", pathogen_code)
 
@@ -69,7 +71,7 @@ indiv_selected   = load_if_exists(os.path.join(OUTPUT, "14_individual_selected_L
 merged_lm        = load_if_exists(os.path.join(OUTPUT, "15_merged_LM.csv"))
 merging_analysis = load_if_exists(os.path.join(OUTPUT, "15_merging_analysis.csv"))
 merged_selected  = load_if_exists(os.path.join(OUTPUT, "16_merged_selected_LM.csv"))
-general_model    = load_if_exists(os.path.join(OUTPUT, "22_general_model.csv"))
+general_model    = load_if_exists(os.path.join(OUTPUT, "20_general_model.csv"))
 expert_cutoffs   = load_expert_cutoffs(CONFIGPATH)
 
 n_selected = int(final_datasets["selected"].sum()) if len(final_datasets) > 0 else 0
@@ -214,7 +216,7 @@ def _parse_assay_key(s):
 final_coverage = {label: set() for label in "ABM"}
 covered_triplets = {label: set() for label in "ABM"}
 all_assay_triplets = set(assay_to_compounds.keys())
-merged_dir = os.path.join(OUTPUT, "datasets", "M")
+merged_dir = os.path.join(OUTPUT, "12_datasets", "M")
 if any_selected:
     for label, name, assay_keys in final_datasets[final_datasets["selected"]][
         ["label", "name", "assay_keys"]
@@ -356,6 +358,7 @@ def parse_rejection_categories(comment_series):
         'ratio_out_of_range':    comment_series.str.contains('active ratio', na=False),
         'middle_cutoff_failure': comment_series.str.contains('middle cutoff', na=False),
         'insufficient_compatible': comment_series.str.contains('insufficient compatible assays', na=False),
+        'fractional_contribution': comment_series.str.contains('insufficient_fractional_contribution', na=False),
         'auroc_below':           comment_series.str.contains('below 0.70 threshold', na=False),
         'correlation':           comment_series.str.contains('high correlation', na=False),
     }
@@ -557,36 +560,14 @@ if any_selected:
 
     rejection_props = calculate_rejection_proportions(assays_master)
 
-    # Define colors for each rejection category
-    colors = {
-        'non_organism':          nc.gray,
-        'qualitative_only':      nc.plum,
-        'no_activity_data':      "#95a5a6",
-        'no_cutoff':             nc.purple,
-        'insufficient_compatible': nc.orange,
-        'too_few_compounds':     nc.pink,
-        'too_few_positives':     nc.yellow,
-        'ratio_out_of_range':    "#e74c3c",
-        'middle_cutoff_failure': "#9b59b6",
-        'auroc_below':           "#27ae60",
-        'correlation':           nc.blue,
-        'already_accepted':      "#d35400",
-        'selected':              nc.mint,
-        'other':                 "#ecf0f1",
-    }
-
-    # Create stacked bars
-    bar_labels = ['A', 'B', 'M']
-    bar_positions = [0, 1, 2]
-    bottoms = [0, 0, 0]
-
-    # Stack categories (from bottom to top by frequency)
+    # Stack categories (from bottom to top)
     stack_order = [
         'non_organism',
         'qualitative_only',
         'no_activity_data',
         'no_cutoff',
         'insufficient_compatible',
+        'fractional_contribution',
         'too_few_compounds',
         'too_few_positives',
         'ratio_out_of_range',
@@ -597,6 +578,15 @@ if any_selected:
         'other',
         'selected',
     ]
+
+    # Assign one color per category from SpectralColormap fitted to the number of categories
+    ccm = SpectralColormap("npg")
+    colors = dict(zip(stack_order, ccm.sample(len(stack_order))))
+
+    # Create stacked bars
+    bar_labels = ['A', 'B', 'M']
+    bar_positions = [0, 1, 2]
+    bottoms = [0, 0, 0]
 
     for category in stack_order:
         heights = []
@@ -624,7 +614,7 @@ fig.suptitle(pathogen, size=8, y=1.01)
 
 plt.tight_layout()
 
-outpath = os.path.join(OUTPUT, "20_diagnosis.png")
+outpath = os.path.join(OUTPUT, "21_diagnosis.png")
 stylia.save_figure(outpath)
 print(f"Saved {layout} diagnostic figure -> {outpath}")
 
@@ -632,7 +622,7 @@ print(f"Saved {layout} diagnostic figure -> {outpath}")
 # Summary table (4-sheet Excel workbook)
 # ---------------------------------------------------------------------------
 
-print("\nBuilding summary table (20_summary_table.xlsx)...")
+print("\nBuilding summary table (21_summary_table.xlsx)...")
 
 sel_df = final_datasets[final_datasets["selected"]] if len(final_datasets) > 0 else pd.DataFrame()
 
@@ -722,7 +712,7 @@ funnel.append(_row(
 
 if len(general_model) > 0:
     funnel.append(_row(
-        "General organism model (step 22)", len(general_model),
+        "General organism model (step 20)", len(general_model),
         int(general_model["n_compounds"].sum()),
         "One dataset per (activity_type, unit) pair; all ORGANISM assays pooled at middle cutoff"
     ))
@@ -768,7 +758,7 @@ m_sub = sel_df[sel_df["label"] == "M"] if len(sel_df) > 0 else pd.DataFrame()
 cond_rows.append(_cond_stats("M", m_sub, "cpds", "positives", "auroc"))
 
 if len(general_model) > 0:
-    g_row = _cond_stats("G — General (step 22)", general_model, "n_compounds", "n_actives", "auroc")
+    g_row = _cond_stats("G — General (step 20)", general_model, "n_compounds", "n_actives", "auroc")
     g_row["% using middle cutoff"] = 100.0
     cond_rows.append(g_row)
 
@@ -862,8 +852,8 @@ _CATEGORIES = {
     "too_few_compounds":      "insufficient compounds",
     "too_few_positives":      r"insufficient positives|insufficient actives",
     "ratio_out_of_range":     "active ratio",
-    "fractional_contribution":"insufficient_fractional_contribution",
     "middle_cutoff_failure":  "middle cutoff",
+    "fractional_contribution":"insufficient_fractional_contribution",
     "insufficient_compatible":"insufficient compatible assays",
     "auroc_below":            "below 0.70 threshold",
     "correlation":            "high correlation",
@@ -880,6 +870,7 @@ _CATEGORY_LABELS = {
     "ratio_out_of_range":     "Active ratio out of range",
     "fractional_contribution":"Insufficient fractional contribution (merging)",
     "middle_cutoff_failure":  "Middle cutoff failure",
+    "fractional_contribution":"Insufficient fractional contribution (discarded after rescue pass)",
     "insufficient_compatible":"Insufficient compatible assays for merging",
     "auroc_below":            "AUROC below 0.70 threshold",
     "correlation":            "Removed: high correlation with higher-priority dataset",
@@ -923,7 +914,7 @@ sheet4 = pd.DataFrame(rejection_rows) if rejection_rows else pd.DataFrame(
 
 # ---- Write workbook ----
 
-xl_path = os.path.join(OUTPUT, "20_summary_table.xlsx")
+xl_path = os.path.join(OUTPUT, "21_summary_table.xlsx")
 with pd.ExcelWriter(xl_path, engine="openpyxl") as writer:
     sheet1.to_excel(writer, sheet_name="1. Pipeline Funnel",    index=False)
     sheet2.to_excel(writer, sheet_name="2. By Condition",       index=False)

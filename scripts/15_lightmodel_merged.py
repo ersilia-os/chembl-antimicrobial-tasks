@@ -1,17 +1,16 @@
 from collections import defaultdict
 import pandas as pd
 import numpy as np
-import random
 import sys
 import os
 
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import DATAPATH, CONFIGPATH
+from default import DATAPATH, CONFIGPATH, DECOY_RATIO
 from pathogen_utils import load_pathogen, load_expert_cutoffs
 from dataset_utils import make_dataset_filename
-from model_utils import load_ecfp_all, load_all_gz_csvs_from_zip, KFoldTrain, TrainRF
+from model_utils import load_ecfp_all, load_all_gz_csvs_from_zip, KFoldTrain, TrainRF, add_decoys, downsample_negatives
 
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
@@ -28,7 +27,6 @@ columns_data_info = [
     "min_", "p1", "p25", "p50", "p75", "p99", "max_",
 ]
 
-decoy_ratio = 0.1  # target active ratio when adding decoys
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -93,7 +91,7 @@ def to_merge_unique_cpds(df, group_keys, assay_to_compounds):
 # Setup
 # ---------------------------------------------------------------------------
 
-path_to_correlations = os.path.join(OUTPUT, "correlations")
+path_to_correlations = os.path.join(OUTPUT, "13_correlations")
 os.makedirs(os.path.join(path_to_correlations, "M"), exist_ok=True)
 
 # Load and merge assay metadata tables
@@ -140,8 +138,8 @@ expert_cutoffs = load_expert_cutoffs(CONFIGPATH)
 
 # Load all individual datasets from zip archives into memory
 print("Loading individual datasets...")
-dfs_qt = load_all_gz_csvs_from_zip(os.path.join(OUTPUT, "datasets", "datasets_qt.zip"))
-dfs_mx = load_all_gz_csvs_from_zip(os.path.join(OUTPUT, "datasets", "datasets_mx.zip"))
+dfs_qt = load_all_gz_csvs_from_zip(os.path.join(OUTPUT, "12_datasets", "datasets_qt.zip"))
+dfs_mx = load_all_gz_csvs_from_zip(os.path.join(OUTPUT, "12_datasets", "datasets_mx.zip"))
 print(f"  Quantitative: {len(dfs_qt)} | Mixed: {len(dfs_mx)}")
 
 # ---------------------------------------------------------------------------
@@ -442,26 +440,16 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
                 label_compounds[target_type].update(data["compound_chembl_id"].tolist())
 
                 if n_positives / len(Y) > 0.5:
-                    n_decoys = int(n_positives / decoy_ratio - (len(Y) - 1))
-                    print(f"    Adding {n_decoys} decoys")
-                    rng = random.Random(42)
-                    decoy_ids = rng.sample(list(decoys_pool), n_decoys)
-                    X_decoys = np.array([ecfps[i] for i in decoy_ids])
-                    X = np.vstack([X, X_decoys])
-                    Y = np.concatenate([Y, np.zeros(len(X_decoys), dtype=Y.dtype)])
+                    X, Y, decoy_ids = add_decoys(X, Y, decoys_pool, ecfps, DECOY_RATIO)
+                    print(f"    Added {len(decoy_ids)} decoys")
                     print(f"    After decoys: {len(X)} compounds, {n_positives} positives ({round(100 * n_positives / len(Y), 1)}%)")
                     data = pd.concat([data, pd.DataFrame({"compound_chembl_id": decoy_ids, "bin": 0, "smiles": "decoy"})], ignore_index=True)
 
                 # Downsample negatives for modeling if active ratio < 5%
                 active_ratio_model = n_positives / len(Y)
-                if active_ratio_model < 0.05:
-                    n_neg_target = int(n_positives / 0.10) - n_positives
-                    neg_idx = np.where(Y == 0)[0]
-                    rng_ds = np.random.RandomState(42)
-                    sampled_neg = rng_ds.choice(neg_idx, size=min(n_neg_target, len(neg_idx)), replace=False)
-                    keep = np.sort(np.concatenate([np.where(Y == 1)[0], sampled_neg]))
-                    X, Y = X[keep], Y[keep]
-                    print(f"    Downsampled negatives for modeling: {len(neg_idx)} → {len(sampled_neg)} (ratio {active_ratio_model:.3f} → {n_positives/len(Y):.3f})")
+                X, Y = downsample_negatives(X, Y)
+                if n_positives / len(Y) != active_ratio_model:
+                    print(f"    Downsampled negatives for modeling: ratio {active_ratio_model:.3f} → {n_positives/len(Y):.3f}")
 
                 avg_auroc, std_auroc = KFoldTrain(X, Y)
                 print(f"    AUROC: {avg_auroc} ± {std_auroc}")
@@ -491,7 +479,7 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
                 y_prob_ref = rf.predict_proba(x_ref)[:, 1]
                 np.savez_compressed(os.path.join(path_to_correlations, "M", f"{name_}_ref_probs.npz"), y_prob_ref=y_prob_ref)
 
-                outdir = os.path.join(OUTPUT, "datasets", "M")
+                outdir = os.path.join(OUTPUT, "12_datasets", "M")
                 os.makedirs(outdir, exist_ok=True)
                 data = data[data["smiles"] != "decoy"].reset_index(drop=True)
                 data.to_csv(os.path.join(outdir, f"{name_}.csv.gz"), index=False, compression="gzip")

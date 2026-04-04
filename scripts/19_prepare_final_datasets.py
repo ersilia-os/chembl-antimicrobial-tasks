@@ -22,7 +22,7 @@ def main(pathogen_code: str) -> None:
 
     # Define paths
     base_path = os.path.join(os.path.dirname(__file__), "..", "output", pathogen_code)
-    datasets_path = os.path.join(base_path, "datasets")
+    datasets_path = os.path.join(base_path, "12_datasets")
     final_datasets_17 = os.path.join(base_path, "17_final_datasets.csv")
     output_zip = os.path.join(base_path, "19_final_datasets.zip")
     metadata_csv = os.path.join(base_path, "19_final_datasets_metadata.csv")
@@ -68,7 +68,6 @@ def main(pathogen_code: str) -> None:
     # Load individual datasets from ZIP files
     zip_files = {
         'quantitative': os.path.join(datasets_path, "datasets_qt.zip"),
-        'qualitative': os.path.join(datasets_path, "datasets_ql.zip"),
         'mixed': os.path.join(datasets_path, "datasets_mx.zip")
     }
 

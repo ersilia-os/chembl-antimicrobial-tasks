@@ -30,6 +30,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score
 import numpy as np
 import zipfile
+import random
 import gzip
 import h5py
 import pandas as pd
@@ -142,6 +143,72 @@ def load_all_gz_csvs_from_zip(zip_path):
                 with z.open(name) as f:
                     dfs[name] = pd.read_csv(f, compression="gzip")
     return dfs
+
+
+def add_decoys(X, Y, decoys_pool, ecfps, decoy_ratio, random_state=42):
+    """Add random decoy compounds to reduce the active ratio to `decoy_ratio`.
+
+    Parameters
+    ----------
+    X : np.ndarray
+        Feature matrix.
+    Y : np.ndarray
+        Binary labels.
+    decoys_pool : iterable
+        Pool of compound IDs to sample decoys from.
+    ecfps : dict
+        Mapping {compound_id: fingerprint}.
+    decoy_ratio : float
+        Target active fraction after adding decoys (e.g. 0.1 means 10% actives).
+    random_state : int
+        RNG seed for reproducibility.
+
+    Returns
+    -------
+    X : np.ndarray
+    Y : np.ndarray
+    decoy_ids : list
+        IDs of the sampled decoy compounds.
+    """
+    n_positives = int(Y.sum())
+    n_decoys = max(0, int(n_positives / decoy_ratio) - len(Y))
+    rng = random.Random(random_state)
+    decoy_ids = rng.sample(list(decoys_pool), n_decoys)
+    X_decoys = np.array([ecfps[i] for i in decoy_ids])
+    X = np.vstack([X, X_decoys])
+    Y = np.concatenate([Y, np.zeros(len(X_decoys), dtype=Y.dtype)])
+    return X, Y, decoy_ids
+
+
+def downsample_negatives(X, Y, target_ratio=0.10, random_state=42):
+    """Downsample negatives when the active ratio is below 5% to reach `target_ratio`.
+
+    Parameters
+    ----------
+    X : np.ndarray
+        Feature matrix.
+    Y : np.ndarray
+        Binary labels.
+    target_ratio : float
+        Desired active fraction after downsampling.
+    random_state : int
+        RNG seed for reproducibility.
+
+    Returns
+    -------
+    X : np.ndarray
+    Y : np.ndarray
+    """
+    n_positives = int(Y.sum())
+    active_ratio = n_positives / len(Y)
+    if active_ratio >= 0.05:
+        return X, Y
+    n_neg_target = int(n_positives / target_ratio) - n_positives
+    neg_idx = np.where(Y == 0)[0]
+    rng_ds = np.random.RandomState(random_state)
+    sampled_neg = rng_ds.choice(neg_idx, size=min(n_neg_target, len(neg_idx)), replace=False)
+    keep = np.sort(np.concatenate([np.where(Y == 1)[0], sampled_neg]))
+    return X[keep], Y[keep]
 
 
 def KFoldTrain(X, Y, n_splits=4, n_estimators=100, random_state=42):

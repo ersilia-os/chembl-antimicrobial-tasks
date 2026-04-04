@@ -36,7 +36,7 @@ assays_cleaned['target_type_curated_extra'] = [
 ]
 
 # Load activity records and expert cutoffs
-os.makedirs(os.path.join(OUTPUT, 'datasets'), exist_ok=True)
+os.makedirs(os.path.join(OUTPUT, '12_datasets'), exist_ok=True)
 print(f"Loading ChEMBL cleaned data for {pathogen_code}...")
 chembl_pathogen = pd.read_csv(os.path.join(OUTPUT, "08_chembl_cleaned_data.csv.gz"), low_memory=False)
 print(f"  Activities : {len(chembl_pathogen)}")
@@ -111,7 +111,7 @@ for assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra
         min_, p1, p25, p50, p75, p99, max_ = [np.nan] * 7
         expert_cutoff = np.nan
 
-        assay_data_qualitative.to_csv(os.path.join(OUTPUT, 'datasets', make_dataset_filename(assay_chembl_id, activity_type, unit, 'qualitative')), index=False)
+        assay_data_qualitative.to_csv(os.path.join(OUTPUT, '12_datasets', make_dataset_filename(assay_chembl_id, activity_type, unit, 'qualitative')), index=False)
         datasets.append(_make_dataset_row(
             assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra,
             activities, nan_values, cpds, direction, act_flag, inact_flag,
@@ -137,7 +137,7 @@ for assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra
                     dataset_type = 'none'
                 else:
                     dataset_type = 'qualitative'
-                    assay_data_qualitative.to_csv(os.path.join(OUTPUT, 'datasets', make_dataset_filename(assay_chembl_id, activity_type, unit, 'qualitative')), index=False)
+                    assay_data_qualitative.to_csv(os.path.join(OUTPUT, '12_datasets', make_dataset_filename(assay_chembl_id, activity_type, unit, 'qualitative')), index=False)
 
             else:
                 # Full quantitative binarization
@@ -150,7 +150,7 @@ for assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra
 
                 if np.isnan(compounds_qualitative):
                     dataset_type = 'quantitative'
-                    assay_data_quantitative.to_csv(os.path.join(OUTPUT, 'datasets', make_dataset_filename(assay_chembl_id, activity_type, unit, 'quantitative', expert_cutoff)), index=False)
+                    assay_data_quantitative.to_csv(os.path.join(OUTPUT, '12_datasets', make_dataset_filename(assay_chembl_id, activity_type, unit, 'quantitative', expert_cutoff)), index=False)
 
                 else:
                     dataset_type = 'mixed'
@@ -174,7 +174,7 @@ for assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra
                     assay_data_mixed = pd.concat([assay_data_quantitative_mixed, assay_data_qualitative_mixed], axis=0).reset_index(drop=True)
                     positives_mixed, ratio_mixed, compounds_mixed, _ = set_variables_quantitative(assay_data_mixed)
 
-                    assay_data_mixed.to_csv(os.path.join(OUTPUT, 'datasets', make_dataset_filename(assay_chembl_id, activity_type, unit, 'mixed', expert_cutoff)), index=False)
+                    assay_data_mixed.to_csv(os.path.join(OUTPUT, '12_datasets', make_dataset_filename(assay_chembl_id, activity_type, unit, 'mixed', expert_cutoff)), index=False)
 
             datasets.append(_make_dataset_row(
                 assay_chembl_id, activity_type, unit, target_type, target_type_curated_extra,
@@ -215,7 +215,7 @@ datasets_df.to_csv(os.path.join(OUTPUT, '12_datasets.csv'), index=False)
 assay_data_info_df.to_csv(os.path.join(OUTPUT, '12_assay_data_info.csv'), index=False)
 
 # Archive individual dataset files
-qt, ql, mx = zip_and_remove(os.path.join(OUTPUT, "datasets"))
+qt, ql, mx = zip_and_remove(os.path.join(OUTPUT, "12_datasets"))
 
 print(f"Total assays     : {len(assay_data_info_df)}  {dict(Counter(assay_data_info_df['dataset_type']))}")
 print(f"Total datasets   : {len(datasets_df)}  {dict(Counter(datasets_df['dataset_type']))}")

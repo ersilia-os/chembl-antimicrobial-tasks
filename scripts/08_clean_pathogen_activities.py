@@ -49,8 +49,8 @@ chembl_pathogen['direction'] = [directions[(i,j)] if (i,j) in directions else np
                                 for i,j in zip(chembl_pathogen['activity_type'], chembl_pathogen['unit'])]
 count_directions = Counter(chembl_pathogen['direction'].fillna('NaN'))
 print(f"Directions assigned. Summary: {count_directions}")
-print(f"Assigned directions [-1, 0, +1]: {round((count_directions[1] + count_directions[-1] + count_directions[0]) / len(chembl_pathogen) * 100, 1)}%")
-print(f"Assigned directions [-1, +1]: {round((count_directions[1] + count_directions[-1]) / len(chembl_pathogen) * 100, 1)}%")
+print(f"Assigned directions [-1, 0, +1]: {round((count_directions.get(1, 0) + count_directions.get(-1, 0) + count_directions.get(0, 0)) / len(chembl_pathogen) * 100, 1)}%")
+print(f"Assigned directions [-1, +1]: {round((count_directions.get(1, 0) + count_directions.get(-1, 0)) / len(chembl_pathogen) * 100, 1)}%")
 
 # 6. Remove unmodelable activities — keep only those with a direction OR an active/inactive text flag
 chembl_pathogen = chembl_pathogen[(chembl_pathogen['direction'].isin([1, -1]) == True) |

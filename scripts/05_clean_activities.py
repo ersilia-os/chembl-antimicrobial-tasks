@@ -2,11 +2,11 @@ import pandas as pd
 import numpy as np
 import sys
 import os
-import re
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import DATAPATH, CONFIGPATH
+from pathogen_utils import harmonize
 
 
 # --- Helper functions ---
@@ -146,9 +146,6 @@ del docs
 activities_all_raw["doc_chembl_id"] = activities_all_raw["doc_id"].map(doc_id_to_chembl_id)
 
 # 8. Harmonize standard_type -> harmonized_type
-def harmonize(x):
-    return re.sub(r"[_\s./\\]", "", str(x).upper().strip())
-
 activities_all_raw["harmonized_type"] = activities_all_raw["standard_type"].map(harmonize)
 
 # 9. Rename and drop raw columns

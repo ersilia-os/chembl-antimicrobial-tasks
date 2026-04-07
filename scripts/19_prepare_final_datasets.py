@@ -111,6 +111,10 @@ def main(pathogen_code: str) -> None:
 
                 # Export with original name (just remove .gz and keep .csv)
                 simplified_df = dataset[['smiles', 'bin']].copy()
+                simplified_df = (simplified_df
+                    .sort_values("bin", ascending=False)
+                    .drop_duplicates(subset="smiles", keep="first")
+                    .reset_index(drop=True))
                 csv_content = simplified_df.to_csv(index=False)
                 out_zip.writestr(f"{original_name}.csv", csv_content)
 

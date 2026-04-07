@@ -1,0 +1,14 @@
+python 20_general_datasets.py abaumannii
+python 20_general_datasets.py calbicans
+python 20_general_datasets.py campylobacter
+python 20_general_datasets.py ecoli
+python 20_general_datasets.py efaecium
+python 20_general_datasets.py enterobacter
+python 20_general_datasets.py hpylori
+python 20_general_datasets.py kpneumoniae
+python 20_general_datasets.py ngonorrhoeae
+python 20_general_datasets.py paeruginosa
+python 20_general_datasets.py pfalciparum
+python 20_general_datasets.py saureus
+python 20_general_datasets.py smansoni
+python 20_general_datasets.py spneumoniae

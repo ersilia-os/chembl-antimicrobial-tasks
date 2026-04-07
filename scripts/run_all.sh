@@ -1,5 +1,5 @@
 bash generate_datasets.sh abaumannii
-#bash generate_datasets.sh mtuberculosis
+bash generate_datasets.sh mtuberculosis
 bash generate_datasets.sh campylobacter
 bash generate_datasets.sh ngonorrhoeae
 bash generate_datasets.sh hpylori

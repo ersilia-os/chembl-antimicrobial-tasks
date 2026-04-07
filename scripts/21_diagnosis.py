@@ -10,6 +10,8 @@ Usage
 """
 
 from collections import Counter, defaultdict
+import zipfile
+import io
 from scipy.stats import gaussian_kde
 from scipy.cluster.hierarchy import linkage, leaves_list
 from scipy.spatial.distance import squareform
@@ -40,7 +42,10 @@ OUTPUT = os.path.join(root, "..", "output", pathogen_code)
 
 def load_if_exists(path, **kwargs):
     if os.path.exists(path):
-        return pd.read_csv(path, **kwargs)
+        try:
+            return pd.read_csv(path, **kwargs)
+        except pd.errors.EmptyDataError:
+            return pd.DataFrame()
     return pd.DataFrame()
 
 
@@ -235,6 +240,15 @@ if any_selected:
 
 all_covered_cpds = final_coverage["A"] | final_coverage["B"] | final_coverage["M"]
 all_covered_triplets = covered_triplets["A"] | covered_triplets["B"] | covered_triplets["M"]
+
+general_coverage = set()
+general_zip_path = os.path.join(OUTPUT, "12_datasets", "20_general_datasets.zip")
+if os.path.exists(general_zip_path):
+    with zipfile.ZipFile(general_zip_path) as zf:
+        for name in zf.namelist():
+            with zf.open(name) as f:
+                df_g = pd.read_csv(io.BytesIO(f.read()), compression="gzip", usecols=["compound_chembl_id"])
+                general_coverage |= set(df_g["compound_chembl_id"])
 n_total_triplets = len(all_assay_triplets)
 
 activities_in_selected = sum(triplet_to_n_activities.get(k, 0) for k in all_covered_triplets)
@@ -529,16 +543,19 @@ if any_selected:
     # [2][1] Chemical space coverage by label
     ax = axs.next()
     all_coverage = final_coverage["A"] | final_coverage["B"] | final_coverage["M"]
-    ax.set_xlim([0, 5])
+    ax.set_xlim([0, 6])
     ax.set_ylim([0, 1])
     ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
-    ax.set_xticks([1, 2, 3, 4])
-    ax.set_xticklabels(["A", "B", "M", "ALL"])
+    ax.set_xticks([1, 2, 3, 4, 5])
+    ax.set_xticklabels(["A", "B", "M", "A+B+M", "G"])
     for xi, lbl, color in [(1, "A", nc.orange), (2, "B", nc.blue), (3, "M", nc.yellow)]:
         frac = len(final_coverage[lbl]) / len(pathogen_compounds)
         ax.bar([xi, xi], [1, frac], zorder=2, color=[nc.gray, color], ec="k")
     frac_all = len(all_coverage) / len(pathogen_compounds)
     ax.bar([4, 4], [1, frac_all], zorder=2, color=[nc.gray, nc.mint], ec="k")
+    if general_coverage:
+        frac_g = len(general_coverage) / len(pathogen_compounds)
+        ax.bar([5, 5], [1, frac_g], zorder=2, color=[nc.gray, nc.plum], ec="k")
     stylia.label(ax, ylabel="Chemical space percentage", xlabel="", title="Chemical space coverage by label")
 
     # [2][2] Compounds vs positives per selected dataset

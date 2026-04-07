@@ -175,6 +175,7 @@ Outputs are saved to `output/<pathogen_code>/`:
 | `07_chembl_raw_data.csv.gz` | All activity records matching the pathogen. |
 | `07_target_organism_counts.csv` | Frequency table of `target_organism` values. |
 | `07_compound_counts.csv.gz` | Unique compounds with InChIKey, SMILES, and activity count. |
+| `07_all_smiles.csv` | Deduplicated list of SMILES observed for the pathogen (single `smiles` column). Note: different `compound_chembl_id` values can share the same SMILES after step 03 standardization (e.g. the same molecule registered multiple times, or salt forms that collapse to the same canonical structure). This file provides the unique SMILES space and is intended as a convenience reference, for example for virtual screening or external model evaluation. |
 | `07_assays_raw.csv` | Per-(`assay_id`, `activity_type`, `unit`) summary with compound counts, text flags, and fraction of pathogen chemical space. |
 
 ⏳ ETA: ~1 minute.
@@ -667,6 +668,8 @@ Exports all selected datasets as simplified CSVs containing only SMILES and bina
 
 Reads `17_final_datasets.csv` (`selected == True`) and looks up each dataset file by its original pipeline name. Individual datasets are sourced from `datasets_qt.zip`, `datasets_ql.zip`, and `datasets_mx.zip`; merged datasets from the `12_datasets/M/` directory. Exported files contain only `smiles` and `bin` — decoys are not present (individual dataset files never include them; merged datasets have decoys stripped at save time in step 15).
 
+Before export, each dataset is **deduplicated on SMILES**: if two different `compound_chembl_id` values share the same canonical SMILES (possible after step 03 standardization), only one row is kept — the active instance (`bin = 1`) takes priority over an inactive (`bin = 0`).
+
 #### Inputs
 
 | File | Description |
@@ -698,13 +701,13 @@ Only `target_type_curated_extra == "ORGANISM"` assays with quantitative or mixed
 For each `(activity_type, unit)` pair:
 
 1. Select all assay rows at the middle expert cutoff (second in the expert cutoffs list, or first if only one is defined).
-2. Load the corresponding dataset files, concatenate all compounds, and deduplicate: one row per compound, with the active label winning if a compound appears in multiple assays.
-3. Apply size thresholds — skip the pair if:
-   - Active ratio < 0.5: fewer than `MIN_CPDS_CONDITION_A` (1 000) total compounds or fewer than `MIN_POSITIVES_CONDITION_A` (50) actives.
-   - Active ratio ≥ 0.5: fewer than `MIN_POSITIVES_CONDITION_B` (100) total compounds.
-4. If active ratio > 0.5, add random ChEMBL decoys at `DECOY_RATIO` (same logic as condition B in step 13).
+2. Load the corresponding dataset files, concatenate all compounds, and apply two rounds of deduplication:
+   - **By `compound_chembl_id`**: one row per compound ID, with the active label winning (`bin = 1`) if the compound appears in multiple assays.
+   - **By SMILES**: one row per canonical SMILES string, again with the active label winning. This second pass removes residual duplicates arising from different `compound_chembl_id` values that share the same SMILES after step 03 standardization (e.g. the same molecule registered multiple times).
+3. Skip the pair only if there are no actives.
+4. If there are no inactives, or if active ratio > 0.5, add random ChEMBL decoys at `DECOY_RATIO` (same logic as condition B in step 13).
 5. Downsample negatives if active ratio < 5% (same logic as step 13).
-6. Run 4-fold cross-validation (`KFoldTrain`) and report AUROC. No reference set predictions are saved (no deduplication step follows).
+6. Run 4-fold cross-validation (`KFoldTrain`) and report AUROC if `n_actives > 10`; otherwise AUROC is recorded as `NaN`. The dataset is always saved regardless. No reference set predictions are saved (no deduplication step follows).
 
 #### Inputs
 

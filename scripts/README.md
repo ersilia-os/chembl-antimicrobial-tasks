@@ -26,7 +26,9 @@ bash scripts/process_ChEMBL.sh --calculate_ecfps  # also compute fingerprints
 | 05 | `05_clean_activities.py` | Filters invalid entries, applies activity comment/text flags, converts units, harmonizes activity types, calculates pChEMBL from converted uM values. ⏳ ~15 min | `data/chembl_processed/05_activities_preprocessed.csv`, `data/chembl_processed/05_activity_std_units_curated_comments.csv` |
 | 06 | `06_calculate_ecfps.py` *(optional)* | Computes ECFP6 fingerprints (radius 3, 2048 bits) for all standardized compounds. ⏳ ~15 min | `data/chembl_processed/06_chembl_ecfps.h5` |
 
-### Manual curation required between steps 01 and 02
+### Manual curation required before running `process_ChEMBL.sh`
+
+`config/activity_std_units_manual_curation.csv` is technically only consumed by step 08, but `process_ChEMBL.sh` checks for it upfront and exits early if it is missing — before the long-running steps 03–05 — to avoid a multi-hour run ending in a preventable error.
 
 1. Open `data/chembl_processed/01_activity_std_units_converted.csv`
 2. Fill in `manual_curation_direction`: `1` = higher value → more active, `-1` = lower value → more active, `0` = unclear
@@ -74,7 +76,7 @@ Harmonizes activity type strings (uppercase, punctuation stripped) and maps unit
 - `01_activity_std_units_converted.csv` — (`activity_type`, `unit`) pairs with counts, ready for manual curation of biological direction
 - `01_harmonized_types_map.csv` — each harmonized activity type mapped to the count and list of raw `standard_type` variants it collapses
 
-> ⚠️ **Manual curation required before continuing.** Fill in the `manual_curation_direction` column of `01_activity_std_units_converted.csv` and save the result as `config/activity_std_units_manual_curation.csv`. Step 08 will exit with an error if this file is missing.
+> ⚠️ **Manual curation required before running `process_ChEMBL.sh`.** Fill in the `manual_curation_direction` column of `01_activity_std_units_converted.csv` and save the result as `config/activity_std_units_manual_curation.csv`. The file is consumed by step 08, but `process_ChEMBL.sh` checks for it before step 02 to avoid a failed run after several hours of processing.
 
 ---
 

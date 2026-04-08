@@ -10,7 +10,6 @@ IMPORTANT: The summary files produced here (00_activity_comments.csv,
 After running this step, a curator must create/update:
   config/activity_comments_manual_curation.csv   (required by step 05)
   config/standard_text_manual_curation.csv        (required by step 05)
-  config/activity_std_units_manual_curation.csv   (required by step 08)
 """
 
 import psycopg
@@ -24,6 +23,7 @@ sys.path.append(os.path.join(root, "..", "src"))
 from default import DATABASE_NAME, CHEMBL_USR, CHEMBL_PWD, DATAPATH
 
 output_dir = os.path.join(DATAPATH, "chembl_activities")
+processed_dir = os.path.join(DATAPATH, "chembl_processed")
 
 activity_tables = [
     "activities",
@@ -43,6 +43,7 @@ activity_tables = [
 
 
 os.makedirs(output_dir, exist_ok=True)
+os.makedirs(processed_dir, exist_ok=True)
 
 def export_table(conn, table):
     """Export a ChEMBL PostgreSQL table to CSV.

@@ -14,7 +14,7 @@ can proceed to step 05 and step 08:
 
 2. data/chembl_processed/01_harmonized_types_map.csv — maps each harmonized activity_type to
    the count and list of raw standard_type strings that collapse into it.
-   Used by step 05.
+   Human-readable reference; not consumed by downstream pipeline steps.
 
 Run this script after step 00 and before step 05/08.
 
@@ -41,7 +41,7 @@ def prepare_harmonized_types_map(activity_std_units):
     Harmonization strips underscores, spaces, dots, slashes and uppercases the result,
     collapsing variants like 'IC 50', 'ic_50', 'IC/50' -> 'IC50'.
 
-    Produces data/01_harmonized_types_map.csv for use in step 05.
+    Produces data/01_harmonized_types_map.csv as a human-readable reference (not consumed by downstream pipeline steps).
     """
     unique_types = activity_std_units["standard_type"].dropna().unique()
     flat = pd.DataFrame({

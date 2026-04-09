@@ -241,7 +241,7 @@ Filters applied in order:
 1. **Remove compounds with no SMILES** — activities without a valid structure are discarded.
 2. **Remove empty activities** — activities lacking both a numeric value and a non-zero `text_flag` are discarded.
 3. **Filter by consensus units** — only activities with units present in `data/chembl_processed/01_activity_std_units_converted.csv` (or no unit) are retained.
-4. **Assign direction** — biological direction (-1 or +1) is assigned per (`activity_type`, `unit`) from `config/activity_std_units_manual_curation.csv`.
+4. **Assign direction** — biological direction (-1, 0, or +1) is assigned per (`activity_type`, `unit`) from `config/activity_std_units_manual_curation.csv`. A value of 0 indicates an unclear direction.
 5. **Remove unmodelable activities** — activities with no direction or unclear direction (0) and no active/inactive text flag are discarded.
 
 Outputs are saved to `output/<pathogen_code>/`:
@@ -260,7 +260,7 @@ Outputs are saved to `output/<pathogen_code>/`:
 
 > ⚠️ **Requires a GPU-enabled machine with [ollama](https://ollama.com/) running locally.**
 
-Uses a local LLM to extract and standardize biological context for each (`assay_id`, `activity_type`, `unit`) triplet in `08_assays_cleaned.csv`. Assays are processed in batches of 6. For each batch, a prompt is built from ChEMBL assay fields (`data/chembl_activities/assays.csv`) and publication metadata (`data/chembl_activities/docs.csv`), and the model returns a strict JSON with the following fields:
+Uses a local LLM to extract and standardize biological context for each (`assay_id`, `activity_type`, `unit`) triplet in `08_assays_cleaned.csv`. Assays are processed in batches of 6. For each batch, a prompt is built from ChEMBL assay fields (`data/chembl_activities/assays.csv`), publication metadata (`data/chembl_activities/docs.csv`), detailed assay descriptions (`data/chembl_processed/00_assay_descriptions.csv`), and a target dictionary with synonyms (`data/chembl_processed/00_target_dictionary_synonyms.csv`). The model returns a strict JSON with the following fields:
 
 | Field | Description |
 |-------|-------------|
@@ -323,9 +323,9 @@ Each supported pathogen has a hardcoded ORGANISM-level ChEMBL ID used in Group A
 
 #### Target ChEMBL ID resolution (SINGLE PROTEIN assays)
 
-For SINGLE PROTEIN assays in Group B, the LLM extracts the protein name and leaves `target_chembl_id_curated` empty. The ID is then resolved in Python against the ChEMBL target dictionary using a **multi-strategy exact-match lookup**: (1) direct case-insensitive match, (2) organism-prefix stripping, (3) slash-split of compound names, (4) GyrA/B-style gene-name reconstruction. IDs are never guessed — unresolvable names are left blank.
+For SINGLE PROTEIN assays in Group B, the LLM extracts the protein name and leaves `target_chembl_id_curated` empty. The ID is then resolved in Python against the ChEMBL target dictionary using a **multi-strategy exact-match lookup**: (1) direct case-insensitive match, (2) organism-prefix stripping, (3) slash-split of the full name, (4) organism-prefix stripping followed by slash-split, (5) GyrA/B-style gene-name reconstruction (short second part after slash expands using the prefix of the first part), (6) token-level slash split (for compound names like `"DNA GyrA/B heterotetramer"`). IDs are never guessed — unresolvable names are left blank.
 
-The script supports **resuming**: already-processed triplets in the output file are skipped. On LLM failure, an empty row is written and processing continues.
+The script supports **resuming**: results are appended incrementally to an intermediate file (`09_assays_parameters.csv`) as batches complete; already-processed triplets are skipped on restart. This intermediate file is deleted automatically once all triplets are processed and merged into `09_assays_parameters_full.csv`. On LLM failure, an empty row is written and processing continues.
 
 The LLM model is configured via `LLM_MODEL` in `src/default.py`.
 
@@ -333,7 +333,6 @@ Outputs are saved to `output/<pathogen_code>/`:
 
 | File | Description |
 |------|-------------|
-| `09_assays_parameters.csv` | Intermediate per-batch output; appended incrementally to support resuming. |
 | `09_assays_parameters_full.csv` | Final merged output with curated parameters for all (`assay_id`, `activity_type`, `unit`) triplets. Used by steps 12 and 18. |
 
 ⏳ ETA: ~5 seconds per assay on a GPU-enabled machine.

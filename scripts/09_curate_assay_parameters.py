@@ -33,7 +33,7 @@ _ollama_client = ollama.Client(timeout=LLM_TIMEOUT)
 print("Step 09 - Enhanced Assay Information Extraction")
 print("This script needs to run on a GPU-enabled machine.")
 
-# Organism-specific ChEMBL ID mapping for all 16 supported pathogens
+# Organism-specific ChEMBL ID mapping for all 15 supported pathogens
 ORGANISM_CHEMBL_IDS = {
     "Mycobacterium tuberculosis": "CHEMBL360",
     "Acinetobacter baumannii": "CHEMBL614425",

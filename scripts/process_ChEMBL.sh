@@ -3,8 +3,8 @@ set -euo pipefail
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
-#python $SCRIPT_DIR/00_export_chembl_activities.py
-#python $SCRIPT_DIR/01_prepare_manual_files.py
+python $SCRIPT_DIR/00_export_chembl_activities.py
+python $SCRIPT_DIR/01_prepare_manual_files.py
 
 echo ""
 echo "ACTION REQUIRED before continuing:"
@@ -20,7 +20,7 @@ if [[ ! -f "$CURATION_FILE" ]]; then
   exit 1
 fi
 
-#python $SCRIPT_DIR/02_get_compound_info.py
+python $SCRIPT_DIR/02_get_compound_info.py
 python $SCRIPT_DIR/03_standardize_compounds.py
 python $SCRIPT_DIR/04_merge_activity_and_compounds.py
 python $SCRIPT_DIR/05_clean_activities.py

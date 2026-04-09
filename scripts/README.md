@@ -133,83 +133,44 @@ Computes ECFP6 fingerprints (radius 3, 2048 bits) for all standardized compounds
 
 ```mermaid
 flowchart TD
-    DB[(ChEMBL\nPostgreSQL DB)]
+    DB[(ChEMBL PostgreSQL DB)]
 
-    %% ── Step 00 ──────────────────────────────────────────
-    DB -->|psycopg COPY| S00["**Step 00** — Export & summarise"]
+    DB --> S00[Step 00\nExport tables & build frequency summaries]
 
-    S00 --> RAW["📁 data/chembl_activities/\nactivities · assays · assay_parameters\ncompound_structures · molecule_dictionary\ntarget_dictionary · target_components\ncomponent_synonyms · component_sequences\nbioassay_ontology · activity_stds_lookup\ndocs · source"]
+    S00 --> MC0(["✏️ Curate activity comments\n& standard text values"])
+    MC0 --> CF05[config files\nfor step 05]
 
-    S00 --> F00a["00_activity_comments.csv\nfreq. table of activity_comment"]
-    S00 --> F00b["00_standard_text.csv\nfreq. table of standard_text_value"]
-    S00 --> F00c["00_activity_std_units.csv\nfreq. table of (standard_type, standard_units)"]
-    S00 --> F00d["00_standard_units.csv\nfreq. table of standard_units"]
-    S00 --> F00e["00_assay_descriptions.csv\nassay_id → chembl_id + description"]
-    S00 --> F00f["00_target_dictionary_synonyms.csv\ntarget_dictionary + collapsed component synonyms"]
+    S00 --> S01[Step 01\nHarmonize types · map units · collapse synonyms]
+    S01 --> MC1(["✏️ Assign biological direction\nper activity type + unit"])
+    MC1 --> CF08[config file\nfor step 08]
 
-    %% manual curation after 00
-    F00a -->|curator labels active / inactive / inconclusive| MC0(["✏️ Manual curation"])
-    F00b --> MC0
-    MC0 --> CFac["config/activity_comments_manual_curation.csv"]
-    MC0 --> CFst["config/standard_text_manual_curation.csv"]
+    S00 --> S02[Step 02\nBuild compound table]
+    S02 --> S03[Step 03\nStandardize SMILES & recalculate MW]
 
-    %% ── Step 01 ──────────────────────────────────────────
-    F00c --> S01["**Step 01** — Prepare curation files"]
-    CFucum["config/ucum_manual.csv\nunit → UCUM + formula"] --> S01
-    CFsyn["config/synonyms.csv\nactivity type synonyms"] --> S01
+    S00 --> S04[Step 04\nMerge activities · assays · targets · compounds]
+    S02 --> S04
+    S03 --> S04
 
-    S01 --> F01a["01_activity_std_units_converted.csv\n(activity_type, unit) pairs — harmonised + UCUM-mapped\n→ curator fills in manual_curation_direction"]
-    S01 --> F01b["01_harmonized_types_map.csv\nraw standard_type variants → canonical\n(reference only, not used downstream)"]
+    S04 --> S05[Step 05\nFilter · flag · convert units · harmonize · pChEMBL]
+    CF05 --> S05
+    S05 --> OUT[05_activities_preprocessed.csv]
 
-    %% manual curation after 01
-    F01a -->|curator assigns direction per type+unit| MC1(["✏️ Manual curation"])
-    MC1 --> CFdir["config/activity_std_units_manual_curation.csv\n1 = higher → more active\n−1 = lower → more active"]
+    S02 --> S06[Step 06 — optional\nECFP6 fingerprints]
+    S03 --> S06
 
-    %% ── Step 02 ──────────────────────────────────────────
-    RAW -->|compound_structures + molecule_dictionary| S02["**Step 02** — Build compound table"]
-    S02 --> F02["02_compound_info.csv\nmolregno · chembl_id · InChI · InChIKey\ncanonical_smiles · MW"]
+    OUT ==> STAGE2([Stage 2])
+    CF08 -.->|used by step 08| STAGE2
 
-    %% ── Step 03 ──────────────────────────────────────────
-    F02 -->|canonical_smiles| S03["**Step 03** — Standardise compounds  ⏳ ~3–4 h\nChEMBL structure pipeline + datamol + RDKit\nparent extraction · salt removal · canonicalisation · MW recalc"]
-    S03 --> F03["03_compound_info_standardized.csv\nstandardized_smiles · standardized_MW\n(positionally aligned with 02_compound_info.csv)"]
-
-    %% ── Step 04 ──────────────────────────────────────────
-    RAW -->|activities · assays · target_dictionary| S04["**Step 04** — Merge into flat table"]
-    F02 --> S04
-    F03 --> S04
-    S04 --> F04["04_activities_all_raw.csv\nactivity_id · assay fields · target fields\ncompound_chembl_id · smiles · mw\nstandard_type/value/units/relation\nactivity_comment · pchembl_value\nstandard_text_value · bao_endpoint · doc_id"]
-
-    %% ── Step 05 ──────────────────────────────────────────
-    F04 --> S05["**Step 05** — Clean activities  ⏳ ~15 min"]
-    CFac --> S05
-    CFst --> S05
-    CFucum --> S05
-    CFsyn --> S05
-    RAW -->|docs.csv  doc_id → doc_chembl_id| S05
-
-    S05 --> F05a["05_activities_preprocessed.csv\ndrop no-SMILES rows\nactivity_comment / standard_text → text_flag 1/−1/0\nconverted value + unit  ·  relation simplified\npchembl_calculated  ·  doc_chembl_id\nharmonised + synonym-collapsed activity_type"]
-    S05 --> F05b["05_activity_std_units_curated_comments.csv\ndiagnostic: count + text-flagged rows\nper (activity_type, unit)"]
-
-    %% ── Step 06 (optional) ───────────────────────────────
-    F02 --> S06["**Step 06** — ECFP6 fingerprints  *(optional)*  ⏳ ~15 min\nMorgan radius 3 · 2048 bits · count · int8 clipped"]
-    F03 --> S06
-    S06 --> F06["06_chembl_ecfps.h5\nHDF5: smiles dataset + X_morgan matrix\n(failed SMILES skipped)"]
-
-    %% ── Stage 2 handoff ─────────────────────────────────
-    F05a ==>|"input to Stage 2\n(per-pathogen processing)"| STAGE2(["Stage 2"])
-    CFdir -.->|"consumed by Step 08"| STAGE2
-
-    %% ── Styles ──────────────────────────────────────────
     classDef step fill:#dbeafe,stroke:#2563eb,color:#1e3a5f
-    classDef file fill:#f0fdf4,stroke:#16a34a,color:#14532d
-    classDef config fill:#fef9c3,stroke:#ca8a04,color:#713f12
     classDef manual fill:#fce7f3,stroke:#db2777,color:#831843
+    classDef config fill:#fef9c3,stroke:#ca8a04,color:#713f12
+    classDef out fill:#f0fdf4,stroke:#16a34a,color:#14532d
     classDef db fill:#f3e8ff,stroke:#9333ea,color:#581c87
 
     class S00,S01,S02,S03,S04,S05,S06 step
-    class RAW,F00a,F00b,F00c,F00d,F00e,F00f,F01a,F01b,F02,F03,F04,F05a,F05b,F06 file
-    class CFac,CFst,CFucum,CFsyn,CFdir config
     class MC0,MC1 manual
+    class CF05,CF08 config
+    class OUT db
     class DB,STAGE2 db
 ```
 

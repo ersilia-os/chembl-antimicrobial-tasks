@@ -355,6 +355,7 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
                         entry["unit"] == assay_key[2] and
                         entry["failure_reason"] == "group_qualified"):
                         merging_analysis[i]["failure_reason"] = "group_qualified_pass2"
+                        merging_analysis[i]["group_compounds"] = rescue_union
 
         if not passes:
             print(f"  Skipping {name}: no viable pass after fractional filter")

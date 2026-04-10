@@ -454,13 +454,16 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
                 avg_auroc, std_auroc = KFoldTrain(X, Y)
                 print(f"    AUROC: {avg_auroc} ± {std_auroc}")
 
-                # Update merging analysis for successful assays
+                # Update merging analysis for successful assays.
+                # Guard is != "successfully_merged" (not == "group_qualified") so that
+                # a later cutoff can overwrite a failure state set by an earlier cutoff,
+                # while still preventing a failing cutoff from downgrading a success.
                 for assay_key in pass_keys:
                     for i, entry in enumerate(merging_analysis):
                         if (entry["assay_id"] == assay_key[0] and
                             entry["activity_type"] == assay_key[1] and
                             entry["unit"] == assay_key[2] and
-                            entry["failure_reason"] == "group_qualified"):
+                            entry["failure_reason"] != "successfully_merged"):
                             merging_analysis[i]["failure_reason"] = "successfully_merged"
                             merging_analysis[i]["merged_group_name"] = name_
                             merging_analysis[i]["group_compounds"] = n_real_cpds

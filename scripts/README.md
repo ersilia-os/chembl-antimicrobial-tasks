@@ -571,7 +571,7 @@ Outputs are saved to `output/<pathogen_code>/`:
 | File | Description |
 |------|-------------|
 | `15_merged_LM.csv` | One row per merged group × cutoff — AUROC, compound counts, assay keys, metadata. |
-| `15_merging_analysis.csv` | One row per assay attempted — merge outcome and failure reason (used by step 18). |
+| `15_merging_analysis.csv` | One row per assay attempted — merge outcome and failure reason (used by step 18). The `failure_reason` field takes one of the following values: `insufficient_compatible_assays` (fewer than 2 assays share the same experimental context), `insufficient_compounds_after_merging` (group union < 100 compounds before modeling, or < threshold after the fractional filter), `insufficient_fractional_contribution` (assay contributes < 5% of both the primary-pass union and the rescue-pass union, so it is excluded from all modeling), `insufficient_positives_after_merging` (merged dataset has ≤ 50 positives), `successfully_merged` (assay contributed to at least one trained model), and `group_qualified` (edge case: assay passed one of the 5% thresholds but had no eligible partner at that same filtering level — e.g., it was the sole assay in `qualified_keys` or the sole assay in `rescue_keys`). |
 | `13_correlations/M/` | Reference set prediction probabilities (`.npz`) for each merged model. |
 | `12_datasets/M/` | Merged dataset files (`.csv.gz`), one per group × cutoff, without decoys. |
 

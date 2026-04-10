@@ -337,6 +337,25 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
         if len(rescue_keys) >= 2:
             passes.append(("_r", rescue_keys))
 
+        # Mark sole-qualifier edge cases before potentially skipping.
+        # These assays passed a 5% threshold but had no eligible partner at that level.
+        if len(qualified_keys) == 1:
+            for assay_key in qualified_keys:
+                for i, entry in enumerate(merging_analysis):
+                    if (entry["assay_id"] == assay_key[0] and
+                        entry["activity_type"] == assay_key[1] and
+                        entry["unit"] == assay_key[2] and
+                        entry["failure_reason"] == "group_qualified"):
+                        merging_analysis[i]["failure_reason"] = "group_qualified_pass1"
+        if len(rescue_keys) == 1:
+            for assay_key in rescue_keys:
+                for i, entry in enumerate(merging_analysis):
+                    if (entry["assay_id"] == assay_key[0] and
+                        entry["activity_type"] == assay_key[1] and
+                        entry["unit"] == assay_key[2] and
+                        entry["failure_reason"] == "group_qualified"):
+                        merging_analysis[i]["failure_reason"] = "group_qualified_pass2"
+
         if not passes:
             print(f"  Skipping {name}: no viable pass after fractional filter")
             continue
@@ -508,6 +527,12 @@ if len(merging_analysis_df) > 0:
         else:
             merging_analysis_df[col] = merging_analysis_df[col].fillna(default)
 
+# Enforce a fixed column order regardless of which code paths ran
+merging_analysis_df = merging_analysis_df[[
+    "assay_id", "activity_type", "unit", "target_type",
+    "group_size", "group_compounds", "failure_reason", "group_keys",
+    "n_positives", "auroc", "merged_group_name",
+]]
 merging_analysis_df.to_csv(os.path.join(OUTPUT, "15_merging_analysis.csv"), index=False)
 print(f"Saved merging analysis for {len(merging_analysis_df)} assay attempts")
 

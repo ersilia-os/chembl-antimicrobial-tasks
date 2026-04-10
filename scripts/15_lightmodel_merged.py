@@ -64,7 +64,9 @@ def to_merge_unique_cpds(df, group_keys, assay_to_compounds):
     e.g. "(assay_id, activity_type, unit);...".
     """
     def collect_assay_keys(block):
-        return sorted({tuple(r) for r in block.values})
+        def normalize(v):
+            return None if pd.isna(v) else v
+        return sorted({tuple(normalize(v) for v in r) for r in block.values})
 
     def union_size(keys_list):
         u = set()
@@ -120,7 +122,8 @@ print("Mapping assays to compounds...")
 chembl = pd.read_csv(os.path.join(OUTPUT, "08_chembl_cleaned_data.csv.gz"), low_memory=False)
 assay_to_compounds = defaultdict(set)
 for assay_id, activity_type, unit, compound_chembl_id in chembl[["assay_chembl_id", "activity_type", "unit", "compound_chembl_id"]].values:
-    assay_to_compounds[(assay_id, activity_type, unit)].add(compound_chembl_id)
+    unit_key = None if pd.isna(unit) else unit
+    assay_to_compounds[(assay_id, activity_type, unit_key)].add(compound_chembl_id)
 del chembl
 
 # Load fingerprints, reference set, and define decoy pool
@@ -467,7 +470,7 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
                 merged_lm.append([
                     name_, activity_type, unit, expert_cutoff, direction, assay_type,
                     target_type_curated_extra, filter_strain, target_chembl_id,
-                    len(pass_keys), n_real_cpds, n_positives, round(n_positives / len(Y), 3),
+                    len(pass_keys), n_real_cpds, n_positives, round(ratio_before_decoys, 3),
                     avg_auroc, std_auroc, pass_assay_keys_str,
                 ])
 

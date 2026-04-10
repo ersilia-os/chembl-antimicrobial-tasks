@@ -361,6 +361,7 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
             continue
 
         for pass_suffix, pass_keys in passes:
+            pass_label = "pass1" if pass_suffix == "" else "pass2"
             pass_assay_ids = {k[0] for k in pass_keys}
             pass_df_quant = df[
                 (df["dataset_type"] == "quantitative") & df["assay_id"].isin(pass_assay_ids)
@@ -434,11 +435,12 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
                         for i, entry in enumerate(merging_analysis):
                             if (entry["assay_id"] == assay_key[0] and
                                 entry["activity_type"] == assay_key[1] and
-                                entry["unit"] == assay_key[2] and
-                                entry["failure_reason"] == "group_qualified"):
-                                merging_analysis[i]["failure_reason"] = "insufficient_compounds_after_merging"
-                                merging_analysis[i]["n_positives"] = n_positives
-                                merging_analysis[i]["group_compounds"] = n_real_cpds
+                                entry["unit"] == assay_key[2]):
+                                if entry["failure_reason"] == "group_qualified":
+                                    merging_analysis[i]["failure_reason"] = f"insufficient_compounds_after_merging_{pass_label}"
+                                if entry["failure_reason"] != "successfully_merged":
+                                    merging_analysis[i]["n_positives"] = n_positives
+                                    merging_analysis[i]["group_compounds"] = n_real_cpds
                     continue
 
                 if n_positives <= 50:
@@ -447,11 +449,12 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
                         for i, entry in enumerate(merging_analysis):
                             if (entry["assay_id"] == assay_key[0] and
                                 entry["activity_type"] == assay_key[1] and
-                                entry["unit"] == assay_key[2] and
-                                entry["failure_reason"] == "group_qualified"):
-                                merging_analysis[i]["failure_reason"] = "insufficient_positives_after_merging"
-                                merging_analysis[i]["n_positives"] = n_positives
-                                merging_analysis[i]["group_compounds"] = n_real_cpds
+                                entry["unit"] == assay_key[2]):
+                                if entry["failure_reason"] == "group_qualified":
+                                    merging_analysis[i]["failure_reason"] = f"insufficient_positives_after_merging_{pass_label}"
+                                if entry["failure_reason"] != "successfully_merged":
+                                    merging_analysis[i]["n_positives"] = n_positives
+                                    merging_analysis[i]["group_compounds"] = n_real_cpds
                     continue
 
                 print(f"  {name_} | {activity_type} | {unit} | cutoff={expert_cutoff} | strain={filter_strain} | target={target_chembl_id}")

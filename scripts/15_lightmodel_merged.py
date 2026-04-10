@@ -296,9 +296,6 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
         if len(df) == 0:
             continue
 
-        df_quant = df[df["dataset_type"] == "quantitative"].reset_index(drop=True)
-        df_mixed = df[df["dataset_type"] == "mixed"].reset_index(drop=True)
-
         cutoff_list = expert_cutoffs.get((activity_type, unit, target_type_curated_extra, pathogen_code))
         if not cutoff_list:
             print(f"Warning: Missing expert cutoffs for {activity_type}, {unit}, {target_type_curated_extra}, {pathogen_code}")

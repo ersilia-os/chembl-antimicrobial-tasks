@@ -499,6 +499,8 @@ Only assays with a best AUROC > 0.7 (across all cutoffs tested) are retained. Fo
 
 > ⚠️ Assays with fewer than two expert cutoffs defined are skipped at this step and will not appear in the output.
 
+> ⚠️ The 0.7 threshold is enforced on the **best** cutoff AUROC, not the selected one. When the mid cutoff is preferred, the selected dataset may have AUROC below 0.7.
+
 The AUROC minimum threshold (0.7) and improvement threshold (0.1) are configurable via `AUROC_MIN_THRESHOLD` and `AUROC_IMPROVEMENT_THRESHOLD` in `src/default.py`.
 
 The flag `is_mid_cutoff` records whether the mid cutoff was used (`True`) or the best cutoff was selected instead (`False`).

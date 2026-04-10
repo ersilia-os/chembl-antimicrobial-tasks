@@ -27,7 +27,7 @@ def condition_a(df):
         df["dataset_type"].isin(["quantitative", "mixed"])
         & (df["cpds_qt"] >= MIN_CPDS_CONDITION_A)
         & (df["pos_qt"] >= MIN_POSITIVES_CONDITION_A)
-        & df["ratio_qt"].between(0.001, 0.5, inclusive="left")
+        & (df["ratio_qt"] < 0.5)
     )
 
 # Condition B: active-enriched datasets — random ChEMBL decoys added to reach target ratio

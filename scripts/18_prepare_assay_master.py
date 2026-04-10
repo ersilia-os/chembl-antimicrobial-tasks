@@ -280,8 +280,6 @@ def _generate_a_comment(nkey, activity_type, unit, target_type_extra, dtype, has
                 return f"Not considered for A: insufficient actives ({int(mid_pos)}, need ≥50) at middle cutoff ({mid_cutoff})"
             if mid_ratio > 0.5:
                 return f"Not considered for A: active ratio too high ({mid_ratio:.3f}, need ≤0.5) at middle cutoff ({mid_cutoff}) — directed to condition B"
-            if mid_ratio < 0.001:
-                return f"Not considered for A: active ratio too low ({mid_ratio:.5f}, need ≥0.001) at middle cutoff ({mid_cutoff})"
         else:
             # Fallback to max-across-cutoffs stats when middle cutoff has no entry
             cpds  = cpds_qt_map.get(nkey, 0)
@@ -293,8 +291,6 @@ def _generate_a_comment(nkey, activity_type, unit, target_type_extra, dtype, has
                 return f"Not considered for A: insufficient actives ({int(pos)}, need ≥50)"
             if ratio > 0.5:
                 return f"Not considered for A: active ratio too high ({ratio:.3f}, need ≤0.5) — directed to condition B"
-            if ratio < 0.001:
-                return f"Not considered for A: active ratio too low ({ratio:.5f}, need ≥0.001)"
         return "Not considered for A: did not meet size or balance criteria"
 
     # A2. Modeling Completed - Not Selected

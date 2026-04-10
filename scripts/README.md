@@ -445,9 +445,9 @@ Datasets are evaluated under two independent conditions that differ in size requ
 | Dataset types | quantitative or mixed | quantitative or mixed |
 | Min compounds (`cpds_qt`) | ≥ 1,000 | any |
 | Min actives (`pos_qt`) | ≥ 50 | ≥ 100 |
-| Active ratio (`ratio_qt`) | 0.001–< 0.5 | ≥ 0.5 |
+| Active ratio (`ratio_qt`) | < 0.5 | ≥ 0.5 |
 | Decoys added | No | Yes |
-| Purpose | Large, balanced datasets | Active-enriched datasets, decoy-balanced |
+| Purpose | Large datasets; negatives downsampled if ratio < 5% | Active-enriched datasets; decoys added to reach 10% active ratio |
 
 All thresholds are evaluated on the **quantitative portion** of the dataset (`cpds_qt`, `pos_qt`, `ratio_qt`), not on the full compound count. For mixed datasets this means qualitative-only compounds do not count towards the size or balance thresholds.
 

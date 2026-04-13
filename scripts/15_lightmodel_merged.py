@@ -225,7 +225,7 @@ def track_all_groups(df_all, group_keys, target_type_name, assay_to_compounds):
         elif n_cpds_union < 100:
             reason = "insufficient_compounds_after_merging"
         else:
-            reason = "group_qualified"  # Will be updated if positives are insufficient
+            reason = "group_qualified"  # Placeholder — overwritten by subsequent pipeline stages
 
         # Add entry for each assay in this group
         for assay_key in assay_keys:
@@ -247,8 +247,30 @@ if len(filtered_organism_nan) > 0:
     track_all_groups(filtered_organism_nan, keys_organism_no_strain, "ORGANISM", assay_to_compounds)
 
 # Track SINGLE PROTEIN groups
-if len(filtered_single_protein) > 0:
-    track_all_groups(filtered_single_protein, keys_single_protein, "SINGLE PROTEIN", assay_to_compounds)
+# Split by whether target_chembl_id_curated is present — assays without it are
+# excluded from merging before the loop and must be labelled directly here.
+_has_target = (
+    filtered_single_protein["target_chembl_id_curated"].notna() &
+    (filtered_single_protein["target_chembl_id_curated"] != "")
+)
+filtered_sp_with_target = filtered_single_protein[_has_target]
+filtered_sp_no_target = filtered_single_protein[~_has_target]
+
+if len(filtered_sp_with_target) > 0:
+    track_all_groups(filtered_sp_with_target, keys_single_protein, "SINGLE PROTEIN", assay_to_compounds)
+
+for _, row in filtered_sp_no_target.iterrows():
+    unit_key = row["unit"] if isinstance(row["unit"], str) else None
+    merging_analysis.append({
+        "assay_id": row["assay_id"],
+        "activity_type": row["activity_type"],
+        "unit": unit_key,
+        "target_type": "SINGLE PROTEIN",
+        "group_size": 0,
+        "group_compounds": 0,
+        "failure_reason": "excluded_no_target_chembl_id",
+        "group_keys": "",
+    })
 
 # ---------------------------------------------------------------------------
 
@@ -302,6 +324,13 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
         cutoff_list = expert_cutoffs.get((activity_type, unit, target_type_curated_extra, pathogen_code))
         if not cutoff_list:
             print(f"Warning: Missing expert cutoffs for {activity_type}, {unit}, {target_type_curated_extra}, {pathogen_code}")
+            for assay_key in [parse_assay_key(ak) for ak in assay_keys.split(";")]:
+                for i, entry in enumerate(merging_analysis):
+                    if (entry["assay_id"] == assay_key[0] and
+                        entry["activity_type"] == assay_key[1] and
+                        entry["unit"] == assay_key[2] and
+                        entry["failure_reason"] == "group_qualified"):
+                        merging_analysis[i]["failure_reason"] = "no_expert_cutoff"
             continue
         # ---------------------------------------------------------------------------
         # Two-pass fractional contribution filter (5% of union per pass)
@@ -488,7 +517,7 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
                             entry["unit"] == assay_key[2] and
                             entry["failure_reason"] != "successfully_merged"):
                             merging_analysis[i]["failure_reason"] = "successfully_merged"
-                            merging_analysis[i]["merged_group_name"] = name_
+                            merging_analysis[i]["merged_group_name"] = f"{name}{pass_suffix}"
                             merging_analysis[i]["group_compounds"] = n_real_cpds
                             merging_analysis[i]["n_positives"] = n_positives
                             merging_analysis[i]["auroc"] = avg_auroc
@@ -530,13 +559,18 @@ if len(merging_analysis_df) > 0:
             merging_analysis_df[col] = default
         else:
             merging_analysis_df[col] = merging_analysis_df[col].fillna(default)
-
-# Enforce a fixed column order regardless of which code paths ran
-merging_analysis_df = merging_analysis_df[[
-    "assay_id", "activity_type", "unit", "target_type",
-    "group_size", "group_compounds", "failure_reason", "group_keys",
-    "n_positives", "auroc", "merged_group_name",
-]]
+    # Enforce a fixed column order regardless of which code paths ran
+    merging_analysis_df = merging_analysis_df[[
+        "assay_id", "activity_type", "unit", "target_type",
+        "group_size", "group_compounds", "failure_reason", "group_keys",
+        "n_positives", "auroc", "merged_group_name",
+    ]]
+else:
+    merging_analysis_df = pd.DataFrame(columns=[
+        "assay_id", "activity_type", "unit", "target_type",
+        "group_size", "group_compounds", "failure_reason", "group_keys",
+        "n_positives", "auroc", "merged_group_name",
+    ])
 merging_analysis_df.to_csv(os.path.join(OUTPUT, "15_merging_analysis.csv"), index=False)
 print(f"Saved merging analysis for {len(merging_analysis_df)} assay attempts")
 

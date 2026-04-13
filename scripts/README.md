@@ -527,12 +527,12 @@ Many assays in ChEMBL are too small individually to meet the compound and positi
 
 #### Merge candidate identification
 
-Assay triplets that were **not** accepted in step 14 are grouped by shared experimental metadata. Only quantitative and mixed assays can contribute data to merged models. Two grouping strategies are applied independently:
+Assay triplets that were **not** accepted in step 14 are grouped by shared experimental metadata. Only quantitative and mixed assays can contribute data to merged models — qualitative-only assays are excluded from merging entirely and do not appear in `15_merging_analysis.csv`. Two grouping strategies are applied independently:
 
 - **ORGANISM** — whole-cell / phenotypic assay merges. Assays are split into two sub-groups before merging:
   - *Strain-known*: groups by (`activity_type`, `unit`, `direction`, `assay_type`, `target_type_curated_extra`, `assay_strain_curated`).
   - *NaN-strain*: groups by (`activity_type`, `unit`, `direction`, `assay_type`, `target_type_curated_extra`) — strain is absent and not used as a grouping key.
-- **SINGLE PROTEIN** — groups by (`activity_type`, `unit`, `direction`, `assay_type`, `target_type_curated_extra`, `bao_label`, `assay_strain_curated`, `target_chembl_id`). Ensures that only assays against the same protein target are combined. Assays without a curated `target_chembl_id` are excluded from merging.
+- **SINGLE PROTEIN** — groups by (`activity_type`, `unit`, `direction`, `assay_type`, `target_type_curated_extra`, `bao_label`, `assay_strain_curated`, `target_chembl_id_curated`). Ensures that only assays against the same protein target are combined. Assays without a curated `target_chembl_id_curated` are excluded from merging.
 
 A group passes the **pre-filter** if it contains at least 2 assays and the union of their compounds is ≥ 100. Groups are ranked by union size.
 
@@ -571,9 +571,30 @@ Outputs are saved to `output/<pathogen_code>/`:
 | File | Description |
 |------|-------------|
 | `15_merged_LM.csv` | One row per merged group × cutoff — AUROC, compound counts, assay keys, metadata. |
-| `15_merging_analysis.csv` | One row per assay attempted — merge outcome and failure reason (used by step 18). The `failure_reason` field takes one of the following values: `insufficient_compatible_assays` (fewer than 2 assays share the same experimental context), `insufficient_compounds_after_merging` (group's raw compound union < 100 before any filtering — set during initial candidate tracking, before the fractional contribution filter is applied), `insufficient_compounds_after_merging_pass1` / `insufficient_compounds_after_merging_pass2` (raw union ≥ 100 but the merged dataset falls below the post-merge compound threshold in the primary or rescue pass respectively; `n_positives` and `group_compounds` reflect the highest cutoff attempted, which is the most permissive), `insufficient_fractional_contribution` (assay contributes < 5% of the primary-pass union and is either also below 5% of the rescue-pass union or the rescue pass was not applicable; excluded from all modeling), `insufficient_positives_after_merging_pass1` / `insufficient_positives_after_merging_pass2` (merged dataset has ≤ 50 positives in the primary or rescue pass respectively; `n_positives` and `group_compounds` reflect the highest cutoff attempted, which yields the most positives and is the most informative for diagnosing the failure), `successfully_merged` (assay contributed to at least one trained model — a successful cutoff always overwrites any failure state set by an earlier cutoff for the same group), `group_qualified_pass1` (sole assay above the primary 5% threshold — no second primary-pass partner; `group_compounds` is the full primary-pass union), and `group_qualified_pass2` (sole assay above the rescue 5% threshold — no second rescue-pass partner; `group_compounds` is the rescue-pass union). |
+| `15_merging_analysis.csv` | One row per assay attempted — merge outcome and `failure_reason` (used by step 18). See `failure_reason` labels below. |
 | `13_correlations/M/` | Reference set prediction probabilities (`.npz`) for each merged model. |
 | `12_datasets/M/` | Merged dataset files (`.csv.gz`), one per group × cutoff, without decoys. |
+
+#### `failure_reason` labels (`15_merging_analysis.csv`)
+
+Each row in `15_merging_analysis.csv` carries a `failure_reason` value that records the outcome of the merging attempt for that assay. Labels follow two override rules: (1) failure labels only overwrite the initial `group_qualified` placeholder — they do not overwrite each other; (2) `successfully_merged` overwrites any prior failure label set by an earlier cutoff iteration, but is never itself downgraded.
+
+| Label | Stage | Meaning |
+|-------|-------|---------|
+| `insufficient_compatible_assays` | Pre-filter | The assay's group has fewer than 2 compatible assays. No merge is possible. |
+| `insufficient_compounds_after_merging` | Pre-filter | The assay's group has ≥ 2 assays but the union of their compounds is < 100. The group is too small to be attempted. |
+| `insufficient_fractional_contribution` | Fractional filter | The assay contributes < 5% of the compound union in both pass 1 (full group) and pass 2 (rescue sub-group), or the rescue sub-group itself has fewer than 2 members. The assay is excluded from all modeling passes. |
+| `group_qualified_pass1` | Fractional filter | The assay was the **only** member that passed the 5% threshold in pass 1, leaving it without a partner — a sub-group of 1 cannot be modeled. The assay is not included in any pass 1 dataset. |
+| `group_qualified_pass2` | Fractional filter | Among the assays rejected by pass 1, this assay was the **only** one that passed the 5% threshold within the rescue sub-group — again leaving it without a partner. The assay is not included in any pass 2 dataset. |
+| `insufficient_compounds_after_merging_pass1` | Post-merge check (pass 1) | The pass 1 sub-group passed all earlier filters but, after loading and deduplicating the actual datasets, the merged compound count falls below the required minimum (1,000 when the active ratio is < 0.5; 100 when ≥ 0.5). |
+| `insufficient_compounds_after_merging_pass2` | Post-merge check (pass 2) | Same as above, but for the rescue sub-group (pass 2 / `_r` suffix). |
+| `insufficient_positives_after_merging_pass1` | Post-merge check (pass 1) | The pass 1 sub-group has enough total compounds but ≤ 50 active compounds after merging and deduplication. Too few positives to train a reliable classifier. |
+| `insufficient_positives_after_merging_pass2` | Post-merge check (pass 2) | Same as above, but for the rescue sub-group (pass 2 / `_r` suffix). |
+| `excluded_no_target_chembl_id` | Pre-filter | SINGLE PROTEIN assay with no curated `target_chembl_id`. Merging is only attempted for SINGLE PROTEIN assays with a known target, so this assay is excluded before any group is formed. |
+| `no_expert_cutoff` | Pre-modeling | The group's `(activity_type, unit, target_type)` combination has no entry in `expert_cutoffs.csv` for this pathogen. Without a cutoff, binarization is impossible and the group is skipped. |
+| `successfully_merged` | Modeling | The assay contributed to at least one merged dataset that passed all thresholds and was modeled. `merged_group_name` records the group name (e.g. `M_ORG0`), and `auroc` records the cross-validation result. |
+
+> **Note on pass suffixes:** pass 1 operates on the full set of assays that pass the 5% fractional threshold within the original group; pass 2 (rescue) operates on the subset that was rejected by pass 1. The pass-specific `_pass1` / `_pass2` suffixes on post-merge failure labels identify which sub-group was attempted, since both can be tried for the same original group.
 
 ⏳ ETA: ~10–30 minutes depending on the number of qualifying groups.
 

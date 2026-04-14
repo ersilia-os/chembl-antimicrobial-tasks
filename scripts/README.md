@@ -197,7 +197,7 @@ Supported codes are in `config/pathogens.csv`. All outputs go to `output/<pathog
 | 13 | `13_lightmodel_individual.py` | Trains Random Forest classifiers (4-fold CV, Morgan fingerprints) on each binarized dataset. Evaluates AUROC. Adds ChEMBL decoys for active-enriched datasets. ⏳ ~30 min | `13_individual_LM.csv`, `13_reference_set.csv.gz`, `13_correlations/A/`, `13_correlations/B/` |
 | 14 | `14_select_datasets_individual.py` | Selects the best cutoff per assay (AUROC > 0.7 threshold; prefers the mid cutoff). ⏳ < 1 min | `14_individual_selected_LM.csv` |
 | 15 | `15_lightmodel_merged.py` | Merges assays that share experimental context (same activity type, unit, target, strain) and re-evaluates modelability for assays rejected in step 14. ⏳ ~10–30 min | `15_merged_LM.csv`, `13_correlations/M/`, `12_datasets/M/` |
-| 16 | `16_select_datasets_merged.py` | Selects the best cutoff per merged group (same criteria as step 14). ⏳ < 1 min | `16_merged_selected_LM.csv` |
+| 16 | `16_select_datasets_merged.py` | Selects the best cutoff per merged group (same AUROC threshold and mid-cutoff preference as step 14; groups with fewer than two cutoffs use the best available instead of being skipped). ⏳ < 1 min | `16_merged_selected_LM.csv` |
 | 17 | `17_evaluate_correlations.py` | Computes pairwise similarity between all selected ORGANISM datasets using reference-set predictions, then greedily deduplicates redundant models. ⏳ ~5 min | `17_dataset_correlations.csv`, `17_final_datasets.csv` |
 | 18 | `18_prepare_assay_master.py` | Assembles a master annotation table merging all per-step metadata, pipeline status flags, and selection traceability fields for every assay triplet. ⏳ < 1 min | `18_assays_master.csv` |
 | 19 | `19_prepare_final_datasets.py` *(optional)* | Exports the selected datasets as simplified CSVs (SMILES + binary label only) in a single ZIP. ⏳ < 1 min | `19_final_datasets.zip` |
@@ -722,7 +722,7 @@ Three `comment_A`, `comment_B`, `comment_M` columns annotate each assay's journe
 | Selected, discarded as redundant | `"Discarded: high correlation with dataset M_ORG0_1.0"` |
 | Retained in final selection | `"Retained in final selection"` |
 
-For condition M, comments also include the merged group name (e.g. `"Retained in final selection from group M_ORG0_r"`). Failure reasons for non-merged assays are derived from `15_merging_analysis.csv` and include specific counts (e.g. `"Not modeled: insufficient compounds after merging (83 compounds, need >1000)"`). The middle cutoff (second value in the expert cutoffs list) is used as the reference when diagnosing A/B pre-modeling failures, since hierarchical assignment is based on that cutoff.
+For condition M, comments also include the merged group name (e.g. `"Retained in final selection from group M_ORG0_r"`). Failure reasons for non-merged assays are derived from `15_merging_analysis.csv`; see the Step 15 section for the full list of failure reason labels. When an assay did not qualify for A or B at any cutoff, the middle cutoff (second value in the expert cutoffs list) is used as the reference for the failure message, as it represents the central activity threshold. If any cutoff did qualify, the assay was modeled and the comment reflects the actual modeling outcome regardless of the middle cutoff.
 
 Outputs are saved to `output/<pathogen_code>/`:
 
@@ -738,7 +738,7 @@ Outputs are saved to `output/<pathogen_code>/`:
 
 Exports all selected datasets as simplified CSVs containing only SMILES and binary activity labels, bundled into a single ZIP file. Intended for researchers who want ML-ready data without navigating the full pipeline outputs.
 
-Reads `17_final_datasets.csv` (`selected == True`) and looks up each dataset file by its original pipeline name. Individual datasets are sourced from `datasets_qt.zip`, `datasets_ql.zip`, and `datasets_mx.zip`; merged datasets from the `12_datasets/M/` directory. Exported files contain only `smiles` and `bin` — decoys are not present (individual dataset files never include them; merged datasets have decoys stripped at save time in step 15).
+Reads `17_final_datasets.csv` (`selected == True`) and looks up each dataset file by its original pipeline name. Individual datasets are sourced from `datasets_qt.zip` and `datasets_mx.zip` (qualitative-only assays are never selected by the pipeline); merged datasets from the `12_datasets/M/` directory. Exported files contain only `smiles` and `bin` — decoys are not present (individual dataset files never include them; merged datasets have decoys stripped at save time in step 15).
 
 Before export, each dataset is **deduplicated on SMILES**: if two different `compound_chembl_id` values share the same canonical SMILES (possible after step 03 standardization), only one row is kept — the active instance (`bin = 1`) takes priority over an inactive (`bin = 0`).
 
@@ -762,7 +762,7 @@ Saved to `output/<pathogen_code>/`:
 ⏳ ETA: < 1 minute.
 ---
 
-### Step 20 — General organism-level model (`20_general_model.py`) *(optional)*
+### Step 20 — General organism-level model (`20_general_datasets.py`) *(optional)*
 
 Builds one pooled ML model per `(activity_type, unit)` pair by combining **all** ORGANISM-target assays at the middle expert cutoff. Unlike steps 13–16 (which model individual assays or merged groups), this step ignores assay boundaries and trains on the full available chemical space for each measurement type.
 
@@ -796,8 +796,10 @@ Saved to `output/<pathogen_code>/`:
 
 | File | Description |
 |------|-------------|
-| `20_general_model.csv` | One row per modeled `(activity_type, unit)` pair — cutoff, assay count, compound count, active count, AUROC ± std. |
-| `12_datasets/20_general_datasets.zip` | One CSV per modeled pair containing `compound_chembl_id`, `smiles`, and `bin` columns (no decoys). |
+| `20_general_datasets.csv` | One row per modeled `(activity_type, unit)` pair — cutoff, assay count, compound count, active count, AUROC ± std. |
+| `20_general_datasets.zip` | One CSV per modeled pair containing `compound_chembl_id`, `smiles`, and `bin` columns (no decoys). |
+| `20_all_positives.csv` | Unique active SMILES across all ORGANISM assays, with occurrence count (how many assay datasets the SMILES appeared in as active). |
+| `20_all_smiles.csv` | All unique SMILES (actives and inactives) seen across all ORGANISM assay datasets. |
 
 ⏳ ETA: a few minutes (one RF model per activity/unit pair).
 
@@ -805,7 +807,7 @@ Saved to `output/<pathogen_code>/`:
 
 ### Step 21 — Diagnosis (`21_diagnosis.py`)
 
-Produces a multi-panel diagnostic figure summarising data quality, chemical diversity, assay coverage, and model correlations for the pathogen. The figure layout adapts to pipeline progress: a **2×2 grid** (4 panels) is produced when no datasets have been selected yet (steps 13–17 not yet run), and a **3×3 grid** (9 panels) when at least one dataset has been selected.
+Produces a multi-panel diagnostic figure summarising data quality, chemical diversity, assay coverage, and model correlations for the pathogen. The figure layout adapts to pipeline progress: a **2×2 grid** (4 panels) is produced when no datasets have been selected yet, and a **3×3 grid** (9 panels) when at least one dataset has been selected.
 
 #### Input files
 
@@ -826,7 +828,7 @@ Produces a multi-panel diagnostic figure summarising data quality, chemical dive
 | `17_final_datasets.csv` | Selected dataset names, labels, compound counts |
 | `17_dataset_correlations.csv` | Pairwise compound overlap and hit overlap between models |
 | `18_assays_master.csv` | Per-assay pipeline status comments (rejection analysis) |
-| `20_general_model.csv` *(optional)* | General organism model results (summary table) |
+| `20_general_datasets.csv` *(optional)* | General organism model results (summary table) |
 | `data/chembl_processed/06_chembl_ecfps.h5` | Morgan fingerprints for tSNE |
 
 #### Panels
@@ -857,7 +859,7 @@ Square heatmap of pairwise compound overlap between all selected ORGANISM models
 Same layout as panel 5 but showing normalised hit overlap in the top-100 reference set predictions. Colorbar is fixed to [0, 1]. High values indicate models that agree on which compounds are most likely to be active.
 
 **Panel 7 — Chemical space coverage by label**
-Bar chart showing the fraction of the pathogen chemical space covered by the final selected datasets, broken down by condition label (A, B, M) and combined (ALL).
+Bar chart showing the fraction of the pathogen chemical space covered by the final selected datasets, broken down by condition label (A, B, M), combined (A+B+M), and, if step 20 has been run, the general organism model (G).
 
 **Panel 8 — Compounds vs positives per selected dataset**
 Log–log scatter of total compounds vs active compounds for each selected dataset, colored by label (A = orange, B = blue, M = yellow). Allows quick assessment of dataset sizes and class balance.
@@ -869,15 +871,16 @@ Stacked bar chart showing, for each condition label (A, B, M), the proportion of
 |----------|---------|
 | `selected` | Retained in final selection |
 | `already_accepted` | Accepted under a prior condition (hierarchical) |
-| `non_organism` | SINGLE PROTEIN — excluded from correlation analysis |
+| `non_organism` | Non-ORGANISM target type — excluded from correlation analysis |
 | `qualitative_only` | Only qualitative data — quantitative required |
 | `no_activity_data` | No activity data available |
 | `no_cutoff` | No expert cutoff defined |
-| `too_few_compounds` | Fewer than 1,000 compounds |
+| `insufficient_compatible` | Too few compatible assays for merging (M only) |
+| `fractional_contribution` | Insufficient fractional contribution to any merged group (M only) |
+| `group_qualified` | Sole qualifying assay in group after fractional filter — no merging partner (M only) |
+| `too_few_compounds` | Insufficient compounds after merging |
 | `too_few_positives` | Insufficient actives at all evaluated cutoffs |
 | `ratio_out_of_range` | Active ratio outside the required range |
-| `middle_cutoff_failure` | Middle cutoff produces too few actives or wrong ratio |
-| `insufficient_compatible` | Too few compatible assays for merging (M only) |
 | `auroc_below` | Modeled but AUROC < 0.70 |
 | `correlation` | Good model but discarded due to high correlation |
 | `other` | Comment does not match any known category |

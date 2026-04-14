@@ -396,17 +396,26 @@ def _generate_m_comment(nkey, dtype, has_cutoff, target_type_extra, considered, 
         failure_info = merging_failure_lookup.get(nkey, {})
         failure_reason = failure_info.get("failure_reason", "insufficient_compatible_assays")
 
-        if failure_reason == "insufficient_compatible_assays":
+        if failure_reason == "excluded_no_target_chembl_id":
+            return "Not considered for M: SINGLE PROTEIN assay with no curated target_chembl_id"
+        elif failure_reason == "insufficient_compatible_assays":
             group_size = failure_info.get("group_size", 0)
             return f"Not modeled: insufficient compatible assays for merging ({group_size} assay{'s' if group_size != 1 else ''} in group, need ≥2)"
         elif failure_reason == "insufficient_compounds_after_merging":
             group_compounds = failure_info.get("group_compounds", 0)
-            return f"Not modeled: insufficient compounds after merging ({group_compounds} compounds, need >1000)"
-        elif failure_reason == "insufficient_positives_after_merging":
+            return f"Not modeled: insufficient compounds after merging ({group_compounds} compounds, need ≥100)"
+        elif failure_reason in ("insufficient_compounds_after_merging_pass1", "insufficient_compounds_after_merging_pass2"):
+            group_compounds = failure_info.get("group_compounds", 0)
+            return f"Not modeled: insufficient compounds after merging at every cutoff tested ({group_compounds} compounds)"
+        elif failure_reason in ("insufficient_positives_after_merging_pass1", "insufficient_positives_after_merging_pass2"):
             n_positives = failure_info.get("n_positives", 0)
             return f"Not modeled: insufficient positives after merging ({n_positives} positives, need >50)"
+        elif failure_reason == "group_qualified_pass1":
+            return "Not modeled: sole qualifying assay in pass 1 group (no merging partner after fractional filter)"
+        elif failure_reason == "group_qualified_pass2":
+            return "Not modeled: sole qualifying assay in rescue group (no merging partner after fractional filter)"
         elif failure_reason == "insufficient_fractional_contribution":
-            return "Not modeled: insufficient_fractional_contribution to any merged group (discarded after rescue pass)"
+            return "Not modeled: insufficient fractional contribution to any merged group (discarded after rescue pass)"
         else:
             return "Not modeled: insufficient compatible assays for merging"
 
@@ -533,6 +542,7 @@ all_cols = [
     "activity_type", "unit", "activities", "nan_values", "cpds", "frac_cs",
     "direction", "act_flag", "inact_flag",
     "equal", "higher", "lower",
+    "clusters_0.3", "clusters_0.6", "clusters_0.85",
     "dataset_type", "evaluated_cutoffs", "evaluated_aurocs", "ratio_qt", "ratio_ql", "ratio_mx",
     "min_", "p1", "p25", "p50", "p75", "p99", "max_",
     "selected", "selected_cutoff", "selected_label",

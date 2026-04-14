@@ -126,8 +126,8 @@ def main(pathogen_code: str) -> None:
                     'target_type': dataset_info['target_type'],
                     'cutoff': dataset_info['cutoff'],
                     'auroc': dataset_info['auroc'],
-                    'cpds': len(dataset),
-                    'positives': dataset['bin'].sum(),
+                    'cpds': len(simplified_df),
+                    'positives': int(simplified_df['bin'].sum()),
                     'label': dataset_info['label'],
                     'source': dataset_info['source']
                 })

@@ -76,7 +76,7 @@ indiv_selected   = load_if_exists(os.path.join(OUTPUT, "14_individual_selected_L
 merged_lm        = load_if_exists(os.path.join(OUTPUT, "15_merged_LM.csv"))
 merging_analysis = load_if_exists(os.path.join(OUTPUT, "15_merging_analysis.csv"))
 merged_selected  = load_if_exists(os.path.join(OUTPUT, "16_merged_selected_LM.csv"))
-general_model    = load_if_exists(os.path.join(OUTPUT, "20_general_model.csv"))
+general_model    = load_if_exists(os.path.join(OUTPUT, "20_general_datasets.csv"))
 expert_cutoffs   = load_expert_cutoffs(CONFIGPATH)
 
 n_selected = int(final_datasets["selected"].sum()) if len(final_datasets) > 0 else 0
@@ -242,7 +242,7 @@ all_covered_cpds = final_coverage["A"] | final_coverage["B"] | final_coverage["M
 all_covered_triplets = covered_triplets["A"] | covered_triplets["B"] | covered_triplets["M"]
 
 general_coverage = set()
-general_zip_path = os.path.join(OUTPUT, "12_datasets", "20_general_datasets.zip")
+general_zip_path = os.path.join(OUTPUT, "20_general_datasets.zip")
 if os.path.exists(general_zip_path):
     with zipfile.ZipFile(general_zip_path) as zf:
         for name in zf.namelist():
@@ -363,16 +363,16 @@ def parse_rejection_categories(comment_series):
     named = {
         'selected':              comment_series.str.contains('Retained in final selection', na=False),
         'already_accepted':      comment_series.str.contains('already accepted', na=False),
-        'non_organism':          comment_series.str.contains('non-ORGANISM target type', na=False),
+        'non_organism':          comment_series.str.contains('non-ORGANISM target type|no curated target_chembl_id', na=False, regex=True),
         'qualitative_only':      comment_series.str.contains('only qualitative data', na=False),
         'no_activity_data':      comment_series.str.contains('no activity data', na=False),
         'no_cutoff':             comment_series.str.contains('no expert cutoff defined', na=False),
         'too_few_compounds':     comment_series.str.contains('insufficient compounds', na=False),
         'too_few_positives':     comment_series.str.contains('insufficient positives|insufficient actives', na=False, regex=True),
         'ratio_out_of_range':    comment_series.str.contains('active ratio', na=False),
-        'middle_cutoff_failure': comment_series.str.contains('middle cutoff', na=False),
         'insufficient_compatible': comment_series.str.contains('insufficient compatible assays', na=False),
-        'fractional_contribution': comment_series.str.contains('insufficient_fractional_contribution', na=False),
+        'fractional_contribution': comment_series.str.contains('insufficient fractional contribution', na=False),
+        'group_qualified':       comment_series.str.contains('sole qualifying assay', na=False),
         'auroc_below':           comment_series.str.contains('below 0.70 threshold', na=False),
         'correlation':           comment_series.str.contains('high correlation', na=False),
     }
@@ -585,10 +585,10 @@ if any_selected:
         'no_cutoff',
         'insufficient_compatible',
         'fractional_contribution',
+        'group_qualified',
         'too_few_compounds',
         'too_few_positives',
         'ratio_out_of_range',
-        'middle_cutoff_failure',
         'auroc_below',
         'correlation',
         'already_accepted',
@@ -862,16 +862,16 @@ print("  Sheet 4: Rejection Reasons...")
 _CATEGORIES = {
     "selected":               "Retained in final selection",
     "already_accepted":       "already accepted",
-    "non_organism":           "non-ORGANISM target type",
+    "non_organism":           r"non-ORGANISM target type|no curated target_chembl_id",
     "qualitative_only":       "only qualitative data",
     "no_activity_data":       "no activity data",
     "no_cutoff":              "no expert cutoff defined",
     "too_few_compounds":      "insufficient compounds",
     "too_few_positives":      r"insufficient positives|insufficient actives",
     "ratio_out_of_range":     "active ratio",
-    "middle_cutoff_failure":  "middle cutoff",
-    "fractional_contribution":"insufficient_fractional_contribution",
     "insufficient_compatible":"insufficient compatible assays",
+    "fractional_contribution":"insufficient fractional contribution",
+    "group_qualified":        "sole qualifying assay",
     "auroc_below":            "below 0.70 threshold",
     "correlation":            "high correlation",
 }
@@ -885,10 +885,9 @@ _CATEGORY_LABELS = {
     "too_few_compounds":      "Too few compounds",
     "too_few_positives":      "Too few positives/actives",
     "ratio_out_of_range":     "Active ratio out of range",
-    "fractional_contribution":"Insufficient fractional contribution (merging)",
-    "middle_cutoff_failure":  "Middle cutoff failure",
-    "fractional_contribution":"Insufficient fractional contribution (discarded after rescue pass)",
     "insufficient_compatible":"Insufficient compatible assays for merging",
+    "fractional_contribution":"Insufficient fractional contribution to any merged group",
+    "group_qualified":        "Sole qualifying assay in group (no merging partner)",
     "auroc_below":            "AUROC below 0.70 threshold",
     "correlation":            "Removed: high correlation with higher-priority dataset",
     "other":                  "Other / unclassified",

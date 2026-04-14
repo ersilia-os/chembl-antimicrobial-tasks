@@ -599,6 +599,7 @@ if any_selected:
     # Assign one color per category from SpectralColormap fitted to the number of categories
     ccm = SpectralColormap("npg")
     colors = dict(zip(stack_order, ccm.sample(len(stack_order))))
+    colors['selected'] = '#000000'  # black — visually distinct from all other categories
 
     # Create stacked bars
     bar_labels = ['A', 'B', 'M']

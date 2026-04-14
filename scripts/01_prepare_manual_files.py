@@ -14,7 +14,7 @@ can proceed to step 05 and step 08:
 
 2. data/chembl_processed/01_harmonized_types_map.csv — maps each harmonized activity_type to
    the count and list of raw standard_type strings that collapse into it.
-   Used by step 05.
+   Human-readable reference; not consumed by downstream pipeline steps.
 
 Run this script after step 00 and before step 05/08.
 
@@ -28,11 +28,11 @@ Output: data/chembl_processed/01_activity_std_units_converted.csv  (requires man
 import pandas as pd
 import sys
 import os
-import re
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import DATAPATH, CONFIGPATH
+from pathogen_utils import harmonize
 
 
 def prepare_harmonized_types_map(activity_std_units):
@@ -41,11 +41,8 @@ def prepare_harmonized_types_map(activity_std_units):
     Harmonization strips underscores, spaces, dots, slashes and uppercases the result,
     collapsing variants like 'IC 50', 'ic_50', 'IC/50' -> 'IC50'.
 
-    Produces data/01_harmonized_types_map.csv for use in step 05.
+    Produces data/01_harmonized_types_map.csv as a human-readable reference (not consumed by downstream pipeline steps).
     """
-    def harmonize(x):
-        return re.sub(r"[_\s./\\]", "", str(x).upper().strip())
-
     unique_types = activity_std_units["standard_type"].dropna().unique()
     flat = pd.DataFrame({
         "old_type": unique_types,
@@ -78,9 +75,6 @@ def prepare_unit_curation_file(activity_std_units):
     means more active, -1 = lower value means more active) and save the result as
     config/activity_std_units_manual_curation.csv before running step 08.
     """
-    def harmonize(x):
-        return re.sub(r"[_\s./\\]", "", str(x).upper().strip())
-
     ucum = pd.read_csv(os.path.join(CONFIGPATH, "ucum_manual.csv"))
     unit_to_final_unit = dict(zip(ucum["units"], ucum["final_unit"]))
 

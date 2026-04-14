@@ -6,7 +6,7 @@ import os
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import CONFIGPATH
+from default import CONFIGPATH, AUROC_MIN_THRESHOLD, AUROC_IMPROVEMENT_THRESHOLD
 from pathogen_utils import load_pathogen, load_expert_cutoffs
 
 pathogen_code = sys.argv[1]
@@ -30,9 +30,10 @@ pathogen_compounds = set(pd.read_csv(os.path.join(OUTPUT, "07_compound_counts.cs
 # Base name is everything before the last underscore-separated cutoff suffix.
 # ---------------------------------------------------------------------------
 
-# Extract base name: name_ is "{base}_{cutoff}", e.g. "M_ORG0_1.0"
-# First two underscore-parts are always the base ("M_ORG0" or "M_SP0").
-merged_lm["base_name"] = merged_lm["name"].apply(lambda n: "_".join(n.split("_")[:2]))
+# Extract base name by stripping the trailing cutoff value (last underscore-separated part).
+# e.g. "M_ORG0_1.0" -> "M_ORG0", "M_ORG0_r_1.0" -> "M_ORG0_r"
+# This ensures rescue-pass groups (_r) are treated independently from the main pass.
+merged_lm["base_name"] = merged_lm["name"].apply(lambda n: "_".join(n.split("_")[:-1]))
 
 groups = sorted(
     set(
@@ -64,10 +65,10 @@ for base_name, activity_type, unit, target_type in groups:
     mid_rows = df[df["expert_cutoff"] == mid_cutoff]
     mid_auroc = mid_rows["avg"].iloc[0] if len(mid_rows) > 0 else np.nan
 
-    if best_auroc <= 0.7:
+    if best_auroc <= AUROC_MIN_THRESHOLD:
         continue
 
-    if np.isnan(mid_auroc) or (best_auroc - mid_auroc) > 0.1:
+    if np.isnan(mid_auroc) or (best_auroc - mid_auroc) > AUROC_IMPROVEMENT_THRESHOLD:
         info = df[cols_to_keep].iloc[0].tolist()
         selected.append([activity_type, unit, target_type, best_cutoff, best_auroc, False] + info)
     else:
@@ -86,7 +87,7 @@ selected_df = pd.DataFrame(selected, columns=[
 selected_df.to_csv(os.path.join(OUTPUT, "16_merged_selected_LM.csv"), index=False)
 
 # Coverage from actual saved merged datasets (avoids assay-key lookup issues)
-merged_dir = os.path.join(OUTPUT, "datasets", "M")
+merged_dir = os.path.join(OUTPUT, "12_datasets", "M")
 original_compounds = {"ORG": set(), "SP": set()}
 selected_compounds = {"ORG": set(), "SP": set()}
 

@@ -33,11 +33,22 @@ from tqdm import tqdm
 import pandas as pd
 import numpy as np
 import sys
+import re
 import os
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, root)
 from default import DATAPATH, CONFIGPATH
+
+
+def harmonize(x):
+    """Normalize a standard_type string to a canonical activity type.
+
+    Strips underscores, spaces, dots, slashes and uppercases the result,
+    collapsing variants such as 'IC 50', 'ic_50', 'IC/50' → 'IC50'.
+    Used in steps 01 and 05.
+    """
+    return re.sub(r"[_\s./\\]", "", str(x).upper().strip())
 
 
 def load_pathogen(pathogen_code):
@@ -223,7 +234,7 @@ def extra_curation_target_type(target_type, target_type_curated):
     Rules
     -----
     - UNCHECKED     → allow ORGANISM / SINGLE PROTEIN / DISCARDED; else DISCARDED
-    - NOT-MOLECULAR → allow ORGANISM / DISCARDED; else DISCARDED
+    - NON-MOLECULAR → allow ORGANISM / DISCARDED; else DISCARDED
     - SINGLE PROTEIN / PROTEIN COMPLEX / PROTEIN FAMILY → SINGLE PROTEIN
     - ORGANISM → ORGANISM
     - anything else → DISCARDED
@@ -249,7 +260,7 @@ def extra_curation_target_type(target_type, target_type_curated):
     if target_type == 'UNCHECKED':
         return target_type_curated if target_type_curated in {'ORGANISM', 'SINGLE PROTEIN', 'DISCARDED'} else 'DISCARDED'
 
-    elif target_type == 'NOT-MOLECULAR':
+    elif target_type == 'NON-MOLECULAR':
         return target_type_curated if target_type_curated in {'ORGANISM', 'DISCARDED'} else 'DISCARDED'
 
     elif target_type in {'SINGLE PROTEIN', 'PROTEIN COMPLEX', 'PROTEIN FAMILY'}:

@@ -196,7 +196,7 @@ for lbl, assay_keys_str, name in final_datasets[["label", "assay_keys", "name"]]
 assay_to_merged_group = {}
 # From merged_lm (step 15) - all merged groups attempted
 for _, row in merged_lm.iterrows():
-    base_name = "_".join(row["name"].split("_")[:2])  # Extract M_ORG0 from M_ORG0_10.0
+    base_name = "_".join(row["name"].split("_")[:-1])  # Strip cutoff suffix: M_ORG0_10.0→M_ORG0, M_ORG0_r_10.0→M_ORG0_r
     for assay_key_str in row["assay_keys"].split(";"):
         assay_key = _norm_key(_parse_assay_key(assay_key_str))
         assay_to_merged_group[assay_key] = base_name
@@ -280,8 +280,6 @@ def _generate_a_comment(nkey, activity_type, unit, target_type_extra, dtype, has
                 return f"Not considered for A: insufficient actives ({int(mid_pos)}, need ≥50) at middle cutoff ({mid_cutoff})"
             if mid_ratio > 0.5:
                 return f"Not considered for A: active ratio too high ({mid_ratio:.3f}, need ≤0.5) at middle cutoff ({mid_cutoff}) — directed to condition B"
-            if mid_ratio < 0.001:
-                return f"Not considered for A: active ratio too low ({mid_ratio:.5f}, need ≥0.001) at middle cutoff ({mid_cutoff})"
         else:
             # Fallback to max-across-cutoffs stats when middle cutoff has no entry
             cpds  = cpds_qt_map.get(nkey, 0)
@@ -293,8 +291,6 @@ def _generate_a_comment(nkey, activity_type, unit, target_type_extra, dtype, has
                 return f"Not considered for A: insufficient actives ({int(pos)}, need ≥50)"
             if ratio > 0.5:
                 return f"Not considered for A: active ratio too high ({ratio:.3f}, need ≤0.5) — directed to condition B"
-            if ratio < 0.001:
-                return f"Not considered for A: active ratio too low ({ratio:.5f}, need ≥0.001)"
         return "Not considered for A: did not meet size or balance criteria"
 
     # A2. Modeling Completed - Not Selected
@@ -400,15 +396,26 @@ def _generate_m_comment(nkey, dtype, has_cutoff, target_type_extra, considered, 
         failure_info = merging_failure_lookup.get(nkey, {})
         failure_reason = failure_info.get("failure_reason", "insufficient_compatible_assays")
 
-        if failure_reason == "insufficient_compatible_assays":
+        if failure_reason == "excluded_no_target_chembl_id":
+            return "Not considered for M: SINGLE PROTEIN assay with no curated target_chembl_id"
+        elif failure_reason == "insufficient_compatible_assays":
             group_size = failure_info.get("group_size", 0)
             return f"Not modeled: insufficient compatible assays for merging ({group_size} assay{'s' if group_size != 1 else ''} in group, need ≥2)"
         elif failure_reason == "insufficient_compounds_after_merging":
             group_compounds = failure_info.get("group_compounds", 0)
-            return f"Not modeled: insufficient compounds after merging ({group_compounds} compounds, need >1000)"
-        elif failure_reason == "insufficient_positives_after_merging":
+            return f"Not modeled: insufficient compounds after merging ({group_compounds} compounds, need ≥100)"
+        elif failure_reason in ("insufficient_compounds_after_merging_pass1", "insufficient_compounds_after_merging_pass2"):
+            group_compounds = failure_info.get("group_compounds", 0)
+            return f"Not modeled: insufficient compounds after merging at every cutoff tested ({group_compounds} compounds)"
+        elif failure_reason in ("insufficient_positives_after_merging_pass1", "insufficient_positives_after_merging_pass2"):
             n_positives = failure_info.get("n_positives", 0)
             return f"Not modeled: insufficient positives after merging ({n_positives} positives, need >50)"
+        elif failure_reason == "group_qualified_pass1":
+            return "Not modeled: sole qualifying assay in pass 1 group (no merging partner after fractional filter)"
+        elif failure_reason == "group_qualified_pass2":
+            return "Not modeled: sole qualifying assay in rescue group (no merging partner after fractional filter)"
+        elif failure_reason == "insufficient_fractional_contribution":
+            return "Not modeled: insufficient fractional contribution to any merged group (discarded after rescue pass)"
         else:
             return "Not modeled: insufficient compatible assays for merging"
 
@@ -459,7 +466,7 @@ for _, row in individual_selected_lm.iterrows():
 
 # Map merged datasets that were evaluated (M conditions from step 16)
 for _, row in merged_selected_lm.iterrows():
-    base_name = "_".join(row["name"].split("_")[:2])  # Extract M_ORG0 from M_ORG0_10.0
+    base_name = "_".join(row["name"].split("_")[:-1])  # Strip cutoff suffix: M_ORG0_10.0→M_ORG0, M_ORG0_r_10.0→M_ORG0_r
     for assay_key_str in row["assay_keys"].split(";"):
         assay_key = _norm_key(_parse_assay_key(assay_key_str))
         eval_cutoff_map[assay_key] = row["cutoff"]
@@ -535,6 +542,7 @@ all_cols = [
     "activity_type", "unit", "activities", "nan_values", "cpds", "frac_cs",
     "direction", "act_flag", "inact_flag",
     "equal", "higher", "lower",
+    "clusters_0.3", "clusters_0.6", "clusters_0.85",
     "dataset_type", "evaluated_cutoffs", "evaluated_aurocs", "ratio_qt", "ratio_ql", "ratio_mx",
     "min_", "p1", "p25", "p50", "p75", "p99", "max_",
     "selected", "selected_cutoff", "selected_label",

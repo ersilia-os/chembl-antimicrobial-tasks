@@ -22,7 +22,7 @@ def main(pathogen_code: str) -> None:
 
     # Define paths
     base_path = os.path.join(os.path.dirname(__file__), "..", "output", pathogen_code)
-    datasets_path = os.path.join(base_path, "datasets")
+    datasets_path = os.path.join(base_path, "12_datasets")
     final_datasets_17 = os.path.join(base_path, "17_final_datasets.csv")
     output_zip = os.path.join(base_path, "19_final_datasets.zip")
     metadata_csv = os.path.join(base_path, "19_final_datasets_metadata.csv")
@@ -68,7 +68,6 @@ def main(pathogen_code: str) -> None:
     # Load individual datasets from ZIP files
     zip_files = {
         'quantitative': os.path.join(datasets_path, "datasets_qt.zip"),
-        'qualitative': os.path.join(datasets_path, "datasets_ql.zip"),
         'mixed': os.path.join(datasets_path, "datasets_mx.zip")
     }
 
@@ -112,6 +111,10 @@ def main(pathogen_code: str) -> None:
 
                 # Export with original name (just remove .gz and keep .csv)
                 simplified_df = dataset[['smiles', 'bin']].copy()
+                simplified_df = (simplified_df
+                    .sort_values("bin", ascending=False)
+                    .drop_duplicates(subset="smiles", keep="first")
+                    .reset_index(drop=True))
                 csv_content = simplified_df.to_csv(index=False)
                 out_zip.writestr(f"{original_name}.csv", csv_content)
 
@@ -123,8 +126,8 @@ def main(pathogen_code: str) -> None:
                     'target_type': dataset_info['target_type'],
                     'cutoff': dataset_info['cutoff'],
                     'auroc': dataset_info['auroc'],
-                    'cpds': len(dataset),
-                    'positives': dataset['bin'].sum(),
+                    'cpds': len(simplified_df),
+                    'positives': int(simplified_df['bin'].sum()),
                     'label': dataset_info['label'],
                     'source': dataset_info['source']
                 })

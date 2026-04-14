@@ -9,11 +9,12 @@ import os
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import DATAPATH
+from default import DATAPATH, DECOY_RATIO, MIN_CPDS_CONDITION_A, MIN_POSITIVES_CONDITION_A, MIN_POSITIVES_CONDITION_B
 from pathogen_utils import load_pathogen
 from dataset_utils import make_dataset_filename
 from model_utils import (
     load_ecfp_all, load_data_from_zip, KFoldTrain, TrainRF,
+    add_decoys, downsample_negatives,
 )
 
 # ---------------------------------------------------------------------------
@@ -24,21 +25,18 @@ from model_utils import (
 def condition_a(df):
     return (
         df["dataset_type"].isin(["quantitative", "mixed"])
-        & (df["cpds_qt"] >= 1000)
-        & (df["pos_qt"] >= 50)
-        & df["ratio_qt"].between(0.001, 0.5, inclusive="both")
+        & (df["cpds_qt"] >= MIN_CPDS_CONDITION_A)
+        & (df["pos_qt"] >= MIN_POSITIVES_CONDITION_A)
+        & (df["ratio_qt"] < 0.5)
     )
 
 # Condition B: active-enriched datasets — random ChEMBL decoys added to reach target ratio
 def condition_b(df):
     return (
         df["dataset_type"].isin(["quantitative", "mixed"])
-        & (df["pos_qt"] >= 100)
+        & (df["pos_qt"] >= MIN_POSITIVES_CONDITION_B)
         & (df["ratio_qt"] >= 0.5)
     )
-
-# Target active ratio when adding decoys for condition B
-decoy_ratio = 0.1
 
 conditions = {"A": condition_a, "B": condition_b}
 
@@ -89,7 +87,7 @@ pd.DataFrame(reference_set, columns=["reference_compounds"]).to_csv(
 x_ref = np.array([ecfps[cid] for cid in reference_set])
 
 # Output directory for reference set predictions
-PATH_TO_CORRELATIONS = os.path.join(OUTPUT, "correlations")
+PATH_TO_CORRELATIONS = os.path.join(OUTPUT, "13_correlations")
 os.makedirs(PATH_TO_CORRELATIONS, exist_ok=True)
 
 # ---------------------------------------------------------------------------
@@ -97,50 +95,39 @@ os.makedirs(PATH_TO_CORRELATIONS, exist_ok=True)
 # ---------------------------------------------------------------------------
 
 def determine_hierarchical_assignment(assay_datasets, expert_cutoffs, pathogen_code):
-    """Determine which assays qualify for A vs B based on middle cutoff evaluation."""
+    """Determine which assays qualify for A vs B by checking all available cutoffs."""
     qualified_for_a = set()
     qualified_for_b = set()
     qualified_for_neither = set()
 
     print("Hierarchical assignment analysis:")
     total_assays = 0
-    middle_cutoff_available = 0
-    fallback_used = 0
 
     for assay_key, group in assay_datasets.groupby(["assay_id", "activity_type", "unit"]):
         total_assays += 1
         target_type = group["target_type_curated_extra"].iloc[0]
         cutoff_key = (assay_key[1], assay_key[2], target_type, pathogen_code)
-        cutoff_list = expert_cutoffs.get(cutoff_key)
+        cutoff_list = expert_cutoffs.get(cutoff_key) or []
 
-        if cutoff_list and len(cutoff_list) >= 2:
-            middle_cutoff_available += 1
-            middle_cutoff = cutoff_list[1]  # Index 1 is middle cutoff
-            middle_row = group[group["expert_cutoff"] == middle_cutoff]
+        qualified_a = any(
+            not group[group["expert_cutoff"] == c].empty and
+            condition_a(pd.DataFrame([group[group["expert_cutoff"] == c].iloc[0]])).iloc[0]
+            for c in cutoff_list
+        )
+        qualified_b = (not qualified_a) and any(
+            not group[group["expert_cutoff"] == c].empty and
+            condition_b(pd.DataFrame([group[group["expert_cutoff"] == c].iloc[0]])).iloc[0]
+            for c in cutoff_list
+        )
 
-            if not middle_row.empty:
-                middle_data = pd.DataFrame([middle_row.iloc[0]])
-                if condition_a(middle_data).iloc[0]:
-                    qualified_for_a.add(assay_key)
-                elif condition_b(middle_data).iloc[0]:  # ✅ Explicit check
-                    qualified_for_b.add(assay_key)
-                else:
-                    qualified_for_neither.add(assay_key)  # ✅ Track neither case
+        if qualified_a:
+            qualified_for_a.add(assay_key)
+        elif qualified_b:
+            qualified_for_b.add(assay_key)
         else:
-            # Fallback for edge cases: use first available cutoff
-            fallback_used += 1
-            if not group.empty:
-                fallback_data = pd.DataFrame([group.iloc[0]])
-                if condition_a(fallback_data).iloc[0]:
-                    qualified_for_a.add(assay_key)
-                elif condition_b(fallback_data).iloc[0]:  # ✅ Explicit check
-                    qualified_for_b.add(assay_key)
-                else:
-                    qualified_for_neither.add(assay_key)  # ✅ Track neither case
+            qualified_for_neither.add(assay_key)
 
     print(f"  Total assays evaluated: {total_assays}")
-    print(f"  Middle cutoff available: {middle_cutoff_available}")
-    print(f"  Fallback used: {fallback_used}")
     print(f"  Qualified for A: {len(qualified_for_a)}")
     print(f"  Qualified for B: {len(qualified_for_b)}")
     print(f"  Qualified for neither: {len(qualified_for_neither)}")
@@ -170,7 +157,7 @@ def run_model(assay, label):
 
     filename = make_dataset_filename(assay_id, activity_type, unit, dataset_type, expert_cutoff)
     zip_name = "datasets_qt.zip" if dataset_type == "quantitative" else "datasets_mx.zip"
-    df = load_data_from_zip(os.path.join(OUTPUT, "datasets", zip_name), filename)
+    df = load_data_from_zip(os.path.join(OUTPUT, "12_datasets", zip_name), filename)
 
     compound_ids = set(df["compound_chembl_id"].astype(str))
     X = np.array(df["compound_chembl_id"].map(ecfps).tolist())
@@ -181,14 +168,15 @@ def run_model(assay, label):
     print(f"    Compounds: {len(X)}, Positives: {n_positives} ({round(100 * n_positives / len(Y), 1)}%)")
 
     if label == "B":
-        n_decoys = max(0, int(n_positives / decoy_ratio) - len(Y))
-        print(f"    Adding {n_decoys} decoys from ChEMBL")
-        rng = random.Random(42)
-        decoy_ids = rng.sample(list(decoys_pool), n_decoys)
-        X_decoys = np.array([ecfps[i] for i in decoy_ids])
-        X = np.vstack([X, X_decoys])
-        Y = np.concatenate([Y, np.zeros(len(X_decoys), dtype=Y.dtype)])
+        X, Y, decoy_ids = add_decoys(X, Y, decoys_pool, ecfps, DECOY_RATIO)
+        print(f"    Added {len(decoy_ids)} decoys from ChEMBL")
         print(f"    After decoys: {len(X)} compounds, {n_positives} positives ({round(100 * n_positives / len(Y), 1)}%)")
+
+    # Downsample negatives for modeling if active ratio < 5%
+    active_ratio = n_positives / len(Y)
+    X, Y = downsample_negatives(X, Y)
+    if n_positives / len(Y) != active_ratio:
+        print(f"    Downsampled negatives for modeling: ratio {active_ratio:.3f} → {n_positives/len(Y):.3f}")
 
     avg_auroc, std_auroc = KFoldTrain(X, Y)
     print(f"    AUROC: {avg_auroc} ± {std_auroc}")

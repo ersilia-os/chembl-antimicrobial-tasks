@@ -1,0 +1,15 @@
+bash generate_datasets.sh abaumannii
+bash generate_datasets.sh mtuberculosis
+bash generate_datasets.sh campylobacter
+bash generate_datasets.sh ngonorrhoeae
+bash generate_datasets.sh hpylori
+bash generate_datasets.sh smansoni
+bash generate_datasets.sh enterobacter
+bash generate_datasets.sh efaecium
+bash generate_datasets.sh spneumoniae
+bash generate_datasets.sh kpneumoniae
+bash generate_datasets.sh pfalciparum
+bash generate_datasets.sh calbicans
+bash generate_datasets.sh paeruginosa
+bash generate_datasets.sh ecoli
+bash generate_datasets.sh saureus

@@ -59,6 +59,14 @@ pair_counts[["compound_chembl_id", "inchikey", "smiles", "count"]].to_csv(
     os.path.join(OUTPATH, "07_compound_counts.csv.gz"), index=False
 )
 
+all_smiles = (
+    pair_counts[["smiles"]]
+    .drop_duplicates()
+    .dropna()
+    .reset_index(drop=True)
+)
+all_smiles.to_csv(os.path.join(OUTPATH, "07_all_smiles.csv"), index=False)
+
 # Define chemical space
 pathogen_chemical_space = set(pair_counts["compound_chembl_id"])
 

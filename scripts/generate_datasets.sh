@@ -26,6 +26,6 @@ python "$SCRIPT_DIR/16_select_datasets_merged.py" "$code"
 python "$SCRIPT_DIR/17_evaluate_correlations.py" "$code"
 python "$SCRIPT_DIR/18_prepare_assay_master.py" "$code"
 python "$SCRIPT_DIR/19_prepare_final_datasets.py" "$code"
-python "$SCRIPT_DIR/20_general_model.py" "$code"
+python "$SCRIPT_DIR/20_general_datasets.py" "$code"
 python "$SCRIPT_DIR/21_diagnosis.py" "$code"
 

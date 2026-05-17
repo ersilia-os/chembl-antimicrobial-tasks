@@ -219,7 +219,7 @@ def load_expert_cutoffs(CONFIGPATH):
     return {
         (a, b, c, d): [float(k) for k in e.split(";")]
         for a, b, c, d, e in cutoffs_df[
-            ["activity_type", "unit", "target_type", "pathogen_code", "expert_cutoff"]
+            ["activity_type", "unit", "target_type", "pathogen_code", "corr_expert_cutoff"]
         ].values
     }
 

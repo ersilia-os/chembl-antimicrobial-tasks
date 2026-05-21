@@ -38,6 +38,12 @@ assay_datasets = assay_datasets[
     (assay_datasets["dataset_type"].isin(["quantitative", "mixed"]))
 ].copy()
 
+# CHEMBL1794345/CHEMBL1794580 and CHEMBL3215001/CHEMBL3214813 are incorrectly annotated in ChEMBL
+# (CHEMBL1794345/CHEMBL1794580 correctly annotated in PubChem as AIDs 504834/504832)
+BLOCKED_ASSAYS_PFALCIPARUM = {"CHEMBL1794345", "CHEMBL1794580", "CHEMBL3215001", "CHEMBL3214813"}
+if pathogen_code == "pfalciparum":
+    assay_datasets = assay_datasets[~assay_datasets["assay_id"].isin(BLOCKED_ASSAYS_PFALCIPARUM)].copy()
+
 print(f"  ORGANISM assay-cutoff rows: {len(assay_datasets)}")
 
 print("Loading expert cutoffs...")
@@ -285,3 +291,28 @@ if len(results_df) > 0:
             print(f"\n[{level}] AUROC summary: mean={level_df['auroc'].mean():.3f}, "
                   f"min={level_df['auroc'].min():.3f}, max={level_df['auroc'].max():.3f}")
             print(f"[{level}] Total compounds: {level_df['n_compounds'].sum()}")
+
+active_compounds = set()
+for df in out_datasets_by_level["middle"].values():
+    active_compounds |= set(df.loc[df["bin"] == 1, "compound_chembl_id"])
+print(f"Compounds active in at least one G dataset: {len(active_compounds)} (middle cutoff only, deduplicated by compound_chembl_id)")
+
+final_17 = pd.read_csv(os.path.join(OUTPUT, "17_final_datasets.csv"))
+selected_abm = final_17[final_17["selected"].astype(bool) & final_17["label"].isin(["A", "B", "M"])]
+merged_dir = os.path.join(OUTPUT, "12_datasets", "M")
+abm_actives = set()
+for _, row in selected_abm.iterrows():
+    name = row["name"]
+    key = f"{name}.csv.gz"
+    if name.startswith("M_"):
+        filepath = os.path.join(merged_dir, key)
+        if os.path.exists(filepath):
+            df = pd.read_csv(filepath)
+            abm_actives |= set(df.loc[df["bin"] == 1, "compound_chembl_id"])
+    else:
+        df = dfs_qt.get(key) if key in dfs_qt else dfs_mx.get(key)
+        if df is not None:
+            abm_actives |= set(df.loc[df["bin"] == 1, "compound_chembl_id"])
+print(f"Compounds active in at least one A/B/M dataset: {len(abm_actives)} (selected datasets only, deduplicated by compound_chembl_id)")
+overlap = active_compounds & abm_actives
+print(f"G actives also active in A/B/M: {len(overlap)}/{len(active_compounds)} ({len(overlap)/len(active_compounds):.1%})" if active_compounds else "No G actives to compare")

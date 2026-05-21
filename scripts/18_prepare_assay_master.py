@@ -396,7 +396,9 @@ def _generate_m_comment(nkey, dtype, has_cutoff, target_type_extra, considered, 
         failure_info = merging_failure_lookup.get(nkey, {})
         failure_reason = failure_info.get("failure_reason", "insufficient_compatible_assays")
 
-        if failure_reason == "excluded_no_target_chembl_id":
+        if failure_reason == "excluded_blocked_assay":
+            return "Excluded from merging: assay manually blocked due to incorrect annotation in ChEMBL"
+        elif failure_reason == "excluded_no_target_chembl_id":
             return "Not considered for M: SINGLE PROTEIN assay with no curated target_chembl_id"
         elif failure_reason == "insufficient_compatible_assays":
             group_size = failure_info.get("group_size", 0)

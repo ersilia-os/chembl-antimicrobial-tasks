@@ -8,7 +8,7 @@ import os
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import DATAPATH, CONFIGPATH, DECOY_RATIO
-from pathogen_utils import load_pathogen, load_expert_cutoffs
+from pathogen_utils import load_pathogen, load_expert_cutoffs, load_pubchem_assays
 from dataset_utils import make_dataset_filename
 from model_utils import load_ecfp_all, load_all_gz_csvs_from_zip, KFoldTrain, TrainRF, add_decoys, downsample_negatives
 
@@ -155,11 +155,11 @@ not_accepted = assays_merged[~assays_merged["accepted_in_individual_lm"]]
 # Only quantitative/mixed assays can contribute data to merged models
 not_accepted = not_accepted[not_accepted["dataset_type"].isin(["quantitative", "mixed"])].copy()
 
-# CHEMBL1794345 and CHEMBL1794580 are incorrectly annotated in ChEMBL
-# (correctly annotated in PubChem as AIDs 504834 and 504832 respectively)
-BLOCKED_ASSAYS_PFALCIPARUM = {"CHEMBL1794345", "CHEMBL1794580"}
-if pathogen_code == "pfalciparum":
-    not_accepted = not_accepted[~not_accepted["assay_id"].isin(BLOCKED_ASSAYS_PFALCIPARUM)].copy()
+# Assays with a PubChem counterpart are modelled independently — exclude from merging
+pubchem_assays = load_pubchem_assays(pathogen_code)
+pubchem_excluded_rows = not_accepted[not_accepted["assay_id"].isin(pubchem_assays)].copy() if pubchem_assays else pd.DataFrame()
+if pubchem_assays:
+    not_accepted = not_accepted[~not_accepted["assay_id"].isin(pubchem_assays)].copy()
 
 filtered_organism = not_accepted[not_accepted["target_type_curated_extra"] == "ORGANISM"].copy()
 
@@ -214,22 +214,18 @@ def parse_assay_key(assay_key_str):
 
 # Initialize merging analysis tracking
 merging_analysis = []
-if pathogen_code == "pfalciparum":
-    blocked_rows = assays_merged[
-        assays_merged["assay_id"].isin(BLOCKED_ASSAYS_PFALCIPARUM) &
-        assays_merged["dataset_type"].isin(["quantitative", "mixed"])
-    ]
-    for _, row in blocked_rows.iterrows():
-        merging_analysis.append({
-            "assay_id": row["assay_id"],
-            "activity_type": row["activity_type"],
-            "unit": row["unit"] if isinstance(row["unit"], str) else None,
-            "target_type": row["target_type_curated_extra"],
-            "group_size": 0,
-            "group_compounds": 0,
-            "failure_reason": "excluded_blocked_assay",
-            "group_keys": "",
-        })
+
+for _, row in pubchem_excluded_rows.iterrows():
+    merging_analysis.append({
+        "assay_id": row["assay_id"],
+        "activity_type": row["activity_type"],
+        "unit": row["unit"] if isinstance(row["unit"], str) else None,
+        "target_type": row["target_type_curated_extra"],
+        "group_size": 0,
+        "group_compounds": 0,
+        "failure_reason": "excluded_pubchem_assay",
+        "group_keys": "",
+    })
 
 # Track all groups attempted (before filtering) for both target types
 def track_all_groups(df_all, group_keys, target_type_name, assay_to_compounds):

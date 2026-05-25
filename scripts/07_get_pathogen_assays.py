@@ -6,7 +6,7 @@ import os
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import DATAPATH, CONFIGPATH
-from pathogen_utils import load_pathogen, load_manual_assays, load_assay_metadata, build_assays_info
+from pathogen_utils import load_pathogen, load_manual_assays, load_excluded_assays, load_assay_metadata, build_assays_info
 
 print("Step 07")
 
@@ -32,6 +32,15 @@ chembl_pathogen = chembl[
     chembl["assay_organism"].str.contains(pathogen, case=False, na=False) |
     chembl["assay_chembl_id"].isin(manual_assays)
 ].reset_index(drop=True)
+
+excluded_assays = load_excluded_assays(pathogen_code)
+if excluded_assays:
+    before = len(chembl_pathogen)
+    chembl_pathogen = chembl_pathogen[
+        ~chembl_pathogen["assay_chembl_id"].isin(excluded_assays)
+    ].reset_index(drop=True)
+    n_excluded = before - len(chembl_pathogen)
+    print(f"  Excluded {n_excluded} activities from {len(excluded_assays)} blocked assay(s)")
 
 if chembl_pathogen.empty:
     raise SystemExit(f"No activities found for pathogen '{pathogen}'. Check pathogens.csv.")
@@ -80,3 +89,14 @@ assays_info = build_assays_info(
     src_id_to_src_short_name, bao_id_to_label,
 )
 assays_info.to_csv(os.path.join(OUTPATH, "07_assays_raw.csv"), index=False)
+
+# 6. Compounds per assay (unique compound count collapsed across activity types/units)
+cpds_per_assay = (
+    chembl_pathogen.groupby("assay_chembl_id")["compound_chembl_id"]
+    .nunique()
+    .reset_index()
+    .rename(columns={"compound_chembl_id": "n_compounds"})
+    .sort_values("n_compounds", ascending=False)
+    .reset_index(drop=True)
+)
+cpds_per_assay.to_csv(os.path.join(OUTPATH, "07_compounds_per_assay.csv"), index=False)

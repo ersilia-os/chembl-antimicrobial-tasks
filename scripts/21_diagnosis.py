@@ -77,6 +77,7 @@ merged_lm        = load_if_exists(os.path.join(OUTPUT, "15_merged_LM.csv"))
 merging_analysis = load_if_exists(os.path.join(OUTPUT, "15_merging_analysis.csv"))
 merged_selected  = load_if_exists(os.path.join(OUTPUT, "16_merged_selected_LM.csv"))
 general_model    = load_if_exists(os.path.join(OUTPUT, "20_general_datasets.csv"))
+general_model_np = load_if_exists(os.path.join(OUTPUT, "20_general_no_pubchem_datasets.csv"))
 expert_cutoffs   = load_expert_cutoffs(CONFIGPATH)
 
 n_selected = int(final_datasets["selected"].sum()) if len(final_datasets) > 0 else 0
@@ -242,7 +243,7 @@ all_covered_cpds = final_coverage["A"] | final_coverage["B"] | final_coverage["M
 all_covered_triplets = covered_triplets["A"] | covered_triplets["B"] | covered_triplets["M"]
 
 general_coverage = set()
-general_zip_path = os.path.join(OUTPUT, "20_general_datasets.zip")
+general_zip_path = os.path.join(OUTPUT, "20_general_datasets_middle.zip")
 if os.path.exists(general_zip_path):
     with zipfile.ZipFile(general_zip_path) as zf:
         for name in zf.namelist():
@@ -733,6 +734,12 @@ if len(general_model) > 0:
         "General organism model (step 20)", len(general_model),
         int(general_model["n_compounds"].sum()),
         "One dataset per (activity_type, unit) pair; all ORGANISM assays pooled at middle cutoff"
+    ))
+if len(general_model_np) > 0:
+    funnel.append(_row(
+        "General organism model — no PubChem (step 20)", len(general_model_np),
+        int(general_model_np["n_compounds"].sum()),
+        "One dataset per (activity_type, unit) pair; PubChem-paired assays excluded"
     ))
 
 sheet1 = pd.DataFrame(funnel)

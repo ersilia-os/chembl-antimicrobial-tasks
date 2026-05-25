@@ -9,6 +9,12 @@ load_pathogen(pathogen_code)
 load_manual_assays(pathogen_code)
     Load the list of manually curated assay ChEMBL IDs for a pathogen.
 
+load_excluded_assays(pathogen_code)
+    Load the set of assay ChEMBL IDs to exclude for a pathogen.
+
+load_pubchem_assays(pathogen_code)
+    Return the set of ChEMBL assay IDs that have a PubChem counterpart.
+
 load_assay_metadata()
     Load lookup dicts for assay source labels and BAO ontology labels.
 
@@ -67,16 +73,44 @@ def load_pathogen(pathogen_code):
 def load_manual_assays(pathogen_code):
     """Return the set of manually curated assay ChEMBL IDs for a pathogen.
 
-    Reads config/assays/<pathogen_code>.csv, which may contain assay IDs
+    Reads config/assays_to_include/<pathogen_code>.csv, which may contain assay IDs
     as comma- or newline-separated values.
     Returns an empty set if the file does not exist.
     """
-    path = os.path.join(CONFIGPATH, "assays", f"{pathogen_code}.csv")
+    path = os.path.join(CONFIGPATH, "assays_to_include", f"{pathogen_code}.csv")
     if not os.path.exists(path):
         return set()
     manual_assays = open(os.path.join(path), "r").read()
     ids = set([j for i in manual_assays.split("\n") for j in i.split(",")])
     return ids
+
+
+def load_excluded_assays(pathogen_code):
+    """Return the set of assay ChEMBL IDs to exclude for a pathogen.
+
+    Reads config/assays_to_exclude/<pathogen_code>.csv (one ID per line).
+    Returns an empty set if the file does not exist.
+    """
+    path = os.path.join(CONFIGPATH, "assays_to_exclude", f"{pathogen_code}.csv")
+    if not os.path.exists(path):
+        return set()
+    return set(line.strip() for line in open(path) if line.strip())
+
+
+def load_pubchem_assays(pathogen_code):
+    """Return the set of ChEMBL assay IDs that have a PubChem counterpart.
+
+    Reads config/pubchem_aids/chembl_assays_in_pubchem_<pathogen_code>.csv
+    and returns the values in the 'Source ID' column.
+    Returns an empty set if the file does not exist or has no data rows.
+    """
+    path = os.path.join(CONFIGPATH, "pubchem_aids", f"chembl_assays_in_pubchem_{pathogen_code}.csv")
+    if not os.path.exists(path):
+        return set()
+    df = pd.read_csv(path)
+    if "Source ID" not in df.columns or df.empty:
+        return set()
+    return set(df["Source ID"].dropna())
 
 
 def load_assay_metadata():
@@ -208,7 +242,10 @@ def load_expert_cutoffs(CONFIGPATH):
     Load expert cutoffs from config/expert_cutoffs.csv.
 
     Returns a dictionary mapping
-        (activity_type, unit, target_type, pathogen_code) -> list of float cutoffs.
+        (activity_type, unit, target_type, pathogen_code) -> list of float cutoffs,
+    ordered so that index 0 is the most lenient threshold and index -1 is the most
+    stringent. For direction == -1 (e.g. MIC, IC50), the ascending numeric list is
+    reversed; for direction == 1 (e.g. % inhibition), it is kept as-is.
 
     Parameters
     ----------
@@ -216,12 +253,14 @@ def load_expert_cutoffs(CONFIGPATH):
         Path to the config folder.
     """
     cutoffs_df = pd.read_csv(os.path.join(CONFIGPATH, "expert_cutoffs.csv"))
-    return {
-        (a, b, c, d): [float(k) for k in e.split(";")]
-        for a, b, c, d, e in cutoffs_df[
-            ["activity_type", "unit", "target_type", "pathogen_code", "corr_expert_cutoff"]
-        ].values
-    }
+    result = {}
+    for _, row in cutoffs_df.iterrows():
+        key = (row["activity_type"], row["unit"], row["target_type"], row["pathogen_code"])
+        cutoffs = [float(k) for k in str(row["expert_cutoff"]).split(";")]
+        if row["direction"] == -1.0:
+            cutoffs = cutoffs[::-1]
+        result[key] = cutoffs
+    return result
 
 
 def extra_curation_target_type(target_type, target_type_curated):

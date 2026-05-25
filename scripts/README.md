@@ -188,7 +188,7 @@ Supported codes are in `config/pathogens.csv`. All outputs go to `output/<pathog
 
 | Step | Script | What it does | Key output |
 |------|--------|-------------|------------|
-| 07 | `07_get_pathogen_assays.py` | Filters the full ChEMBL dataset to records matching the pathogen (by organism field and optional assay allowlist). ⏳ ~1 min | `07_chembl_raw_data.csv.gz`, `07_assays_raw.csv` |
+| 07 | `07_get_pathogen_assays.py` | Filters the full ChEMBL dataset to records matching the pathogen (by organism field and optional assay allowlist). ⏳ ~1 min | `07_chembl_raw_data.csv.gz`, `07_assays_raw.csv`, `07_compounds_per_assay.csv` |
 | 08 | `08_clean_pathogen_activities.py` | Removes invalid records, assigns biological direction per (activity\_type, unit) pair, drops unmodelable activities. ⏳ ~5 min | `08_chembl_cleaned_data.csv.gz`, `08_assays_cleaned.csv` |
 | 09 | `09_curate_assay_parameters.py` | **⚠️ GPU + ollama required.** Uses a local LLM to extract and standardize biological context for each unique assay: target type/name/ChEMBL ID, strain, ATCC ID, mutations, drug resistances, culture media. Processes assays in batches of 6. Already-processed assays are skipped on restart. Target ChEMBL IDs are resolved via a multi-strategy exact-match lookup (organism-prefix stripping, slash-split, gene-name reconstruction) — IDs are never guessed. | `09_assays_parameters_full.csv` |
 | 10 | `10_calculate_assay_clusters.py` | Clusters compounds in each assay by ECFP4 similarity (BitBirch) at three Tanimoto thresholds (0.3, 0.6, 0.85). **Can run in parallel with step 09.** ⏳ ~10 min | `10_assays_clusters.csv` |
@@ -207,7 +207,8 @@ Supported codes are in `config/pathogens.csv`. All outputs go to `output/<pathog
 
 | File | Step | Purpose |
 |------|------|---------|
-| `config/assays/<pathogen_code>.csv` | 07 | Manual assay allowlist — ChEMBL assay IDs to include regardless of organism matching (one ID per line, no header). Optional: missing file is treated as an empty list. |
+| `config/assays_to_include/<pathogen_code>.csv` | 07 | Manual assay allowlist — ChEMBL assay IDs to include regardless of organism matching (one ID per line, no header). Optional: missing file is treated as an empty list. |
+| `config/assays_to_exclude/<pathogen_code>.csv` | 07 | Assay denylist — ChEMBL assay IDs to exclude from the pathogen dataset (one ID per line, no header). Applied after the inclusion filter. Use for assays that are incorrectly annotated or otherwise unsuitable. Optional: missing file is treated as an empty list. |
 | `config/activity_std_units_manual_curation.csv` | 08 | Biological direction per (activity\_type, unit) pair |
 | `config/expert_cutoffs.csv` | 12 | Binarization thresholds per (activity\_type, unit, target\_type, pathogen\_code) |
 | `config/pathogens.csv` | all | Pathogen codes and names |
@@ -216,7 +217,7 @@ Supported codes are in `config/pathogens.csv`. All outputs go to `output/<pathog
 
 ### Step 07 — Get pathogen assays (`07_get_pathogen_assays.py`)
 
-Filters the full preprocessed ChEMBL dataset to extract all bioactivity records associated with the target pathogen. Matching is done by case-insensitive text search on `target_organism` and `assay_organism`. Additionally, any assay ChEMBL IDs listed in `config/assays/<pathogen_code>.csv` are included regardless of organism match — this allowlist is intended for assays that the organism-name filter misses (e.g. assays annotated under a strain name or a non-standard organism string). The file contains one ChEMBL assay ID per line with no header; if the file does not exist it is silently ignored.
+Filters the full preprocessed ChEMBL dataset to extract all bioactivity records associated with the target pathogen. Matching is done by case-insensitive text search on `target_organism` and `assay_organism`. Additionally, any assay ChEMBL IDs listed in `config/assays_to_include/<pathogen_code>.csv` are included regardless of organism match — this allowlist is intended for assays that the organism-name filter misses (e.g. assays annotated under a strain name or a non-standard organism string). After the inclusion filter, assay IDs listed in `config/assays_to_exclude/<pathogen_code>.csv` are removed — use this denylist for assays that are incorrectly annotated in ChEMBL or otherwise unsuitable for the pathogen. Both files contain one ChEMBL assay ID per line with no header; if either file does not exist it is silently ignored.
 
 Outputs are saved to `output/<pathogen_code>/`:
 
@@ -227,6 +228,7 @@ Outputs are saved to `output/<pathogen_code>/`:
 | `07_compound_counts.csv.gz` | Unique compounds with InChIKey, SMILES, and activity count. |
 | `07_all_smiles.csv` | Deduplicated list of SMILES observed for the pathogen (single `smiles` column). Note: different `compound_chembl_id` values can share the same SMILES after step 03 standardization (e.g. the same molecule registered multiple times, or salt forms that collapse to the same canonical structure). This file provides the unique SMILES space and is intended as a convenience reference, for example for virtual screening or external model evaluation. |
 | `07_assays_raw.csv` | Per-(`assay_id`, `activity_type`, `unit`) summary with compound counts, text flags, and fraction of pathogen chemical space. |
+| `07_compounds_per_assay.csv` | Unique compound count per `assay_chembl_id`, collapsed across activity types and units, sorted descending. Useful for identifying the largest assays when building the `config/assays_to_include/` allowlist. |
 
 ⏳ ETA: ~1 minute.
 
@@ -590,6 +592,7 @@ Each row in `15_merging_analysis.csv` carries a `failure_reason` value that reco
 | `insufficient_compounds_after_merging_pass2` | Post-merge check (pass 2) | Same as above, but for the rescue sub-group (pass 2 / `_r` suffix). |
 | `insufficient_positives_after_merging_pass1` | Post-merge check (pass 1) | The pass 1 sub-group has enough total compounds but ≤ 50 active compounds after merging and deduplication. Too few positives to train a reliable classifier. |
 | `insufficient_positives_after_merging_pass2` | Post-merge check (pass 2) | Same as above, but for the rescue sub-group (pass 2 / `_r` suffix). |
+| `excluded_pubchem_assay` | Pre-filter | Assay has a PubChem counterpart listed in `config/pubchem_aids/`. These assays are modelled independently as PubChem-enriched individual datasets and excluded from merging. |
 | `excluded_no_target_chembl_id` | Pre-filter | SINGLE PROTEIN assay with no curated `target_chembl_id`. Merging is only attempted for SINGLE PROTEIN assays with a known target, so this assay is excluded before any group is formed. |
 | `no_expert_cutoff` | Pre-modeling | The group's `(activity_type, unit, target_type)` combination has no entry in `expert_cutoffs.csv` for this pathogen. Without a cutoff, binarization is impossible and the group is skipped. |
 | `successfully_merged` | Modeling | The assay contributed to at least one merged dataset that passed all thresholds and was modeled. `merged_group_name` records the group name (e.g. `M_ORG0`), and `auroc` records the cross-validation result. |
@@ -764,9 +767,13 @@ Saved to `output/<pathogen_code>/`:
 
 ### Step 20 — General organism-level model (`20_general_datasets.py`) *(optional)*
 
-Builds one pooled ML model per `(activity_type, unit)` pair by combining **all** ORGANISM-target assays at the middle expert cutoff. Unlike steps 13–16 (which model individual assays or merged groups), this step ignores assay boundaries and trains on the full available chemical space for each measurement type.
+Builds one pooled ML model per `(activity_type, unit)` pair by combining ORGANISM-target assays. Unlike steps 13–16 (which model individual assays or merged groups), this step ignores assay boundaries and trains on the full available chemical space for each measurement type.
 
-Only `target_type_curated_extra == "ORGANISM"` assays with quantitative or mixed dataset types are used. SINGLE PROTEIN assays are excluded.
+Only `target_type_curated_extra == "ORGANISM"` assays with quantitative or mixed dataset types are used. SINGLE PROTEIN assays are excluded. Assays with a PubChem counterpart (listed in `config/pubchem_aids/`) are modelled independently and excluded from the `no_pubchem` variant.
+
+The step produces **two output variants** in a single run:
+- **`general`** — all eligible ORGANISM assays.
+- **`general_no_pubchem`** — PubChem-paired assays excluded. Use this variant when PubChem-sourced datasets are being modelled separately and their compounds should not contaminate the pooled model.
 
 #### Algorithm
 
@@ -794,12 +801,14 @@ For each `(activity_type, unit)` pair:
 
 Saved to `output/<pathogen_code>/`:
 
+Both variants share the same structure. Replace `<variant>` with `general` or `general_no_pubchem`:
+
 | File | Description |
 |------|-------------|
-| `20_general_datasets.csv` | One row per modeled `(activity_type, unit)` pair — cutoff, assay count, compound count, active count, AUROC ± std. |
-| `20_general_datasets.zip` | One CSV per modeled pair containing `compound_chembl_id`, `smiles`, and `bin` columns (no decoys). |
-| `20_all_positives.csv` | Unique active SMILES across all ORGANISM assays, with occurrence count (how many assay datasets the SMILES appeared in as active). |
-| `20_all_smiles.csv` | All unique SMILES (actives and inactives) seen across all ORGANISM assay datasets. |
+| `20_<variant>_datasets.csv` | One row per modeled `(activity_type, unit, level)` combination — cutoff level, assay count, compound count, active count, AUROC ± std. |
+| `20_<variant>_datasets_{level}.zip` | One CSV per modeled pair at that cutoff level, containing `compound_chembl_id`, `smiles`, and `bin` columns (no decoys). Levels: `low`, `middle`, `high`. |
+| `20_<variant>_all_positives_{level}.csv` | Unique active SMILES at that cutoff level, with occurrence count. |
+| `20_<variant>_all_smiles.csv` | All unique SMILES (actives and inactives) seen across all included ORGANISM assay datasets. |
 
 ⏳ ETA: a few minutes (one RF model per activity/unit pair).
 
@@ -828,7 +837,7 @@ Produces a multi-panel diagnostic figure summarising data quality, chemical dive
 | `17_final_datasets.csv` | Selected dataset names, labels, compound counts |
 | `17_dataset_correlations.csv` | Pairwise compound overlap and hit overlap between models |
 | `18_assays_master.csv` | Per-assay pipeline status comments (rejection analysis) |
-| `20_general_datasets.csv` *(optional)* | General organism model results (summary table) |
+| `20_general_datasets.csv` *(optional)* | General organism model results — all ORGANISM assays (summary table) |
 | `data/chembl_processed/06_chembl_ecfps.h5` | Morgan fingerprints for tSNE |
 
 #### Panels
@@ -908,27 +917,5 @@ python scripts/19_prepare_final_datasets.py <pathogen_code>
 unzip output/<pathogen_code>/19_final_datasets.zip
 ```
 
-### Step 22 — Compounds per assay (`22_pubchem_integration.py`) *(run once, all pathogens)*
-
-A utility script that loops over all pathogens in `config/pathogens.csv` and computes the number of unique compounds per assay from the raw ChEMBL data. Run once after all pathogens have been processed to at least step 07. Required as a prerequisite for PubChem-side integration workflows.
-
-```sh
-python scripts/22_pubchem_integration.py
-```
-
-#### Inputs
-
-| File | Description |
-|------|-------------|
-| `config/pathogens.csv` | Source of pathogen codes to process |
-| `output/<pathogen_code>/07_chembl_raw_data.csv.gz` | Raw activities per pathogen (step 07 output) |
-
-#### Outputs
-
-For each pathogen: `output/<pathogen_code>/compounds_per_assay_<pathogen_code>.csv` — one row per assay, sorted by compound count descending.
-
-⏳ ETA: < 1 minute total.
-
----
 
 For programmatic access with full metadata, see `docs/dataset_access_guide.md`.

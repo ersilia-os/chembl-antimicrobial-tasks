@@ -45,14 +45,14 @@ sys.path.append('src')
 from model_utils import load_all_gz_csvs_from_zip, load_data_from_zip
 
 # Load all datasets from ZIP archives
-datasets_qt = load_all_gz_csvs_from_zip(f'output/{pathogen_code}/datasets/datasets_qt.zip')
-datasets_mx = load_all_gz_csvs_from_zip(f'output/{pathogen_code}/datasets/datasets_mx.zip')
-datasets_ql = load_all_gz_csvs_from_zip(f'output/{pathogen_code}/datasets/datasets_ql.zip')
+datasets_qt = load_all_gz_csvs_from_zip(f'output/{pathogen_code}/12_datasets/datasets_qt.zip')
+datasets_mx = load_all_gz_csvs_from_zip(f'output/{pathogen_code}/12_datasets/datasets_mx.zip')
+datasets_ql = load_all_gz_csvs_from_zip(f'output/{pathogen_code}/12_datasets/datasets_ql.zip')
 
 print(f"Loaded {len(datasets_qt)} quantitative, {len(datasets_mx)} mixed, {len(datasets_ql)} qualitative datasets")
 
 # Load a specific dataset by filename
-filename = "CHEMBL4649948_PERCENTEFFECT_%_qt_50.0.csv.gz"
+filename = "CHEMBL4649948_PERCENTEFFECT_qt_50.0.csv.gz"
 if filename in datasets_qt:
     dataset = datasets_qt[filename]
     print(f"Dataset shape: {dataset.shape}")
@@ -61,14 +61,14 @@ if filename in datasets_qt:
 
 ### Step 3: Access Merged Datasets
 
-Merged datasets are stored in the `datasets/M/` directory:
+Merged datasets are stored in the `12_datasets/M/` directory:
 
 ```python
 import os
 import gzip
 
 # Load merged datasets directly
-merged_dir = f'output/{pathogen_code}/datasets/M'
+merged_dir = f'output/{pathogen_code}/12_datasets/M'
 merged_files = [f for f in os.listdir(merged_dir) if f.endswith('.csv.gz')]
 
 merged_datasets = {}
@@ -123,7 +123,7 @@ for idx, row in selected.head().iterrows():
 output/<pathogen_code>/
 ├── 17_final_datasets.csv           # Selected datasets with metadata
 ├── 18_assays_master.csv           # Master reference table
-├── datasets/
+├── 12_datasets/
 │   ├── datasets_qt.zip            # Quantitative datasets
 │   ├── datasets_ql.zip            # Qualitative datasets
 │   ├── datasets_mx.zip            # Mixed datasets
@@ -141,12 +141,12 @@ All datasets contain these essential columns:
 ### Naming Conventions
 
 **Individual Datasets:**
-- Format: `{assay_id}_{activity_type}_{unit}_{type}_{cutoff}.csv.gz`
-- Example: `CHEMBL4649948_IC50_umol.L-1_qt_10.0.csv.gz`
+- Format: `{assay_id}_{activity_type}_{type}_{cutoff}.csv.gz`
+- Example: `CHEMBL4649948_IC50_qt_10.0.csv.gz`
 
 **Merged Datasets:**
-- Format: `{group_name}_{cutoff}.csv.gz`
-- Examples: `M_ORG0_10.0.csv.gz`, `M_SP1_5.0.csv.gz`
+- Format: `{group_name}_{activity_type}_{cutoff}.csv.gz`
+- Examples: `M_ORG0_MIC_10.0.csv.gz`, `M_SP1_IC50_5.0.csv.gz`
 
 ## Complete Example: Loading Selected Datasets
 
@@ -164,15 +164,15 @@ def load_selected_datasets(pathogen_code):
     selected = final_datasets[final_datasets['selected'] == True]
 
     # Load individual datasets from ZIP archives
-    datasets_qt = load_all_gz_csvs_from_zip(f'output/{pathogen_code}/datasets/datasets_qt.zip')
-    datasets_mx = load_all_gz_csvs_from_zip(f'output/{pathogen_code}/datasets/datasets_mx.zip')
-    datasets_ql = load_all_gz_csvs_from_zip(f'output/{pathogen_code}/datasets/datasets_ql.zip')
+    datasets_qt = load_all_gz_csvs_from_zip(f'output/{pathogen_code}/12_datasets/datasets_qt.zip')
+    datasets_mx = load_all_gz_csvs_from_zip(f'output/{pathogen_code}/12_datasets/datasets_mx.zip')
+    datasets_ql = load_all_gz_csvs_from_zip(f'output/{pathogen_code}/12_datasets/datasets_ql.zip')
 
     all_datasets = {**datasets_qt, **datasets_mx, **datasets_ql}
 
     # Load merged datasets
     import os, gzip
-    merged_dir = f'output/{pathogen_code}/datasets/M'
+    merged_dir = f'output/{pathogen_code}/12_datasets/M'
     if os.path.exists(merged_dir):
         for filename in os.listdir(merged_dir):
             if filename.endswith('.csv.gz'):

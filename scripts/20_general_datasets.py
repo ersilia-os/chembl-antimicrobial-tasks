@@ -208,8 +208,7 @@ def run_general_datasets(assay_datasets, pair_cutoffs, dfs_qt, dfs_mx,
                 "auroc_std": std_auroc,
             })
 
-            unit_sanitized = str(unit).replace("/", "FwdS")
-            dataset_name = f"ORG_{activity_type}_{unit_sanitized}_{cutoff}"
+            dataset_name = f"ORG_{activity_type}_{cutoff}"
             out_datasets_by_level[level][dataset_name] = data
 
     # All positives per level

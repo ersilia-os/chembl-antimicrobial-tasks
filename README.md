@@ -28,7 +28,7 @@ eosvc download --path output
 
 ## Supported pathogens
 
-The pipeline ships with pre-configured settings for 15 pathogens. New pathogens can be added manually by providing a new entry in `config/pathogens.csv` and the corresponding assay allowlist under `config/assays/`.
+The pipeline ships with pre-configured settings for 15 pathogens. New pathogens can be added manually by providing a new entry in `config/pathogens.csv`, the corresponding assay allowlist under `config/assays_to_include/`, and optionally an exclusion list under `config/assays_to_exclude/`.
 
 | Code | Organism |
 |------|----------|

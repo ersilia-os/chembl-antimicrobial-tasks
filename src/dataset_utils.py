@@ -378,13 +378,12 @@ def make_dataset_filename(assay_id, activity_type, unit, dataset_type, expert_cu
     """
     Build the filename for a dataset file produced by step 12.
 
-    Slashes in `unit` are replaced with 'FwdS' to keep filenames valid.
-
     Parameters
     ----------
     assay_id : str
     activity_type : str
     unit : str or None
+        Accepted for call-site compatibility but not included in the filename.
     dataset_type : str
         One of 'quantitative', 'qualitative', 'mixed'.
     expert_cutoff : float or None
@@ -393,9 +392,9 @@ def make_dataset_filename(assay_id, activity_type, unit, dataset_type, expert_cu
     Returns
     -------
     str
-        e.g. 'CHEMBL12345_IC50_umol.L-1_qt_1.0.csv.gz'
+        e.g. 'CHEMBL12345_IC50_qt_1.0.csv.gz'
     """
-    base = f"{assay_id}_{activity_type}_{str(unit).replace('/', 'FwdS')}"
+    base = f"{assay_id}_{activity_type}"
     if dataset_type == "quantitative":
         return f"{base}_qt_{expert_cutoff}.csv.gz"
     elif dataset_type == "qualitative":

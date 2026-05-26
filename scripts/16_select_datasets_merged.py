@@ -31,7 +31,7 @@ pathogen_compounds = set(pd.read_csv(os.path.join(OUTPUT, "07_compound_counts.cs
 # ---------------------------------------------------------------------------
 
 # Extract base name by stripping the trailing cutoff value (last underscore-separated part).
-# e.g. "M_ORG0_1.0" -> "M_ORG0", "M_ORG0_r_1.0" -> "M_ORG0_r"
+# e.g. "M_ORG0_MIC_1.0" -> "M_ORG0_MIC", "M_ORG0_r_MIC_1.0" -> "M_ORG0_r_MIC"
 # This ensures rescue-pass groups (_r) are treated independently from the main pass.
 merged_lm["base_name"] = merged_lm["name"].apply(lambda n: "_".join(n.split("_")[:-1]))
 

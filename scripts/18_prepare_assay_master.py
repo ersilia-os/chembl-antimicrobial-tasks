@@ -196,7 +196,7 @@ for lbl, assay_keys_str, name in final_datasets[["label", "assay_keys", "name"]]
 assay_to_merged_group = {}
 # From merged_lm (step 15) - all merged groups attempted
 for _, row in merged_lm.iterrows():
-    base_name = "_".join(row["name"].split("_")[:-1])  # Strip cutoff suffix: M_ORG0_10.0→M_ORG0, M_ORG0_r_10.0→M_ORG0_r
+    base_name = "_".join(row["name"].split("_")[:-1])  # Strip cutoff suffix: M_ORG0_MIC_10.0→M_ORG0_MIC
     for assay_key_str in row["assay_keys"].split(";"):
         assay_key = _norm_key(_parse_assay_key(assay_key_str))
         assay_to_merged_group[assay_key] = base_name
@@ -468,7 +468,7 @@ for _, row in individual_selected_lm.iterrows():
 
 # Map merged datasets that were evaluated (M conditions from step 16)
 for _, row in merged_selected_lm.iterrows():
-    base_name = "_".join(row["name"].split("_")[:-1])  # Strip cutoff suffix: M_ORG0_10.0→M_ORG0, M_ORG0_r_10.0→M_ORG0_r
+    base_name = "_".join(row["name"].split("_")[:-1])  # Strip cutoff suffix: M_ORG0_MIC_10.0→M_ORG0_MIC
     for assay_key_str in row["assay_keys"].split(";"):
         assay_key = _norm_key(_parse_assay_key(assay_key_str))
         eval_cutoff_map[assay_key] = row["cutoff"]

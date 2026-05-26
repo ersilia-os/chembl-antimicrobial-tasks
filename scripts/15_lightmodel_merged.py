@@ -424,7 +424,7 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
 
             for expert_cutoff in cutoff_list:
 
-                name_ = f"{name}{pass_suffix}_{expert_cutoff}"
+                name_ = f"{name}{pass_suffix}_{activity_type}_{expert_cutoff}"
 
                 # Load and concatenate quantitative datasets
                 data_quant_list = [

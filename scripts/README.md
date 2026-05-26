@@ -566,7 +566,7 @@ For each qualifying group:
 5. Train a **final model on all data** → predict activity probabilities on the reference set (loaded from `13_reference_set.csv.gz`)
 6. Save merged dataset (without decoys) and reference predictions
 
-Merged datasets are named `M_ORG<i>` (ORGANISM) or `M_SP<i>` (SINGLE PROTEIN), with an optional `_r` suffix for rescue-pass sub-groups, followed by the expert cutoff value (e.g. `M_ORG0_10.0`, `M_SP1_r_1.0`).
+Merged datasets are named `M_ORG<i>` (ORGANISM) or `M_SP<i>` (SINGLE PROTEIN), with an optional `_r` suffix for rescue-pass sub-groups, followed by the activity type and expert cutoff value (e.g. `M_ORG0_MIC_10.0`, `M_SP1_r_IC50_1.0`).
 
 Outputs are saved to `output/<pathogen_code>/`:
 
@@ -607,7 +607,7 @@ Each row in `15_merging_analysis.csv` carries a `failure_reason` value that reco
 
 Selects the single best dataset per merged group from the step 15 results, applying the same AUROC threshold and mid-cutoff preference rule used in step 14 for individual datasets.
 
-Each group is identified by its base name (the dataset name with the cutoff suffix stripped — e.g. `M_ORG0_1.0` → `M_ORG0`). Rescue-pass groups (`M_ORG0_r`) are treated as independent groups from their main-pass counterparts (`M_ORG0`) and each gets its own selection slot.
+Each group is identified by its base name (the dataset name with the cutoff suffix stripped — e.g. `M_ORG0_MIC_1.0` → `M_ORG0_MIC`). Rescue-pass groups (`M_ORG0_r_MIC`) are treated as independent groups from their main-pass counterparts (`M_ORG0_MIC`) and each gets its own selection slot.
 
 #### Selection criteria
 
@@ -722,10 +722,10 @@ Three `comment_A`, `comment_B`, `comment_M` columns annotate each assay's journe
 | Not considered for modeling | `"Not considered for A: insufficient compounds (47, need ≥1000) at middle cutoff (1.0)"` |
 | Modeled but failed AUROC threshold | `"Modeled but not selected: best AUROC 0.623 below 0.70 threshold"` |
 | Selected, excluded from step 17 (SINGLE PROTEIN only) | `"Selected but excluded from correlation analysis (non-ORGANISM target type)"` |
-| Selected, discarded as redundant | `"Discarded: high correlation with dataset M_ORG0_1.0"` |
+| Selected, discarded as redundant | `"Discarded: high correlation with dataset M_ORG0_MIC_1.0"` |
 | Retained in final selection | `"Retained in final selection"` |
 
-For condition M, comments also include the merged group name (e.g. `"Retained in final selection from group M_ORG0_r"`). Failure reasons for non-merged assays are derived from `15_merging_analysis.csv`; see the Step 15 section for the full list of failure reason labels. When an assay did not qualify for A or B at any cutoff, the middle cutoff (second value in the expert cutoffs list) is used as the reference for the failure message, as it represents the central activity threshold. If any cutoff did qualify, the assay was modeled and the comment reflects the actual modeling outcome regardless of the middle cutoff.
+For condition M, comments also include the merged group name (e.g. `"Retained in final selection from group M_ORG0_r_MIC"`). Failure reasons for non-merged assays are derived from `15_merging_analysis.csv`; see the Step 15 section for the full list of failure reason labels. When an assay did not qualify for A or B at any cutoff, the middle cutoff (second value in the expert cutoffs list) is used as the reference for the failure message, as it represents the central activity threshold. If any cutoff did qualify, the assay was modeled and the comment reflects the actual modeling outcome regardless of the middle cutoff.
 
 Outputs are saved to `output/<pathogen_code>/`:
 

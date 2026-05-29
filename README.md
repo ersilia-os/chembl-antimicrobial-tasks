@@ -1,3 +1,8 @@
+This model has been financed by Project PID2023-148309OA-I00 funded by MICIU/AEI/10.13039/501100011033 and by ERDF, EU.
+
+<img width="300" alt="miciu_cofinanciado" src="https://github.com/user-attachments/assets/2ee2934c-9b52-43a6-91ce-4dc5581b2f03" />
+
+
 # Antimicrobial binary ML tasks from ChEMBL
 
 This repository provides a reproducible pipeline to extract antimicrobial bioactivity data from [ChEMBL](https://www.ebi.ac.uk/chembl/) and convert it into ready-to-use binary classification datasets for machine learning. For each pathogen of interest, the pipeline selects high-quality assays, binarizes quantitative measurements using expert-defined cutoffs, and trains baseline models to evaluate dataset quality, modelability and redundancy. It is aimed at researchers building or benchmarking antimicrobial activity prediction models.

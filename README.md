@@ -1,4 +1,4 @@
-This model has been financed by Project PID2023-148309OA-I00 funded by MICIU/AEI/10.13039/501100011033 and by ERDF, EU.
+This project has been financed by Project PID2023-148309OA-I00 funded by MICIU/AEI/10.13039/501100011033 and by ERDF, EU.
 
 <img width="300" alt="miciu_cofinanciado" src="https://github.com/user-attachments/assets/2ee2934c-9b52-43a6-91ce-4dc5581b2f03" />
 

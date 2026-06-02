@@ -408,24 +408,27 @@ def calculate_rejection_proportions(df):
 
 layout = "3×3" if any_selected else "2×2"
 print(f"Plotting {layout} diagnostic figure ({layout} panels)...")
-stylia.set_style("ersilia")
-nc = stylia.NamedColors()  
+# stylia.set_style("ersilia")
+
+stylia.set_format("slide")
+stylia.set_style("article")
+nc = stylia.NamedColors()
 
 if any_selected:
     fig, axs = stylia.create_figure(3, 3, width=1, height=1)
 else:
     fig, axs = stylia.create_figure(2, 2, width=1, height=1)
-cmap2 = mpl.colors.LinearSegmentedColormap.from_list("purple_blue", [nc.plum, nc.blue], N=256)
-label_to_color = {"A":nc.orange, "B": nc.blue, "M": nc.yellow}
+cmap2 = mpl.colors.LinearSegmentedColormap.from_list("purple_yellow", ["#50285A", "#FAD782"], N=256)
+label_to_color = {"A": nc.tangerine, "B": nc.cobalt, "M": nc.amber}
 
 # [0][0] Raw vs cleaned: activities, compounds, assays
 ax = axs.next()
-ax.bar([0], [activities_raw], color=nc.gray, label="Raw")
-ax.bar([0], [activities_cleaned], color=nc.blue, label="Cleaned")
-ax.bar([1], [compounds_raw], color=nc.gray)
-ax.bar([1], [compounds_cleaned], color=nc.blue)
-ax.bar([2], [n_assays_raw], color=nc.gray)
-ax.bar([2], [n_assays_cleaned], color=nc.blue)
+ax.bar([0], [activities_raw], color=nc.silver, label="Raw")
+ax.bar([0], [activities_cleaned], color=nc.cobalt, label="Cleaned")
+ax.bar([1], [compounds_raw], color=nc.silver)
+ax.bar([1], [compounds_cleaned], color=nc.cobalt)
+ax.bar([2], [n_assays_raw], color=nc.silver)
+ax.bar([2], [n_assays_cleaned], color=nc.cobalt)
 ax.set_xticks([0, 1, 2])
 ax.set_xticklabels(["Activities", "Compounds", "Assays"])
 ax.legend(loc="upper right")
@@ -433,13 +436,13 @@ stylia.label(ax, ylabel="Number", xlabel="", title="Raw vs cleaned data")
 
 # [0][1] Fraction bars: assay type, target type, strain, unit, activity type
 ax = axs.next()
-ax.bar([0, 0, 0], assay_type_bars, zorder=2, color=[nc.gray, nc.pink,nc.yellow])
+ax.bar([0, 0, 0], assay_type_bars, zorder=2, color=[nc.silver, nc.fuchsia, nc.amber])
 ax.text(0, assay_type_bars[-1] / 2, "F", ha="center", va="center")
 ax.text(0, (assay_type_bars[-2] + assay_type_bars[-1]) / 2, "B", ha="center", va="center")
-ax.bar([1, 1, 1], target_type_bars, zorder=2, color=[nc.gray, nc.pink, nc.yellow])
+ax.bar([1, 1, 1], target_type_bars, zorder=2, color=[nc.silver, nc.fuchsia, nc.amber])
 ax.text(1, target_type_bars[-1] / 2, "ORG", ha="center", va="center")
 ax.text(1, (target_type_bars[-2] + target_type_bars[-1]) / 2, "SP", ha="center", va="center")
-ax.bar([2, 2, 2], strain_bars, zorder=2, color=[nc.gray, nc.pink,nc.yellow])
+ax.bar([2, 2, 2], strain_bars, zorder=2, color=[nc.silver, nc.fuchsia, nc.amber])
 # Add text labels for strain information
 if 'majoritarian_strain' in locals() and majoritarian_strain:
     ax.text(2, strain_bars[-1] / 2, majoritarian_strain[:6], ha="center", va="center")
@@ -447,13 +450,13 @@ if 'majoritarian_strain' in locals() and majoritarian_strain:
 if len(strain_bars) >= 2:
     other_center = (strain_bars[-2] + strain_bars[-1]) / 2
     ax.text(2, other_center, "other", ha="center", va="center")
-ax.bar([3, 3, 3], unit_bars, zorder=2, color=[nc.gray, nc.pink,nc.yellow])
+ax.bar([3, 3, 3], unit_bars, zorder=2, color=[nc.silver, nc.fuchsia, nc.amber])
 ax.text(3, unit_bars[-1] / 2, "uM", ha="center", va="center")
 ax.text(3, (unit_bars[-2] + unit_bars[-1]) / 2, "%", ha="center", va="center")
 ax.bar(
     [4, 4, 4],
     [1, (act_qt + act_mx) / activities_cleaned, act_qt / activities_cleaned],
-    zorder=2, color=[nc.gray, nc.pink,nc.yellow],
+    zorder=2, color=[nc.silver, nc.fuchsia, nc.amber],
 )
 ax.text(4, (act_qt / activities_cleaned) / 2, "qt.", ha="center", va="center")
 ax.set_ylim([0, 1])
@@ -496,10 +499,10 @@ ax.set_xticks([1, 10, 100, 1000, 10000])
 ax.set_yscale("log")
 ax.set_yticks([1, 10, 100, 1_000, 10_000, 100_000])
 ax.set_yticklabels([r"$10^0$", r"$10^1$", r"$10^2$", r"$10^3$", r"$10^4$", r"$10^5$"])
-ax.plot(x_cpds_arr, cpds_per_assay, c=nc.yellow, lw=1.8, zorder=3)
-ax.fill_between(x_cpds_arr, cpds_per_assay, 1, color=nc.yellow, alpha=0.6, zorder=2)
+ax.plot(x_cpds_arr, cpds_per_assay, c=nc.amber, lw=1.8, zorder=3)
+ax.fill_between(x_cpds_arr, cpds_per_assay, 1, color=nc.amber, alpha=0.6, zorder=2)
 for xi in x_marks:
-    ax.scatter([xi], [cpds_per_assay[xi - 1]], zorder=4, ec="k", s=25, color=nc.gray)
+    ax.scatter([xi], [cpds_per_assay[xi - 1]], zorder=4, ec="k", s=25, color=nc.silver)
 if len(cpds_per_assay) > 0:
     ymax = max(max(cpds_per_assay), np.max(cum_as_compounds), left_to_right(1.0))
     ax.set_ylim(0.6, ymax * 2)
@@ -507,10 +510,10 @@ if len(cpds_per_assay) > 0:
     secax.set_ylabel("Fraction (cum) of the chemical space")
     secax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     secax.yaxis.set_major_formatter(mpl.ticker.FormatStrFormatter("%.1f"))
-    ax.plot(x_cum, cum_as_compounds, c=nc.plum, lw=1.8, zorder=5)
-    ax.fill_between(x_cum, cum_as_compounds, 1, color=nc.plum, alpha=0.25, zorder=1)
+    ax.plot(x_cum, cum_as_compounds, c=nc.orchid, lw=1.8, zorder=5)
+    ax.fill_between(x_cum, cum_as_compounds, 1, color=nc.orchid, alpha=0.25, zorder=1)
     for xi in x_marks:
-        ax.scatter([xi], [cum_as_compounds[xi - 1]], zorder=6, ec="k", s=25, color=nc.gray)
+        ax.scatter([xi], [cum_as_compounds[xi - 1]], zorder=6, ec="k", s=25, color=nc.silver)
 else:
     ax.text(0.5, 0.5, "No data available", ha="center", va="center",
             transform=ax.transAxes, color="gray")
@@ -549,14 +552,14 @@ if any_selected:
     ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     ax.set_xticks([1, 2, 3, 4, 5])
     ax.set_xticklabels(["A", "B", "M", "A+B+M", "G"])
-    for xi, lbl, color in [(1, "A", nc.orange), (2, "B", nc.blue), (3, "M", nc.yellow)]:
+    for xi, lbl, color in [(1, "A", nc.tangerine), (2, "B", nc.cobalt), (3, "M", nc.amber)]:
         frac = len(final_coverage[lbl]) / len(pathogen_compounds)
-        ax.bar([xi, xi], [1, frac], zorder=2, color=[nc.gray, color], ec="k")
+        ax.bar([xi, xi], [1, frac], zorder=2, color=[nc.silver, color], ec="k")
     frac_all = len(all_coverage) / len(pathogen_compounds)
-    ax.bar([4, 4], [1, frac_all], zorder=2, color=[nc.gray, nc.mint], ec="k")
+    ax.bar([4, 4], [1, frac_all], zorder=2, color=[nc.silver, nc.turquoise], ec="k")
     if general_coverage:
         frac_g = len(general_coverage) / len(pathogen_compounds)
-        ax.bar([5, 5], [1, frac_g], zorder=2, color=[nc.gray, nc.plum], ec="k")
+        ax.bar([5, 5], [1, frac_g], zorder=2, color=[nc.silver, nc.orchid], ec="k")
     stylia.label(ax, ylabel="Chemical space percentage", xlabel="", title="Chemical space coverage by label")
 
     # [2][2] Compounds vs positives per selected dataset

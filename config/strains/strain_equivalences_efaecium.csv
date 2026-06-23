@@ -1,0 +1,11 @@
+group_assays,pathogen,canonical_id,canonical_label,species,type_strain,member_value,member_key,match_type,data_assays,source,verified_by,notes
+82,efaecium,BacDive:5301,ATCC 19434,Enterococcus faecium,yes,ATCC 19434,19434,exact,53,bacdive,,
+82,efaecium,BacDive:5301,ATCC 19434,Enterococcus faecium,yes,NCTC 7171,7171,exact,17,bacdive,,
+82,efaecium,BacDive:5301,ATCC 19434,Enterococcus faecium,yes,DSM 20477,20477,exact,7,bacdive,,
+82,efaecium,BacDive:5301,ATCC 19434,Enterococcus faecium,yes,BCRC 10067,10067,exact,2,bacdive,,
+82,efaecium,BacDive:5301,ATCC 19434,Enterococcus faecium,yes,CIP 103014,103014,exact,2,bacdive,,
+82,efaecium,BacDive:5301,ATCC 19434,Enterococcus faecium,yes,LMG 11423,11423,exact,1,bacdive,,
+17,efaecium,BacDive:5300,Van A,Enterococcus faecium,no,Van A,VANA,exact,15,bacdive,,
+17,efaecium,BacDive:5300,Van A,Enterococcus faecium,no,DSM 17050,17050,exact,2,bacdive,,
+2,efaecium,BacDive:136701,BM4147,Enterococcus faecium,no,BM4147,BM4147,exact,1,bacdive,,
+2,efaecium,BacDive:136701,BM4147,Enterococcus faecium,no,CIP 103510,103510,exact,1,bacdive,,

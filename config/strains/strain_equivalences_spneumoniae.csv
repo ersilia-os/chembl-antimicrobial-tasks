@@ -1,0 +1,5 @@
+group_assays,pathogen,canonical_id,canonical_label,species,type_strain,member_value,member_key,match_type,data_assays,source,verified_by,notes
+51,spneumoniae,BacDive:136390,D 39,Streptococcus pneumoniae,no,D 39,D39,exact,44,bacdive,,
+51,spneumoniae,BacDive:136390,D 39,Streptococcus pneumoniae,no,NCTC 7466,7466,exact,7,bacdive,,
+2,spneumoniae,BacDive:14749,ATCC 33400,Streptococcus pneumoniae,yes,ATCC 33400,33400,exact,1,bacdive,,
+2,spneumoniae,BacDive:14749,ATCC 33400,Streptococcus pneumoniae,yes,DSM 20566,20566,exact,1,bacdive,,

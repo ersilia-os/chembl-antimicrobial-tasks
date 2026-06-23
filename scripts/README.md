@@ -193,7 +193,7 @@ Supported codes are in `config/pathogens.csv`. All outputs go to `output/<pathog
 | 09 | `09_curate_assay_parameters.py` | **⚠️ GPU + ollama required.** Uses a local LLM to extract and standardize biological context for each unique assay: target type/name/ChEMBL ID, strain, ATCC ID, mutations, drug resistances, culture media. Processes assays in batches of 6. Already-processed assays are skipped on restart. Target ChEMBL IDs are resolved via a multi-strategy exact-match lookup (organism-prefix stripping, slash-split, gene-name reconstruction) — IDs are never guessed. | `09_assays_parameters_full.csv` |
 | 10 | `10_calculate_assay_clusters.py` | Clusters compounds in each assay by ECFP4 similarity (BitBirch) at three Tanimoto thresholds (0.3, 0.6, 0.85). **Can run in parallel with step 09.** ⏳ ~10 min | `10_assays_clusters.csv` |
 | 11 | `11_get_assay_overlap.py` | Computes pairwise compound overlap between assays with ≥ 50 compounds. ⏳ ~1 min | `11_assays_overlap.csv` |
-| 12 | `12_prepare_assay_datasets.py` | Binarizes activities using expert cutoffs (`config/expert_cutoffs.csv`). Produces quantitative (`_qt`), qualitative (`_ql`), and mixed (`_mx`) datasets per assay. **⚠️ `expert_cutoffs.csv` must exist before running.** ⏳ ~5 min | `12_datasets.csv`, `12_assay_data_info.csv`, `12_datasets/datasets_qt.zip`, `12_datasets/datasets_ql.zip`, `12_datasets/datasets_mx.zip` |
+| 12 | `12_prepare_assay_datasets.py` | Binarizes activities using expert cutoffs (`config/expert_cutoffs.csv`). Produces quantitative (`_qt`), qualitative (`_ql`), and mixed (`_mx`) datasets per assay. COADD-sourced assays (`source_label == "COADD"`) are excluded here and produce no datasets. **⚠️ `expert_cutoffs.csv` must exist before running.** ⏳ ~5 min | `12_datasets.csv`, `12_assay_data_info.csv`, `12_datasets/datasets_qt.zip`, `12_datasets/datasets_ql.zip`, `12_datasets/datasets_mx.zip` |
 | 13 | `13_lightmodel_individual.py` | Trains Random Forest classifiers (4-fold CV, Morgan fingerprints) on each binarized dataset. Evaluates AUROC. Adds ChEMBL decoys for active-enriched datasets. ⏳ ~30 min | `13_individual_LM.csv`, `13_reference_set.csv.gz`, `13_correlations/A/`, `13_correlations/B/` |
 | 14 | `14_select_datasets_individual.py` | Selects the best cutoff per assay (AUROC > 0.7 threshold; prefers the mid cutoff). ⏳ < 1 min | `14_individual_selected_LM.csv` |
 | 15 | `15_lightmodel_merged.py` | Merges assays that share experimental context (same activity type, unit, target, strain) and re-evaluates modelability for assays rejected in step 14. ⏳ ~10–30 min | `15_merged_LM.csv`, `13_correlations/M/`, `12_datasets/M/` |
@@ -393,6 +393,8 @@ This simplified field is used as the key for expert cutoff lookup.
 
 Binarization thresholds are loaded from `config/expert_cutoffs.csv`, keyed by (`activity_type`, `unit`, `target_type_curated_extra`, `pathogen_code`). Multiple cutoffs per key are supported (semicolon-separated), generating one dataset per cutoff value. If no cutoff is defined for an assay, quantitative binarization is skipped.
 
+Percentage-based endpoints (`unit == "%"`: ACTIVITY, INHIBITION, GI, PERCENTEFFECT) use cutoffs `50;75;90`. A 25% effect was considered too weak to call a compound active, so the floor was raised to 50%; 50% remains the preferred default in dataset selection (see steps 14/16).
+
 > ⚠️ `expert_cutoffs.csv` must be manually created before running this step. Cutoffs are defined in the canonical unit space produced by step 05 (e.g. IC50 in `umol.L-1`). Because all values are normalized to a single unit per activity type in step 05, separate entries for nM, µM etc. are not needed.
 
 #### Quantitative binarization
@@ -495,17 +497,17 @@ Selects the single best dataset per assay triplet from the step 13 results, appl
 
 Only assays with a best AUROC > 0.7 (across all cutoffs tested) are retained. For assays with multiple expert cutoffs, one cutoff is chosen per the following rule:
 
-- **Prefer the mid cutoff** (the second value in the `expert_cutoffs.csv` list for that assay) as a default, since it represents the central activity threshold and is more interpretable.
-- **Switch to the best cutoff** if the best cutoff achieves an AUROC more than 0.1 higher than the mid cutoff — indicating a meaningfully better model at that threshold.
-- **Fall back to the best cutoff** if the mid cutoff has no modeled result in `13_individual_LM.csv` (e.g. it was filtered out before modeling).
+- **Prefer the reference cutoff** as a default. For most endpoints this is the mid cutoff (second value in the `expert_cutoffs.csv` list). For percentage endpoints (`unit == "%"`) the reference is instead the **most lenient** cutoff (50) — so 50% remains the default active threshold even though it is now the lowest of the three. The rule lives in `reference_cutoff()` in `src/pathogen_utils.py`.
+- **Switch to the best cutoff** if the best cutoff achieves an AUROC more than 0.1 higher than the reference cutoff — indicating a meaningfully better model at that threshold.
+- **Fall back to the best cutoff** if the reference cutoff has no modeled result in `13_individual_LM.csv` (e.g. it was filtered out before modeling).
 
 > ⚠️ Assays with fewer than two expert cutoffs defined are skipped at this step and will not appear in the output.
 
-> ⚠️ The 0.7 threshold is enforced on the **best** cutoff AUROC, not the selected one. When the mid cutoff is preferred, the selected dataset may have AUROC below 0.7.
+> ⚠️ The 0.7 threshold is enforced on the **best** cutoff AUROC, not the selected one. When the reference cutoff is preferred, the selected dataset may have AUROC below 0.7.
 
 The AUROC minimum threshold (0.7) and improvement threshold (0.1) are configurable via `AUROC_MIN_THRESHOLD` and `AUROC_IMPROVEMENT_THRESHOLD` in `src/default.py`.
 
-The flag `is_mid_cutoff` records whether the mid cutoff was used (`True`) or the best cutoff was selected instead (`False`).
+The flag `is_mid_cutoff` records whether the reference cutoff was used (`True`) or the best cutoff was selected instead (`False`). For percentage endpoints the reference cutoff is the lowest (50), not the positional middle.
 
 #### Per-label independence
 
@@ -532,11 +534,28 @@ Many assays in ChEMBL are too small individually to meet the compound and positi
 Assay triplets that were **not** accepted in step 14 are grouped by shared experimental metadata. Only quantitative and mixed assays can contribute data to merged models — qualitative-only assays are excluded from merging entirely and do not appear in `15_merging_analysis.csv`. Two grouping strategies are applied independently:
 
 - **ORGANISM** — whole-cell / phenotypic assay merges. Assays are split into two sub-groups before merging:
-  - *Strain-known*: groups by (`activity_type`, `unit`, `direction`, `assay_type`, `target_type_curated_extra`, `assay_strain_curated`).
+  - *Strain-known*: groups by (`activity_type`, `unit`, `direction`, `assay_type`, `target_type_curated_extra`, `assay_strain_norm`).
   - *NaN-strain*: groups by (`activity_type`, `unit`, `direction`, `assay_type`, `target_type_curated_extra`) — strain is absent and not used as a grouping key.
-- **SINGLE PROTEIN** — groups by (`activity_type`, `unit`, `direction`, `assay_type`, `target_type_curated_extra`, `bao_label`, `assay_strain_curated`, `target_chembl_id_curated`). Ensures that only assays against the same protein target are combined. Assays without a curated `target_chembl_id_curated` are excluded from merging.
+- **SINGLE PROTEIN** — groups by (`activity_type`, `unit`, `direction`, `assay_type`, `target_type_curated_extra`, `bao_label`, `assay_strain_norm`, `target_chembl_id_curated`). Ensures that only assays against the same protein target are combined. Assays without a curated `target_chembl_id_curated` are excluded from merging.
 
 A group passes the **pre-filter** if it contains at least 2 assays and the union of their compounds is ≥ 100. Groups are ranked by union size.
+
+**Strain normalization (`assay_strain_norm`).** Assays are grouped on a *normalized* strain key rather than the raw `assay_strain_curated`, because the same strain appears in ChEMBL under many spellings (`BAA-1605` / `BAA 1605` / `ATCC BAA1605`), which would otherwise split mergeable assays. `assay_strain_norm` is derived on the fly (no change to step 09 / the LLM) by `normalize_strain()` in `src/pathogen_utils.py`: it uppercases, strips culture-collection catalog acronyms (`STRAIN_CATALOG_PREFIXES` in `src/default.py` — ATCC, DSM, NCTC, MTCC, CIP, … **plus WHO/FDA**), and removes spaces, hyphens, dots, underscores and slashes. So `ATCC 25922` ≡ `NCTC 25922` ≡ `25922`, and `WHO X` ≡ `WHO-X` (the panel designator `X` is preserved — only the acronym is stripped). A numeric acronym is folded only when a number follows it (optionally after a short letter sub-series, so `ATCC BAA-1605` → `BAA1605`), which avoids mangling strain names that merely start with the same letters. **Decision:** WHO/FDA are folded, and cross-collection same-number variants (e.g. `NCIB 418` / `NCTC 418`, `ATCC 19606` / `NCTC 19606`) are treated as the same strain — these were reviewed and confirmed correct.
+
+`strain_norm_key()` builds `assay_strain_norm` in three layers (steps 15/18/21; step 09 / the LLM is never touched):
+
+1. **`normalize_strain`** — collapses formatting/case and folds catalog acronyms (above).
+2. **ATCC fallback (split-column gap).** Strain identity in step 09 is split across `assay_strain_curated` (biological name) and `atcc_id` (catalog number); thousands of assays carry their *only* identity in `atcc_id`. When the curated name is empty the key falls back to `normalize_strain(atcc_id)`, so `assay_strain_curated = ""`, `atcc_id = "ATCC 25923"` keys to `25923` and joins assays already keyed there (~8,500 assays rescued, ≈95% of atcc-only). Safe because it only matches an ATCC *number* to an existing same-number key.
+3. **Curated alias map (cross-collection + name↔number).** Resolves the layer-1/2 key to one canonical strain using `config/strains/strain_equivalences_<pathogen>.csv` (loaded by `load_strain_equivalences()`). This is the only layer that can unify a **biological name with its catalog number** (`H37Rv` = `ATCC 27294` = `ATCC 25618`) and **different numbers across collections** (`ATCC 25922` = `DSM 1103` = `KCTC 1682` = …) — equivalences that cannot be inferred from the data without over-merging, so they come from an authoritative source.
+
+The alias files are built by `tools/build_strain_equivalences.py` from the **BacDive** API (taxon search → culture-collection cross-references), plus a curated seed `config/strains/strain_equivalences_manual.csv` for cases BacDive lacks (e.g. *M. tb* H37Ra/Erdman, *C. albicans* SC5314, or corrections). Manual rows **take precedence** over BacDive, so they can split or reassign an auto group. Each row is one alias: `member_key` (the key matched) → `canonical_label` (the displayed strain), with a `match_type`:
+- `exact` — match one normalized base key (the common case).
+- `contains` — substring of the base key (e.g. any `…BCG…` key → `BCG`).
+- `prefixed` — match the original value *with* its collection acronym (`member_key` is the prefix-preserving form, e.g. `LMG17978`). This is the **only** way to *separate* two strains that share a number across collections, because `normalize_strain` strips the prefix and collapses them to the same base key. Applied before `exact`/`contains`.
+
+**Key decisions:** `canonical_label` is the ATCC ID whenever the group has one; BCG lumps all named substrains (`contains`); NCTC 8325 is kept **separate** from its derivative SA113/ATCC 35556; and same-number-different-collection clashes confirmed distinct are split with `prefixed` rules (`LMG 17978` ≠ `ATCC 17978`; `ATCC 12-1` ≠ `MTCC 121`). These clashes are surfaced by `tools/strain_collision_audit.py` (→ `docs/260623_strain_collision_audit.csv`), which flags every base key built from ≥2 collection acronyms for review. Pathogens with no file (e.g. *P. falciparum*, *S. mansoni* — no culture-collection source exists) are a clean no-op. Design note: `docs/260622_strain_cross_collection_unification.md`.
+
+`assay_strain_norm` is used only as a **grouping key**; the original names are never altered. The raw `assay_strain` and the LLM `assay_strain_curated` are preserved per assay, and a merged group is **labelled** (the `strain` column of `15_merged_LM.csv`) with the most common original `assay_strain_curated` among its assays. The normalized key is also carried into the master table (step 18) and used for the strain count in the diagnosis plot (step 21).
 
 #### Fractional contribution filter
 
@@ -613,9 +632,9 @@ Each group is identified by its base name (the dataset name with the cutoff suff
 
 Only merged groups with a best AUROC > 0.7 (across all cutoffs tested) are retained. For groups with multiple expert cutoffs, one cutoff is chosen per the following rule:
 
-- **Prefer the mid cutoff** (the second value in the `expert_cutoffs.csv` list) as a default, since it represents the central activity threshold and is more interpretable.
-- **Switch to the best cutoff** only if the best cutoff achieves an AUROC more than 0.1 higher than the mid cutoff — indicating a meaningfully better model at that threshold.
-- **Fall back to the best cutoff** if the mid cutoff has no modeled result (NaN AUROC).
+- **Prefer the reference cutoff** as a default — the mid cutoff (second value) for most endpoints, or the most lenient cutoff (50) for percentage endpoints (`unit == "%"`). See `reference_cutoff()` in `src/pathogen_utils.py`.
+- **Switch to the best cutoff** only if the best cutoff achieves an AUROC more than 0.1 higher than the reference cutoff — indicating a meaningfully better model at that threshold.
+- **Fall back to the best cutoff** if the reference cutoff has no modeled result (NaN AUROC).
 
 > Unlike step 14, groups with fewer than two expert cutoffs are not skipped — the best (only) cutoff is used directly.
 
@@ -725,7 +744,7 @@ Three `comment_A`, `comment_B`, `comment_M` columns annotate each assay's journe
 | Selected, discarded as redundant | `"Discarded: high correlation with dataset M_ORG0_MIC_1.0"` |
 | Retained in final selection | `"Retained in final selection"` |
 
-For condition M, comments also include the merged group name (e.g. `"Retained in final selection from group M_ORG0_r_MIC"`). Failure reasons for non-merged assays are derived from `15_merging_analysis.csv`; see the Step 15 section for the full list of failure reason labels. When an assay did not qualify for A or B at any cutoff, the middle cutoff (second value in the expert cutoffs list) is used as the reference for the failure message, as it represents the central activity threshold. If any cutoff did qualify, the assay was modeled and the comment reflects the actual modeling outcome regardless of the middle cutoff.
+For condition M, comments also include the merged group name (e.g. `"Retained in final selection from group M_ORG0_r_MIC"`). Failure reasons for non-merged assays are derived from `15_merging_analysis.csv`; see the Step 15 section for the full list of failure reason labels. When an assay did not qualify for A or B at any cutoff, the reference cutoff (the mid cutoff for most endpoints, or the most lenient cutoff for percentage endpoints — see `reference_cutoff()`) is used for the failure message. If any cutoff did qualify, the assay was modeled and the comment reflects the actual modeling outcome regardless of the reference cutoff.
 
 Outputs are saved to `output/<pathogen_code>/`:
 
@@ -779,7 +798,7 @@ The step produces **two output variants** in a single run:
 
 For each `(activity_type, unit)` pair:
 
-1. Select all assay rows at the middle expert cutoff (second in the expert cutoffs list, or first if only one is defined).
+1. Select all assay rows at the reference expert cutoff (the mid cutoff for most endpoints, or the most lenient cutoff (50) for percentage endpoints — see `reference_cutoff()`).
 2. Load the corresponding dataset files, concatenate all compounds, and apply two rounds of deduplication:
    - **By `compound_chembl_id`**: one row per compound ID, with the active label winning (`bin = 1`) if the compound appears in multiple assays.
    - **By SMILES**: one row per canonical SMILES string, again with the active label winning. This second pass removes residual duplicates arising from different `compound_chembl_id` values that share the same SMILES after step 03 standardization (e.g. the same molecule registered multiple times).

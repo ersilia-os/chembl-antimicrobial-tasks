@@ -1,0 +1,9 @@
+group_assays,pathogen,canonical_id,canonical_label,species,type_strain,member_value,member_key,match_type,data_assays,source,verified_by,notes
+4265,mtuberculosis,BacDive:170314;174194,ATCC 27294,Mycobacterium tuberculosis,no;yes,H37Rv,H37RV,exact,4221,bacdive,,
+4265,mtuberculosis,BacDive:170314;174194,ATCC 27294,Mycobacterium tuberculosis,no;yes,ATCC 27294,27294,exact,37,bacdive,,
+4265,mtuberculosis,BacDive:170314;174194,ATCC 27294,Mycobacterium tuberculosis,no;yes,ATCC 25618,25618,exact,7,bacdive,,
+631,mtuberculosis,MTB-H37Ra,ATCC 25177,Mycobacterium tuberculosis,,H37Ra,H37RA,exact,617,manual,,avirulent counterpart of H37Rv; UniProt UP000001988
+631,mtuberculosis,MTB-H37Ra,ATCC 25177,Mycobacterium tuberculosis,,ATCC 25177,25177,exact,14,manual,,ATCC 25177 = H37Ra (atcc.org/products/25177; UniProt UP000001988)
+496,mtuberculosis,MTB-BCG,BCG,Mycobacterium tuberculosis,,BCG,BCG,contains,496,manual,,"all BCG vaccine strains incl. named substrains (Pasteur/Tokyo/Connaught/Denmark/Moreau/Russia/Glaxo/...) lumped per curator decision [contains 'BCG': 17 keys, e.g. BCG, BCG(SI), BCG5692, BCGB332, BCGB472, BCGB474]"
+63,mtuberculosis,MTB-Erdman,ATCC 35801,Mycobacterium tuberculosis,,Erdman,ERDMAN,exact,57,manual,,NCBI Taxonomy taxid 652616
+63,mtuberculosis,MTB-Erdman,ATCC 35801,Mycobacterium tuberculosis,,ATCC 35801,35801,exact,6,manual,,ATCC 35801 = Erdman (NCBI Taxonomy taxid 652616)

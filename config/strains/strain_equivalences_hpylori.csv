@@ -1,0 +1,5 @@
+group_assays,pathogen,canonical_id,canonical_label,species,type_strain,member_value,member_key,match_type,data_assays,source,verified_by,notes
+64,hpylori,BacDive:6102,ATCC 43504,Helicobacter pylori,yes,ATCC 43504,43504,exact,46,bacdive,,
+64,hpylori,BacDive:6102,ATCC 43504,Helicobacter pylori,yes,NCTC 11637,11637,exact,16,bacdive,,
+64,hpylori,BacDive:6102,ATCC 43504,Helicobacter pylori,yes,CIP 103995,103995,exact,1,bacdive,,
+64,hpylori,BacDive:6102,ATCC 43504,Helicobacter pylori,yes,DSM 4867,4867,exact,1,bacdive,,

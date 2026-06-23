@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, Counter
 import pandas as pd
 import numpy as np
 import sys
@@ -8,7 +8,7 @@ import os
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import DATAPATH, CONFIGPATH, DECOY_RATIO
-from pathogen_utils import load_pathogen, load_expert_cutoffs, load_pubchem_assays
+from pathogen_utils import load_pathogen, load_expert_cutoffs, load_pubchem_assays, strain_norm_key, load_strain_equivalences
 from dataset_utils import make_dataset_filename
 from model_utils import load_ecfp_all, load_all_gz_csvs_from_zip, KFoldTrain, TrainRF, add_decoys, downsample_negatives
 
@@ -37,8 +37,8 @@ def filter_assays_for_merging(assay_df, activity_type, unit, direction, assay_ty
                                target_chembl_id=None):
     """Filter assay_df to rows matching all provided metadata fields.
 
-    Non-string `unit` and `assay_strain_curated` are treated as NaN (missing).
-    `bao_label` and `assay_strain_curated` are optional: pass None to skip filtering on that column.
+    Non-string `unit` and `assay_strain_norm` are treated as NaN (missing).
+    `bao_label` and `assay_strain_norm` are optional: pass None to skip filtering on that column.
     If `target_chembl_id` is provided, also filters on `target_chembl_id_curated` (SINGLE PROTEIN only).
     """
     mask = (
@@ -51,10 +51,26 @@ def filter_assays_for_merging(assay_df, activity_type, unit, direction, assay_ty
     if bao_label is not None:
         mask &= (assay_df["bao_label"] == bao_label)
     if strain is not None:
-        mask &= (assay_df["assay_strain_curated"].eq(strain) if isinstance(strain, str) else assay_df["assay_strain_curated"].isna())
+        mask &= (assay_df["assay_strain_norm"].eq(strain) if isinstance(strain, str) else assay_df["assay_strain_norm"].isna())
     if target_chembl_id is not None:
         mask &= (assay_df["target_chembl_id_curated"] == target_chembl_id)
     return assay_df[mask].reset_index(drop=True)
+
+
+def representative_strain(strain_series, fallback):
+    """Human-readable label for a merged group.
+
+    Assays merge on the normalized key `assay_strain_norm`, but for display we keep
+    a real strain name: the most common original `assay_strain_curated` among the
+    merged assays (ties broken by the longest, then lexicographically, for
+    determinism). Empty/NaN names are ignored; `fallback` (the normalized key, or
+    NaN for no-strain groups) is returned only when no original name is present.
+    """
+    vals = [str(v).strip() for v in strain_series if isinstance(v, str) and str(v).strip() != ""]
+    if not vals:
+        return fallback
+    counts = Counter(vals)
+    return max(counts.items(), key=lambda kv: (kv[1], len(kv[0]), kv[0]))[0]
 
 
 def to_merge_unique_cpds(df, group_keys, assay_to_compounds):
@@ -105,14 +121,22 @@ individual_selected_lm = pd.read_csv(os.path.join(OUTPUT, "14_individual_selecte
 
 accepted_assays = set(tuple(row) for row in individual_selected_lm[keys].values)
 
+# Derive the normalized strain key used for merging: formatting/catalog-prefix
+# variants collapse, the ATCC number fills in when the strain name is absent, and
+# curated cross-collection / name<->number equivalences map to one canonical strain
+# (config/strains/strain_equivalences_<pathogen>.csv). See strain_norm_key().
+strain_equiv = load_strain_equivalences(pathogen_code)
+assays_parameters["assay_strain_norm"] = strain_norm_key(
+    assays_parameters["assay_strain_curated"], assays_parameters["atcc_id"], strain_equiv)
+
 curated_cols = [
     "target_type_curated", "assay_organism_curated", "target_name_curated",
-    "target_chembl_id_curated", "assay_strain_curated", "atcc_id", "mutations",
+    "target_chembl_id_curated", "assay_strain_curated", "assay_strain_norm", "atcc_id", "mutations",
     "known_drug_resistances", "culture_media",
 ]
 assays_parameters = assays_parameters[keys + curated_cols].drop_duplicates(subset=keys, keep="last").reset_index(drop=True)
-assays_parameters[["target_chembl_id_curated", "assay_strain_curated"]] = \
-    assays_parameters[["target_chembl_id_curated", "assay_strain_curated"]].replace("", np.nan)
+assays_parameters[["target_chembl_id_curated", "assay_strain_curated", "assay_strain_norm"]] = \
+    assays_parameters[["target_chembl_id_curated", "assay_strain_curated", "assay_strain_norm"]].replace("", np.nan)
 assays_merged = assays_cleaned.merge(assays_parameters, on=keys, how="left", validate="1:1")
 assays_merged = assays_merged.merge(assay_data_info[keys + columns_data_info], on=keys, how="left", validate="1:1")
 assays_merged["accepted_in_individual_lm"] = [tuple(row) in accepted_assays for row in assays_merged[keys].values]
@@ -164,8 +188,8 @@ if pubchem_assays:
 filtered_organism = not_accepted[not_accepted["target_type_curated_extra"] == "ORGANISM"].copy()
 
 # Strain-known ORGANISM: group by strain (no bao_label — ORGANISM target type is sufficient)
-keys_organism_strain = ["activity_type", "unit", "direction", "assay_type", "target_type_curated_extra", "assay_strain_curated"]
-filtered_organism_known = filtered_organism[filtered_organism["assay_strain_curated"].notna()].copy()
+keys_organism_strain = ["activity_type", "unit", "direction", "assay_type", "target_type_curated_extra", "assay_strain_norm"]
+filtered_organism_known = filtered_organism[filtered_organism["assay_strain_norm"].notna()].copy()
 to_merge_organism_strain = to_merge_unique_cpds(filtered_organism_known, keys_organism_strain, assay_to_compounds)
 to_merge_organism_strain = to_merge_organism_strain[
     (to_merge_organism_strain["n_cpds_union"] >= 100) & (to_merge_organism_strain["n_assays"] > 1)
@@ -173,9 +197,9 @@ to_merge_organism_strain = to_merge_organism_strain[
 
 # NaN-strain ORGANISM: group only by activity metadata (no strain, no bao_label)
 keys_organism_no_strain = ["activity_type", "unit", "direction", "assay_type", "target_type_curated_extra"]
-filtered_organism_nan = filtered_organism[filtered_organism["assay_strain_curated"].isna()].copy()
+filtered_organism_nan = filtered_organism[filtered_organism["assay_strain_norm"].isna()].copy()
 to_merge_organism_no_strain = to_merge_unique_cpds(filtered_organism_nan, keys_organism_no_strain, assay_to_compounds)
-to_merge_organism_no_strain["assay_strain_curated"] = np.nan
+to_merge_organism_no_strain["assay_strain_norm"] = np.nan
 to_merge_organism_no_strain = to_merge_organism_no_strain[
     (to_merge_organism_no_strain["n_cpds_union"] >= 100) & (to_merge_organism_no_strain["n_assays"] > 1)
 ].reset_index(drop=True)
@@ -183,7 +207,7 @@ to_merge_organism_no_strain = to_merge_organism_no_strain[
 to_merge_organism = pd.concat([to_merge_organism_strain, to_merge_organism_no_strain], ignore_index=True)
 to_merge_organism["name"] = [f"M_ORG{i}" for i in range(len(to_merge_organism))]
 
-keys_single_protein = ["activity_type", "unit", "direction", "assay_type", "target_type_curated_extra", "bao_label", "assay_strain_curated", "target_chembl_id_curated"]
+keys_single_protein = ["activity_type", "unit", "direction", "assay_type", "target_type_curated_extra", "bao_label", "assay_strain_norm", "target_chembl_id_curated"]
 filtered_single_protein = not_accepted[not_accepted["target_type_curated_extra"] == "SINGLE PROTEIN"].copy()
 to_merge_single_protein = to_merge_unique_cpds(filtered_single_protein, keys_single_protein, assay_to_compounds)
 col = to_merge_single_protein["target_chembl_id_curated"]
@@ -318,7 +342,7 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
         if target_type == "ORGANISM":
             # For NaN-strain groups: pass strain=None to skip strain filter
             # For strain-known groups: pass the strain string to filter on it
-            raw_strain = merging.assay_strain_curated
+            raw_strain = merging.assay_strain_norm
             filter_strain = raw_strain if isinstance(raw_strain, str) else None
             target_chembl_id = np.nan
             df = filter_assays_for_merging(
@@ -326,7 +350,7 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
                 target_type_curated_extra, strain=filter_strain,
             )
         else:  # SINGLE PROTEIN
-            filter_strain = merging.assay_strain_curated  # string or NaN, both handled in filter function
+            filter_strain = merging.assay_strain_norm  # string or NaN, both handled in filter function
             target_chembl_id = merging.target_chembl_id_curated
             df = filter_assays_for_merging(
                 filtered_assays, activity_type, unit, direction, assay_type,
@@ -411,6 +435,12 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
         for pass_suffix, pass_keys in passes:
             pass_label = "pass1" if pass_suffix == "" else "pass2"
             pass_assay_ids = {k[0] for k in pass_keys}
+            # Representative original strain name for this merged group (grouping
+            # stays on the normalized key; this is just the displayed label).
+            pass_strain = representative_strain(
+                df[df["assay_id"].isin(pass_assay_ids)]["assay_strain_curated"],
+                filter_strain if isinstance(filter_strain, str) else np.nan,
+            )
             pass_df_quant = df[
                 (df["dataset_type"] == "quantitative") & df["assay_id"].isin(pass_assay_ids)
             ].reset_index(drop=True)
@@ -542,7 +572,7 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
 
                 merged_lm.append([
                     name_, activity_type, unit, expert_cutoff, direction, assay_type,
-                    target_type_curated_extra, filter_strain, target_chembl_id,
+                    target_type_curated_extra, pass_strain, target_chembl_id,
                     len(pass_keys), n_real_cpds, n_positives, round(ratio_before_decoys, 3),
                     avg_auroc, std_auroc, pass_assay_keys_str,
                 ])

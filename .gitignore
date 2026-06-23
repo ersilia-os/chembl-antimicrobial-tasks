@@ -4,6 +4,7 @@ old/**
 data/**
 scripts/nohup.out
 CLAUDE.md
+docs/new_pipeline.md
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -7,7 +7,7 @@ import os
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import CONFIGPATH
-from pathogen_utils import load_pathogen, load_expert_cutoffs
+from pathogen_utils import load_pathogen, load_expert_cutoffs, reference_cutoff, strain_norm_key, load_strain_equivalences
 
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
@@ -41,6 +41,12 @@ print("Loading data...")
 assays_cleaned = pd.read_csv(os.path.join(OUTPUT, "08_assays_cleaned.csv"))
 assays_clusters = pd.read_csv(os.path.join(OUTPUT, "10_assays_clusters.csv"))[keys + columns_clusters]
 assays_parameters = pd.read_csv(os.path.join(OUTPUT, "09_assays_parameters_full.csv"))[keys + columns_parameters]
+# Normalized strain key: formatting/catalog-prefix variants collapsed, ATCC fallback
+# when the strain name is absent, plus curated cross-collection / name<->number
+# equivalences mapped to one canonical strain; see strain_norm_key()
+assays_parameters["assay_strain_norm"] = strain_norm_key(
+    assays_parameters["assay_strain_curated"], assays_parameters["atcc_id"],
+    load_strain_equivalences(pathogen_code))
 assay_data_info = pd.read_csv(os.path.join(OUTPUT, "12_assay_data_info.csv"))[keys + columns_data_info]
 
 print("Merging tables...")
@@ -269,7 +275,7 @@ def _generate_a_comment(nkey, activity_type, unit, target_type_extra, dtype, has
         # Use middle cutoff stats — the hierarchical assignment in step 13 is based on the middle
         # cutoff ratio, so reporting max-across-cutoffs stats can produce contradictory messages.
         cutoff_list = expert_cutoffs.get((activity_type, unit, target_type_extra, pathogen_code), [])
-        mid_cutoff = cutoff_list[1] if len(cutoff_list) >= 2 else (cutoff_list[0] if cutoff_list else None)
+        mid_cutoff = reference_cutoff(cutoff_list, unit)
         mid_stats = per_cutoff_qt_map.get((nkey, mid_cutoff)) if mid_cutoff is not None else None
 
         if mid_stats:
@@ -334,7 +340,7 @@ def _generate_b_comment(nkey, activity_type, unit, target_type_extra, dtype, has
         # Use middle cutoff stats — the hierarchical assignment is based on the middle cutoff ratio,
         # so reporting max-across-cutoffs stats can produce contradictory messages.
         cutoff_list = expert_cutoffs.get((activity_type, unit, target_type_extra, pathogen_code), [])
-        mid_cutoff = cutoff_list[1] if len(cutoff_list) >= 2 else (cutoff_list[0] if cutoff_list else None)
+        mid_cutoff = reference_cutoff(cutoff_list, unit)
         mid_stats = per_cutoff_qt_map.get((nkey, mid_cutoff)) if mid_cutoff is not None else None
 
         if mid_stats:
@@ -539,7 +545,7 @@ all_cols = [
     "assay_organism_curated", "doc_chembl_id",
     "target_type", "target_type_curated", "target_type_curated_extra",
     "target_chembl_id", "target_chembl_id_curated", "uniprot_accession", "target_name_curated",
-    "bao_label", "source_label", "assay_strain_curated", "atcc_id", "mutations",
+    "bao_label", "source_label", "assay_strain_curated", "assay_strain_norm", "atcc_id", "mutations",
     "known_drug_resistances", "culture_media",
     "activity_type", "unit", "activities", "nan_values", "cpds", "frac_cs",
     "direction", "act_flag", "inact_flag",

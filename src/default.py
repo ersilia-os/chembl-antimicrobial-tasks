@@ -26,3 +26,14 @@ MIN_POSITIVES_CONDITION_B = 100    # min actives for condition B
 AUROC_MIN_THRESHOLD = 0.70         # minimum AUROC to accept a modeled dataset
 AUROC_IMPROVEMENT_THRESHOLD = 0.1  # AUROC gain required to prefer best cutoff over mid cutoff
 CORRELATION_THRESHOLD = 0.5        # pairwise correlation threshold for dataset deduplication
+
+# Strain-name normalization (step 15; reported in 18, 21)
+# Culture-collection / catalog acronyms folded out of curated strain names so the
+# designator alone identifies the strain (e.g. "ATCC 25922" == "NCTC 25922" == "25922").
+# WHO and FDA are included by decision: their panel designators (e.g. "WHO X") are
+# preserved — only the acronym is stripped. See scripts/README.md (step 15).
+STRAIN_CATALOG_PREFIXES = [
+    "ATCC", "DSMZ", "DSM", "NCTC", "NCIMB", "NCIB", "MTCC", "CIP", "CGMCC", "CPCC",
+    "CCUG", "KCTC", "JCM", "NRRL", "NBRC", "NRBC", "CECT", "BCRC", "CGSC", "NCCP",
+    "NCPF", "IFO", "KCCM", "LMG", "CCM", "CMCC", "CICC", "GIM", "WHO", "FDA",
+]

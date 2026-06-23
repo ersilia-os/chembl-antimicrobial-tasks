@@ -7,7 +7,7 @@ import os
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import CONFIGPATH, AUROC_MIN_THRESHOLD, AUROC_IMPROVEMENT_THRESHOLD
-from pathogen_utils import load_pathogen, load_expert_cutoffs
+from pathogen_utils import load_pathogen, load_expert_cutoffs, reference_cutoff
 
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
@@ -53,9 +53,10 @@ for base_name, activity_type, unit, target_type in groups:
 
     group_rows = merged_lm[merged_lm["base_name"] == base_name].reset_index(drop=True)
 
-    # Mid cutoff: second value in the expert cutoffs list for this key
+    # Reference cutoff: preferred value among the expert list. For percent endpoints
+    # this is the most lenient (50); for others the positional middle.
     cutoff_list = expert_cutoffs.get((activity_type, unit, target_type, pathogen_code), [])
-    mid_cutoff = cutoff_list[1] if len(cutoff_list) >= 2 else np.nan
+    mid_cutoff = reference_cutoff(cutoff_list, unit) if cutoff_list else np.nan
 
     df = group_rows.sort_values("avg", ascending=False).reset_index(drop=True)
 

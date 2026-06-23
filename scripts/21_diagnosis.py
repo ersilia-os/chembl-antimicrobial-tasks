@@ -30,7 +30,7 @@ root = os.path.dirname(os.path.abspath(__file__))
 
 sys.path.append(os.path.join(root, "..", "src"))
 from default import DATAPATH, CONFIGPATH
-from pathogen_utils import load_pathogen, load_expert_cutoffs
+from pathogen_utils import load_pathogen, load_expert_cutoffs, reference_cutoff, strain_norm_key, load_strain_equivalences
 
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
@@ -113,7 +113,8 @@ act_mx = len(cleaned[(cleaned["value"].notna()) & (cleaned["text_flag"].isin([-1
 assay_type_ctr = Counter(assays_cleaned_df["assay_type"])
 target_type_ctr = Counter(assays_cleaned_df["target_type"])
 organism_ctr = Counter(assays_cleaned_df["assay_organism"])
-strain_ctr = Counter(strain_info["assay_strain_curated"])
+strain_ctr = Counter(strain_norm_key(strain_info["assay_strain_curated"], strain_info["atcc_id"],
+                                     load_strain_equivalences(pathogen_code)))
 unit_ctr = Counter(assays_cleaned_df["unit"])
 
 total_assay = sum(assay_type_ctr.values())
@@ -808,7 +809,8 @@ def _mid_cutoff(activity_type, unit, target_type="ORGANISM"):
     cl = expert_cutoffs.get(key)
     if not cl:
         return np.nan
-    return cl[1] if len(cl) >= 2 else cl[0]
+    # Reference cutoff: lowest (50) for percentage endpoints, positional middle otherwise.
+    return reference_cutoff(cl, unit)
 
 
 assay_counts = {}

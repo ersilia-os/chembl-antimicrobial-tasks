@@ -1,0 +1,3 @@
+group_assays,pathogen,canonical_id,canonical_label,species,type_strain,member_value,member_key,match_type,data_assays,source,verified_by,notes
+4,ngonorrhoeae,BacDive:10470,ATCC 19424,Neisseria gonorrhoeae,yes,ATCC 19424,19424,exact,3,bacdive,,
+4,ngonorrhoeae,BacDive:10470,ATCC 19424,Neisseria gonorrhoeae,yes,NCTC 8375,8375,exact,1,bacdive,,

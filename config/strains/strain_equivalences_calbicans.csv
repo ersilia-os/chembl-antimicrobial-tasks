@@ -1,0 +1,6 @@
+group_assays,pathogen,canonical_id,canonical_label,species,type_strain,member_value,member_key,match_type,data_assays,source,verified_by,notes
+1312,calbicans,CALB-SC5314,ATCC MYA-2876,Candida albicans,,SC5314,SC5314,exact,1288,manual,,reference strain; UniProt UP000000559
+1312,calbicans,CALB-SC5314,ATCC MYA-2876,Candida albicans,,ATCC MYA-2876,MYA2876,exact,24,manual,,ATCC MYA-2876 = SC5314 (atcc.org/products/mya-2876; UniProt UP000000559)
+799,calbicans,CALB-ATCC90028,ATCC 90028,Candida albicans,,ATCC 90028,90028,exact,799,manual,,collision audit: ATCC/NCPF 90028 confirmed same strain
+76,calbicans,CALB-ATCC76615,ATCC 76615,Candida albicans,,ATCC 76615,76615,exact,76,manual,,collision audit: ATCC/CMCC 76615 confirmed same strain
+10,calbicans,CALB-ATCC3153,ATCC 3153,Candida albicans,,ATCC 3153,3153,exact,10,manual,,collision audit: ATCC/NCPF 3153 confirmed same strain

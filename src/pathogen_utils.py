@@ -44,7 +44,7 @@ import os
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, root)
-from default import DATAPATH, CONFIGPATH
+from default import DATAPATH, CONFIGPATH, STRAIN_CATALOG_PREFIXES
 
 
 def harmonize(x):
@@ -55,6 +55,144 @@ def harmonize(x):
     Used in steps 01 and 05.
     """
     return re.sub(r"[_\s./\\]", "", str(x).upper().strip())
+
+
+# Catalog acronyms whose designator is numeric (the number alone identifies the
+# strain) vs. WHO/FDA whose designator may be a letter ("WHO X"). They are matched
+# differently so a leading acronym is only stripped when a real designator follows
+# (avoids mangling a strain name that merely starts with the same letters).
+_STRAIN_PREFIXES_NUMERIC = sorted(
+    [p for p in STRAIN_CATALOG_PREFIXES if p not in ("WHO", "FDA")], key=len, reverse=True
+)
+_STRAIN_PREFIXES_ALNUM = sorted(
+    [p for p in STRAIN_CATALOG_PREFIXES if p in ("WHO", "FDA")], key=len, reverse=True
+)
+_STRAIN_SEP = r"[\s\-_./\\]"
+_STRAIN_PREFIX_RE = re.compile(
+    r"\b(?:"
+    # numeric-catalog acronyms: strip only when a number follows, optionally after a
+    # short letter sub-series (e.g. "ATCC BAA-1605" -> "BAA-1605", "ATCC 25922" -> "25922")
+    r"(?:" + "|".join(_STRAIN_PREFIXES_NUMERIC) + r")(?=" + _STRAIN_SEP + r"*(?:[A-Z]+" + _STRAIN_SEP + r"*)?\d)"
+    # WHO/FDA: strip when any alphanumeric designator follows ("WHO X" -> "X")
+    r"|(?:" + "|".join(_STRAIN_PREFIXES_ALNUM) + r")(?=" + _STRAIN_SEP + r"*[A-Z0-9])"
+    r")" + _STRAIN_SEP + r"*",
+    re.IGNORECASE,
+)
+
+
+def normalize_strain(x):
+    """Canonical merge key for a curated strain name (step 15).
+
+    Uppercases, strips leading culture-collection catalog acronyms
+    (``STRAIN_CATALOG_PREFIXES`` — ATCC, DSM, NCTC, ... plus WHO/FDA), and removes
+    spaces, hyphens, dots, underscores and slashes, so formatting and catalog-prefix
+    variants collapse to a single key::
+
+        'BAA-1605', 'BAA 1605', 'ATCC BAA1605'  -> 'BAA1605'
+        'ATCC 25922', 'NCTC 25922', '25922'      -> '25922'
+        'WHO X', 'WHO-X'                         -> 'X'
+
+    Numeric-catalog acronyms are only stripped when a digit follows, and WHO/FDA
+    only when an alphanumeric designator follows, so a strain name that merely
+    begins with those letters is left intact. Returns '' for empty/NaN input.
+    """
+    if x is None:
+        return ""
+    s = str(x).upper().strip()
+    if s == "" or s == "NAN":
+        return ""
+    stripped = _STRAIN_PREFIX_RE.sub("", s)
+    key = re.sub(_STRAIN_SEP, "", stripped)
+    if key == "":  # value was nothing but a catalog acronym — keep it as-is
+        key = re.sub(_STRAIN_SEP, "", s)
+    return key
+
+
+def prefix_key(x):
+    """Prefix-PRESERVING key: uppercase, strip, remove separators but KEEP the
+    leading collection acronym. Unlike `normalize_strain`, this does not fold the
+    catalog prefix, so it can distinguish the same number across collections —
+    `LMG 17978` → `LMG17978` vs `ATCC 17978` → `ATCC17978`. Used only by the curated
+    `prefixed` split rules, to pull a genuinely-different same-number strain out of
+    its number group before the prefix is stripped. Returns '' for empty/NaN.
+    """
+    if x is None:
+        return ""
+    s = str(x).upper().strip()
+    if s == "" or s == "NAN":
+        return ""
+    return re.sub(_STRAIN_SEP, "", s)
+
+
+def load_strain_equivalences(pathogen_code, config_path=CONFIGPATH):
+    """Load the curated strain alias map for a pathogen, used by `strain_norm_key`.
+
+    Reads `config/strains/strain_equivalences_<pathogen>.csv` (built by
+    `tools/build_strain_equivalences.py` from BacDive + a manual seed). Returns a
+    `(exact, contains, prefixed)` tuple of rules, keyed by `member_key`:
+      - `exact`    : normalized base key → canonical label (the common case).
+      - `contains` : list of (substring, label); a base key *containing* the
+                     substring maps to the label (e.g. any "...BCG..." → "BCG").
+      - `prefixed` : prefix-preserving key → label; matches the original value
+                     *with* its collection acronym, to SPLIT same-number strains
+                     that differ by collection (e.g. `LMG 17978` ≠ `ATCC 17978`).
+    Returns None when no file exists (clean no-op for uncurated pathogens).
+    """
+    path = os.path.join(config_path, "strains", f"strain_equivalences_{pathogen_code}.csv")
+    if not os.path.exists(path):
+        return None
+    df = pd.read_csv(path)
+    exact, contains, prefixed = {}, [], {}
+    for _, r in df.iterrows():
+        label = r["canonical_label"]
+        mt = str(r.get("match_type", "exact")).strip().lower()
+        if mt == "contains":
+            contains.append((str(r["member_key"]), label))
+        elif mt == "prefixed":
+            prefixed[str(r["member_key"])] = label
+        else:
+            exact[str(r["member_key"])] = label
+    return exact, contains, prefixed
+
+
+def strain_norm_key(strain_curated, atcc_id, equivalences=None):
+    """Vectorized strain merge key used in steps 15/18/21.
+
+    Layered resolution, in order:
+      1. `normalize_strain(assay_strain_curated)` — formatting/catalog-prefix variants.
+      2. fall back to `normalize_strain(atcc_id)` when the curated name is empty
+         (closes the "split-column" gap where identity lives only in the ATCC field).
+      3. if `equivalences` is given, resolve to a canonical strain label:
+         `prefixed` SPLIT rules first (matched on the original value WITH its
+         collection acronym, so e.g. `LMG 17978` is pulled out before its prefix is
+         stripped), then `exact` (cross-collection / name↔number, e.g. ATCC 25922 =
+         DSM 1103; H37Rv = ATCC 27294), then `contains` (substring, e.g. BCG).
+
+    Accepts pandas Series, returns a Series. With `equivalences=None` it behaves
+    exactly as before (layers 1–2 only).
+    """
+    cur = strain_curated.fillna("").astype(str)
+    atc = atcc_id.fillna("").astype(str)
+    norm = cur.map(normalize_strain)
+    base = norm.where(norm != "", atc.map(normalize_strain))
+    if not equivalences:
+        return base
+    exact, contains, prefixed = equivalences
+    eff = cur.where(norm != "", atc)  # the original value that produced the base key
+
+    def resolve(eff_val, base_key):
+        if prefixed:
+            pk = prefix_key(eff_val)
+            if pk in prefixed:
+                return prefixed[pk]
+        if base_key in exact:
+            return exact[base_key]
+        for sub, label in contains:
+            if sub and sub in base_key:
+                return label
+        return base_key
+
+    return pd.Series([resolve(e, b) for e, b in zip(eff, base)], index=base.index)
 
 
 def load_pathogen(pathogen_code):
@@ -261,6 +399,20 @@ def load_expert_cutoffs(CONFIGPATH):
             cutoffs = cutoffs[::-1]
         result[key] = cutoffs
     return result
+
+
+def reference_cutoff(cutoff_list, unit):
+    """Return the preferred (reference) cutoff used by dataset selection.
+
+    Percent endpoints (unit == "%") prefer the most lenient cutoff (index 0, e.g. 50):
+    50% effect remains the default "active" call even though it is now the lowest of the
+    three. All other endpoints use the positional middle cutoff (index 1). Returns None
+    for an empty list.
+    """
+    if not cutoff_list:
+        return None
+    idx = 0 if unit == "%" else 1
+    return cutoff_list[idx] if len(cutoff_list) > idx else cutoff_list[-1]
 
 
 def extra_curation_target_type(target_type, target_type_curated):

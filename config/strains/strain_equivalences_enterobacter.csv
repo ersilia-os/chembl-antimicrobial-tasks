@@ -1,0 +1,5 @@
+group_assays,pathogen,canonical_id,canonical_label,species,type_strain,member_value,member_key,match_type,data_assays,source,verified_by,notes
+54,enterobacter,BacDive:4373,ATCC 13047,Enterobacter cloacae subsp. cloacae,yes,ATCC 13047,13047,exact,50,bacdive,,
+54,enterobacter,BacDive:4373,ATCC 13047,Enterobacter cloacae subsp. cloacae,yes,IFO 13535,13535,exact,2,bacdive,,
+54,enterobacter,BacDive:4373,ATCC 13047,Enterobacter cloacae subsp. cloacae,yes,CDC 442-68,CDC44268,exact,1,bacdive,,
+54,enterobacter,BacDive:4373,ATCC 13047,Enterobacter cloacae subsp. cloacae,yes,NCTC 10005,10005,exact,1,bacdive,,

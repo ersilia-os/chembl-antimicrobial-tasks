@@ -1,0 +1,5 @@
+group_assays,pathogen,canonical_id,canonical_label,species,type_strain,member_value,member_key,match_type,data_assays,source,verified_by,notes
+31,campylobacter,BacDive:23822,ATCC 700819,Campylobacter jejuni,no,ATCC 700819,700819,exact,19,bacdive,,
+31,campylobacter,BacDive:23822,ATCC 700819,Campylobacter jejuni,no,NCTC 11168,11168,exact,12,bacdive,,
+2,campylobacter,BacDive:147211,ATCC 33291,Campylobacter jejuni,no,AS-83-79,AS8379,exact,1,bacdive,,
+2,campylobacter,BacDive:147211,ATCC 33291,Campylobacter jejuni,no,ATCC 33291,33291,exact,1,bacdive,,

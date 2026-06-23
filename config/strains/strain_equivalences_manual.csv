@@ -1,0 +1,23 @@
+pathogen,canonical_id,canonical_label,member_value,match_type,source,notes
+mtuberculosis,MTB-H37Ra,H37Ra,H37Ra,exact,manual,avirulent counterpart of H37Rv; UniProt UP000001988
+mtuberculosis,MTB-H37Ra,H37Ra,ATCC 25177,exact,manual,ATCC 25177 = H37Ra (atcc.org/products/25177; UniProt UP000001988)
+mtuberculosis,MTB-Erdman,Erdman,Erdman,exact,manual,NCBI Taxonomy taxid 652616
+mtuberculosis,MTB-Erdman,Erdman,ATCC 35801,exact,manual,ATCC 35801 = Erdman (NCBI Taxonomy taxid 652616)
+mtuberculosis,MTB-BCG,BCG,BCG,contains,manual,all BCG vaccine strains incl. named substrains (Pasteur/Tokyo/Connaught/Denmark/Moreau/Russia/Glaxo/...) lumped per curator decision
+calbicans,CALB-SC5314,SC5314,SC5314,exact,manual,reference strain; UniProt UP000000559
+calbicans,CALB-SC5314,SC5314,ATCC MYA-2876,exact,manual,ATCC MYA-2876 = SC5314 (atcc.org/products/mya-2876; UniProt UP000000559)
+saureus,SA-ATCC35556,ATCC 35556,ATCC 35556,exact,manual,SA113 lineage; rsbU-repaired derivative of NCTC 8325 deposited as ATCC 35556 — separated from parent
+saureus,SA-ATCC35556,ATCC 35556,SA113,exact,manual,SA113 = ATCC 35556 (derivative of NCTC 8325)
+saureus,SA-NCTC8325,NCTC 8325,NCTC 8325,exact,manual,parent strain; kept separate from its derivative SA113/ATCC 35556
+calbicans,CALB-ATCC90028,ATCC 90028,ATCC 90028,exact,manual,collision audit: ATCC/NCPF 90028 confirmed same strain
+calbicans,CALB-ATCC76615,ATCC 76615,ATCC 76615,exact,manual,collision audit: ATCC/CMCC 76615 confirmed same strain
+calbicans,CALB-ATCC3153,ATCC 3153,ATCC 3153,exact,manual,collision audit: ATCC/NCPF 3153 confirmed same strain
+saureus,SA-ATCC4163,ATCC 4163,ATCC 4163,exact,manual,collision audit: ATCC/NCTC 4163 confirmed same strain
+ecoli,EC-ATCC10538,ATCC 10538,ATCC 10538,exact,manual,collision audit: canonical is ATCC 10538 (overrides BacDive grouping)
+kpneumoniae,KP-ATCC13443,ATCC 13443,ATCC 13443,exact,manual,collision audit: ATCC/NCTC 13443 confirmed same strain
+paeruginosa,PA-ATCC10104,ATCC 10104,ATCC 10104,exact,manual,collision audit: ATCC/CMCC 10104 confirmed same strain
+ecoli,EC-ATCC6571,ATCC 6571,NCTC 6571,exact,manual,collision audit: canonical is ATCC 6571
+kpneumoniae,KP-ATCC10031,ATCC 10031,IFO 3512,exact,manual,collision audit: IFO 3512 = NBRC 3512 = ATCC 10031
+abaumannii,AB-LMG17978,LMG 17978,LMG 17978,prefixed,manual,collision audit: LMG 17978 is a DIFFERENT strain/organism than ATCC 17978 — kept separate
+saureus,SA-ATCC12-1,ATCC 12-1,ATCC 12-1,prefixed,manual,collision audit: ATCC 12-1 != MTCC 121 — kept separate
+saureus,SA-MTCC121,MTCC 121,MTCC 121,prefixed,manual,collision audit: MTCC 121 != ATCC 12-1 — kept separate

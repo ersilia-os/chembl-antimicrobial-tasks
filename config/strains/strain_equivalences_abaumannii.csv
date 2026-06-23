@@ -1,0 +1,11 @@
+group_assays,pathogen,canonical_id,canonical_label,species,type_strain,member_value,member_key,match_type,data_assays,source,verified_by,notes
+336,abaumannii,BacDive:8093,ATCC 19606,Acinetobacter baumannii,yes,ATCC 19606,19606,exact,325,bacdive,,
+336,abaumannii,BacDive:8093,ATCC 19606,Acinetobacter baumannii,yes,DSM 30007,30007,exact,6,bacdive,,
+336,abaumannii,BacDive:8093,ATCC 19606,Acinetobacter baumannii,yes,KCTC 2508,2508,exact,3,bacdive,,
+336,abaumannii,BacDive:8093,ATCC 19606,Acinetobacter baumannii,yes,CGMCC 1.6769,16769,exact,1,bacdive,,
+336,abaumannii,BacDive:8093,ATCC 19606,Acinetobacter baumannii,yes,LMG 1041,1041,exact,1,bacdive,,
+160,abaumannii,BacDive:132687,ATCC 17978,Acinetobacter baumannii,no,ATCC 17978,17978,exact,159,bacdive,,
+160,abaumannii,BacDive:132687,ATCC 17978,Acinetobacter baumannii,no,LMG 1025,1025,exact,1,bacdive,,
+24,abaumannii,BacDive:135661,ATCC 15151,Acinetobacter baumannii,no,CIP 70.10,7010,exact,16,bacdive,,
+24,abaumannii,BacDive:135661,ATCC 15151,Acinetobacter baumannii,no,ATCC 15151,15151,exact,8,bacdive,,
+1,abaumannii,AB-LMG17978,LMG 17978,Acinetobacter baumannii,,LMG 17978,LMG17978,prefixed,1,manual,,collision audit: LMG 17978 is a DIFFERENT strain/organism than ATCC 17978 — kept separate

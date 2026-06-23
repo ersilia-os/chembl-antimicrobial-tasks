@@ -35,6 +35,12 @@ assays_cleaned['target_type_curated_extra'] = [
     for i, j in zip(assays_cleaned['target_type'], assays_cleaned['target_type_curated'])
 ]
 
+# Exclude COADD-sourced assays: single-shot CO-ADD antimicrobial screens are not used
+# for dataset generation. They remain visible in the 08/09/18 tables but produce no datasets.
+n_before = len(assays_cleaned)
+assays_cleaned = assays_cleaned[assays_cleaned['source_label'] != 'COADD'].reset_index(drop=True)
+print(f"Excluded COADD assays: {n_before - len(assays_cleaned)} (remaining: {len(assays_cleaned)})")
+
 # Load activity records and expert cutoffs
 os.makedirs(os.path.join(OUTPUT, '12_datasets'), exist_ok=True)
 print(f"Loading ChEMBL cleaned data for {pathogen_code}...")

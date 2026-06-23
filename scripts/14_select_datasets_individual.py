@@ -8,7 +8,7 @@ import os
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import CONFIGPATH, AUROC_MIN_THRESHOLD, AUROC_IMPROVEMENT_THRESHOLD
-from pathogen_utils import load_pathogen, load_expert_cutoffs
+from pathogen_utils import load_pathogen, load_expert_cutoffs, reference_cutoff
 
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
@@ -65,12 +65,13 @@ for label in labels:
         if selection_key in already_selected:
             continue
 
-        # Mid cutoff is the reference cutoff (middle value in the expert list)
+        # Reference cutoff: the preferred value among the expert list. For percent
+        # endpoints this is the most lenient (50); for others the positional middle.
         cutoff_list = expert_cutoffs.get((activity_type, unit, target_type, pathogen_code))
         if not cutoff_list or len(cutoff_list) < 2:
             print(f"Warning: Missing cutoff for {activity_type}, {unit}, {target_type}")
             continue
-        mid_cutoff = cutoff_list[1]
+        mid_cutoff = reference_cutoff(cutoff_list, unit)
 
         # Get all cutoff results for this assay, sorted by AUROC
         if pd.isna(unit):

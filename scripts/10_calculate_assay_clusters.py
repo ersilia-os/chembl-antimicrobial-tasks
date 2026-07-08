@@ -1,4 +1,3 @@
-from collections import Counter
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
@@ -9,7 +8,6 @@ import os
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import DATAPATH, CONFIGPATH
 from pathogen_utils import load_pathogen
 
 # Load pathogen info
@@ -18,7 +16,7 @@ pathogen = load_pathogen(pathogen_code)
 
 # Thresholds - Tanimoto Coefficient
 thrs = [0.3, 0.6, 0.85]
-OUTPATH = os.path.join(root, "..", "output", pathogen_code)
+OUTPATH = os.path.join(root, "..", "output", "stage2", pathogen_code)
 
 print("Step 10")
 

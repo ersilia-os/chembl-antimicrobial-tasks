@@ -3,20 +3,20 @@ Modeling utilities for the light modeling pipeline (steps 13+).
 
 Functions
 ---------
-get_reference_set_compounds(compounds)
-    Select up to 10,000 compound IDs as a pathogen reference set.
-
 load_ecfp_all(h5_path)
     Load all Morgan fingerprints from an HDF5 file into memory.
-
-load_ecfp_subset_by_chembl_id(h5_path, chembl_id_set)
-    Load a subset of Morgan fingerprints by ChEMBL ID.
 
 load_data_from_zip(zip_path, filename)
     Load a gzipped CSV from inside a zip archive.
 
 load_all_gz_csvs_from_zip(zip_path)
     Load all *.csv.gz members from a ZIP archive into a dict of DataFrames.
+
+add_decoys(X, Y, decoys_pool, ecfps, decoy_ratio, random_state)
+    Add random decoy compounds to reach a target active fraction.
+
+downsample_negatives(X, Y, target_ratio, random_state)
+    Downsample negatives (when actives < 5%) to reach a target active fraction.
 
 KFoldTrain(X, Y, n_splits, n_estimators, random_state)
     Stratified K-fold cross-validation with Random Forest; returns mean AUROC ± std.
@@ -25,9 +25,12 @@ TrainRF(X, Y, n_estimators)
     Train a Random Forest on all data and return the fitted model.
 """
 
+import os
+import sys
+
 from sklearn.model_selection import StratifiedKFold
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, roc_curve
 import numpy as np
 import zipfile
 import random
@@ -35,27 +38,9 @@ import gzip
 import h5py
 import pandas as pd
 
-
-def get_reference_set_compounds(compounds):
-    """
-    Return a reference set of ChEMBL compound IDs from a compounds DataFrame.
-
-    If the DataFrame has more than 10,000 rows, returns the first 5,000 and
-    last 5,000 compound_chembl_id values. Otherwise returns all.
-
-    Parameters
-    ----------
-    compounds : pandas.DataFrame
-        Must contain a 'compound_chembl_id' column.
-
-    Returns
-    -------
-    list or pandas.Series
-        Compound ChEMBL IDs for the reference set.
-    """
-    if len(compounds) > 10000:
-        return compounds['compound_chembl_id'][:5000].tolist() + compounds['compound_chembl_id'][-5000:].tolist()
-    return compounds['compound_chembl_id']
+root = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, root)
+from default import RANDOM_SEED
 
 
 def load_ecfp_all(h5_path):
@@ -76,30 +61,6 @@ def load_ecfp_all(h5_path):
         ids = f["smiles"][:, 3].astype(str)
         fps = f["X_morgan"][:]
     return {cid: fp for cid, fp in zip(ids, fps)}
-
-
-def load_ecfp_subset_by_chembl_id(h5_path, chembl_id_set):
-    """
-    Load a subset of Morgan fingerprints by ChEMBL ID.
-
-    Parameters
-    ----------
-    h5_path : str
-        Path to the HDF5 file containing datasets 'smiles' and 'X_morgan'.
-    chembl_id_set : iterable[str]
-        ChEMBL IDs to load. IDs not found in the file are silently ignored.
-
-    Returns
-    -------
-    dict[str, np.ndarray]
-        Mapping {chembl_id: fingerprint (shape (nBits,))}.
-    """
-    chembl_id_set = set(chembl_id_set)
-    with h5py.File(h5_path, "r") as f:
-        ids = f["smiles"][:, 3].astype(str)
-        idx = np.flatnonzero(np.isin(ids, list(chembl_id_set)))
-        fps = f["X_morgan"][idx]
-    return {ids[i]: fp for i, fp in zip(idx, fps)}
 
 
 def load_data_from_zip(zip_path, filename):
@@ -145,7 +106,7 @@ def load_all_gz_csvs_from_zip(zip_path):
     return dfs
 
 
-def add_decoys(X, Y, decoys_pool, ecfps, decoy_ratio, random_state=42):
+def add_decoys(X, Y, decoys_pool, ecfps, decoy_ratio, random_state=RANDOM_SEED):
     """Add random decoy compounds to reduce the active ratio to `decoy_ratio`.
 
     Parameters
@@ -180,7 +141,7 @@ def add_decoys(X, Y, decoys_pool, ecfps, decoy_ratio, random_state=42):
     return X, Y, decoy_ids
 
 
-def downsample_negatives(X, Y, target_ratio=0.10, random_state=42):
+def downsample_negatives(X, Y, target_ratio=0.10, random_state=RANDOM_SEED):
     """Downsample negatives when the active ratio is below 5% to reach `target_ratio`.
 
     Parameters
@@ -211,7 +172,7 @@ def downsample_negatives(X, Y, target_ratio=0.10, random_state=42):
     return X[keep], Y[keep]
 
 
-def KFoldTrain(X, Y, n_splits=4, n_estimators=100, random_state=42):
+def KFoldTrain(X, Y, n_splits=4, n_estimators=100, random_state=RANDOM_SEED):
     """
     Stratified K-fold cross-validation with Random Forest; returns mean AUROC ± std.
 
@@ -255,6 +216,64 @@ def KFoldTrain(X, Y, n_splits=4, n_estimators=100, random_state=42):
     return round(float(np.mean(aurocs)), 3), round(float(np.std(aurocs)), 3)
 
 
+def cv_oof_predict(X, Y, n_splits=5, n_estimators=100, random_state=RANDOM_SEED):
+    """Stratified K-fold out-of-fold (OOF) probabilities with Random Forest.
+
+    Each sample is predicted exactly once, as a test example, by a forest trained on the other
+    folds (5-fold => 80/20 train/test per fold). Returns an array of P(active) aligned to `Y`,
+    suitable for a single pooled ROC / Youden cutoff and for actives-vs-inactives distribution plots.
+
+    Parameters
+    ----------
+    X : np.ndarray (n_samples, n_features)
+    Y : np.ndarray (n_samples,)  binary labels
+    n_splits, n_estimators, random_state : CV / RF settings (same RF config as KFoldTrain).
+
+    Returns
+    -------
+    np.ndarray (n_samples,)  out-of-fold P(active) per sample.
+    """
+    Y = np.asarray(Y).astype(int)
+    oof = np.full(len(Y), np.nan, dtype=float)
+    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+    for train_idx, test_idx in skf.split(X, Y):
+        rf = RandomForestClassifier(n_estimators=n_estimators, max_depth=None, min_samples_split=2,
+                                    min_samples_leaf=1, max_features="sqrt", n_jobs=8,
+                                    random_state=random_state)
+        rf.fit(X[train_idx], Y[train_idx])
+        oof[test_idx] = rf.predict_proba(X[test_idx])[:, 1]
+    return oof
+
+
+def youden_threshold(y_true, y_prob):
+    """Youden-index-optimal probability cutoff from a single ROC.
+
+    J = sensitivity + specificity - 1 = tpr - fpr, maximised over ROC thresholds. Returns the
+    probability cutoff and the sensitivity/specificity/J achieved there.
+
+    Returns
+    -------
+    tuple[float, float, float, float]  (cutoff, sensitivity, specificity, J)
+    """
+    fpr, tpr, thr = roc_curve(y_true, y_prob)
+    j = tpr - fpr
+    k = int(np.argmax(j))
+    return float(thr[k]), float(tpr[k]), float(1.0 - fpr[k]), float(j[k])
+
+
+def balanced_agreement(y_true, y_pred):
+    """Mean recall over the classes PRESENT in y_true (single-class safe).
+
+    Both classes present -> balanced accuracy; all-inactive set -> specificity; all-active -> sensitivity.
+    Used to score how well a pool model (thresholded at its cutoff) calls a leftover dataset's actives
+    active AND its inactives inactive, without relying on AUROC (undefined for single-class sets).
+    """
+    y_true = np.asarray(y_true).astype(int)
+    y_pred = np.asarray(y_pred).astype(int)
+    recalls = [(y_pred[y_true == c] == c).mean() for c in (0, 1) if (y_true == c).any()]
+    return float(np.mean(recalls)) if recalls else float("nan")
+
+
 def TrainRF(X, Y, n_estimators=100):
     """
     Train a RandomForestClassifier on all provided data and return the fitted model.
@@ -280,7 +299,7 @@ def TrainRF(X, Y, n_estimators=100):
         min_samples_leaf=1,
         max_features="sqrt",
         n_jobs=8,
-        random_state=42,
+        random_state=RANDOM_SEED,
     )
     rf.fit(X, Y)
     return rf

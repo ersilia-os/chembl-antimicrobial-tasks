@@ -1,5 +1,4 @@
 from chembl_structure_pipeline import standardizer
-from concurrent.futures import ProcessPoolExecutor
 from rdkit import Chem
 from rdkit import RDLogger
 from rdkit.Chem import Descriptors
@@ -60,11 +59,11 @@ def calculate_mw(mol):
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import DATAPATH
+from default import STAGE1PATH
 
 print("Step 03")
 print("Loading compound SMILES")
-compounds = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "02_compound_info.csv"))
+compounds = pd.read_csv(os.path.join(STAGE1PATH, "02_compound_info.csv"))
 smiles = compounds['canonical_smiles']
 
 output = []
@@ -85,4 +84,4 @@ for smiles in tqdm(smiles):
     output.append([standardized_smiles, mw])
 
 output = pd.DataFrame(output, columns=["standardized_smiles", 'standardized_MW'])
-output.to_csv(os.path.join(DATAPATH, "chembl_processed", "03_compound_info_standardized.csv"), index=False)
+output.to_csv(os.path.join(STAGE1PATH, "03_compound_info_standardized.csv"), index=False)

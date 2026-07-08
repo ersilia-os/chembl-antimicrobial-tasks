@@ -5,35 +5,49 @@ This project has been financed by Project PID2023-148309OA-I00 funded by MICIU/A
 
 # Antimicrobial binary ML tasks from ChEMBL
 
-This repository provides a reproducible pipeline to extract antimicrobial bioactivity data from [ChEMBL](https://www.ebi.ac.uk/chembl/) and convert it into ready-to-use binary classification datasets for machine learning. For each pathogen of interest, the pipeline selects high-quality assays, binarizes quantitative measurements using expert-defined cutoffs, and trains baseline models to evaluate dataset quality, modelability and redundancy. It is aimed at researchers building or benchmarking antimicrobial activity prediction models.
+![status](https://img.shields.io/badge/status-ready-brightgreen)
+
+This repository provides a reproducible pipeline to extract antimicrobial bioactivity data from [ChEMBL](https://www.ebi.ac.uk/chembl/) and turn it into ready-to-use binary classification datasets for machine learning. For each pathogen it selects high-quality assays, binarizes measurements against expert-defined cutoffs, trains baseline models to assess dataset quality, and pools related datasets to maximise usable chemical space. It is aimed at researchers building or benchmarking antimicrobial activity prediction models.
 
 ## Setup
-
-To get started, first clone this repository:
 
 ```sh
 git clone https://github.com/ersilia-os/chembl-antimicrobial-tasks.git
 cd chembl-antimicrobial-tasks
-```
-
-We recommend creating a Conda environment to run this code. Dependencies are minimal.
-
-```sh
 conda create -n camt python=3.12 -y
 conda activate camt
 pip install -r requirements.txt
 ```
 
-### Data download
-Data is stored with the [eosvc](https://github.com/ersilia-os/eosvc) tool. Please install it in your environment and run both commands to download all data. If you only want access to the cleaned outputs, download only this folder to prevent incurring storage and internet traffic costs:
+Data (raw inputs and results) is stored with [eosvc](https://github.com/ersilia-os/eosvc). Install it, then download the raw ChEMBL tables and/or the cleaned outputs — download only `output` to avoid the large raw `data`:
+
 ```sh
-eosvc download --path data
-eosvc download --path output
+eosvc download --path data      # raw ChEMBL tables (large)
+eosvc download --path output    # pipeline results
 ```
+
+## Pipeline
+
+The pipeline runs in four stages; see [`scripts/README.md`](scripts/README.md) for the detail of every numbered step. Stage 1 runs once (~4–5 h); Stages 2–4 are per pathogen (Stage 4 also has cross-pathogen aggregation steps). All results are written under `output/stage1/` … `output/stage4/`. Each stage has a runner that loops `config/pathogens.csv` (pass codes to restrict); run in the `camt` env.
+
+| Stage | Steps | What it does | How to run |
+|-------|-------|--------------|-----------|
+| 1 — Process ChEMBL (once) | 00–06 | clean & standardise the raw activity table | `bash scripts/run_stage1.sh` |
+| 2 — Per-pathogen prep | 07–12 | filter assays, LLM assay curation, ECFP + eos1klk features | `bash scripts/run_stage2.sh` |
+| 3 — Conservative pooling | 13–20 | light models, assay master table, diagnosis | `bash scripts/run_stage3.sh` *(opt-in)* |
+| 4 — Signal-based pooling | 21–28 | curate, binarise, transfer-pool, cross-validate | `bash scripts/run_stage4.sh` |
+
+`bash scripts/run_all.sh` chains Stage 2 → Stage 4 (the default end-to-end; Stage 3 is a separate opt-in branch).
+
+> **Note:** steps **09** (GPU + local [ollama](https://ollama.com/) for LLM assay curation) and **12** (`ersilia` env, cross-pathogen eos1klk) are **not** run by `run_stage2.sh` — run them manually (the script prints how). Step 09 is required before Stages 3/4; step 12 before the Stage-4 embedding figures.
+
+## Outputs
+
+Two families of ML-ready datasets are produced per pathogen — the **conservative** per-assay datasets (Stage 3, under `output/stage3/<pathogen_code>/`) and the **signal-based pooled** datasets (Stage 4, under `output/stage4/<pathogen_code>/`). See [`docs/dataset_access_guide.md`](docs/dataset_access_guide.md) for programmatic access, and [`scripts/README.md`](scripts/README.md) for per-step outputs.
 
 ## Supported pathogens
 
-The pipeline ships with pre-configured settings for 15 pathogens. New pathogens can be added manually by providing a new entry in `config/pathogens.csv`, the corresponding assay allowlist under `config/assays_to_include/`, and optionally an exclusion list under `config/assays_to_exclude/`.
+15 pathogens ship pre-configured. Add more via `config/pathogens.csv` plus an assay allowlist under `config/assays_to_include/` (and, optionally, an exclusion list under `config/assays_to_exclude/`).
 
 | Code | Organism |
 |------|----------|
@@ -53,52 +67,6 @@ The pipeline ships with pre-configured settings for 15 pathogens. New pathogens 
 | `smansoni` | *Schistosoma mansoni* |
 | `spneumoniae` | *Streptococcus pneumoniae* |
 
-## Pipeline overview
-
-The pipeline has two stages. The first stage processes the raw ChEMBL database into a clean, standardised activity table — this only needs to be run once and takes a few hours. The second stage is pathogen-specific: it filters assays for a given organism, binarizes activities, merges small assays, and trains baseline models to evaluate dataset quality. See [`scripts/README.md`](scripts/README.md) for detailed documentation of every step.
-
-| Stage | Steps | Command |
-|-------|-------|---------|
-| Process ChEMBL (run once) | 00–06 | `bash scripts/process_ChEMBL.sh` |
-| Generate pathogen datasets | 07–21 | `bash scripts/generate_datasets.sh --<code>` |
-
-Runtime for the pathogen stage varies considerably depending on the amount of data available for each organism. For example, to generate datasets for *M. tuberculosis*:
-```sh
-bash scripts/generate_datasets.sh --mtuberculosis
-```
-
-> **Note:** Step 09 requires a GPU and a locally running [ollama](https://ollama.com/) instance for LLM-based assay curation.
-
-
-## Outputs
-
-After running the pathogen stage, results are written to `output/<pathogen_code>/`. Key files:
-
-| File | Description |
-|------|-------------|
-| `19_final_datasets.zip` | Selected binary datasets, one CSV per assay (SMILES + binary label) |
-| `20_general_datasets.zip` | Pooled binary datasets, one CSV per `(activity_type, unit)` pair across all assays |
-| `18_assays_master.csv` | Per-assay annotation table with full pipeline status |
-| `20_general_datasets.csv` | Summary table for general organism-level models |
-| `21_diagnosis.png` | Multi-panel diagnostic figure |
-| `21_summary_table.xlsx` | Summary statistics table |
-| `13_individual_LM.csv` | Performance metrics for individual-assay baseline models |
-| `15_merged_LM.csv` | Performance metrics for merged-assay baseline models |
-
-## Repository architecture
-
-| Directory | Contents |
-|-----------|----------|
-| `config/` | Configuration files pre-set by the Ersilia team (cutoffs, pathogen list, manual curation files). Can be edited to customise pipeline behaviour. |
-| `data/` | Raw ChEMBL tables and processed intermediate files from Stage 1. |
-| `output/` | Per-pathogen results from Stage 2. |
-| `scripts/` | All pipeline scripts and the two driver shell scripts. |
-| `src/` | Shared utility code used across scripts. |
-| `notebooks/` | Exploratory and analysis notebooks. |
-| `docs/` | Additional documentation. |
-
-
 ## About the Ersilia Open Source Initiative
 
-This repository is developed by the [Ersilia Open Source Initiative](https://ersilia.io). Ersilia develops AI/ML tools to support drug discovery research in the Global South. To learn more about us, please visit our [GitBook Documentation](https://ersilia.gitbook.io) and our [GitHub profile](https://github.com/ersilia-os/).
-
+This repository is developed by the [Ersilia Open Source Initiative](https://ersilia.io). Ersilia develops AI/ML tools to support drug discovery research in the Global South. To learn more, visit our [GitBook](https://ersilia.gitbook.io) and [GitHub](https://github.com/ersilia-os/).

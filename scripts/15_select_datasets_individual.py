@@ -7,18 +7,19 @@ import os
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import CONFIGPATH, AUROC_MIN_THRESHOLD, AUROC_IMPROVEMENT_THRESHOLD
+from default import CONFIGPATH, AUROC_MIN_THRESHOLD, AUROC_IMPROVEMENT_THRESHOLD, STAGE3PATH
 from pathogen_utils import load_pathogen, load_expert_cutoffs, reference_cutoff
 
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
 
-print("Step 14: Selecting individual datasets")
+print("Step 15: Selecting individual datasets")
 
-OUTPUT = os.path.join(root, "..", "output", pathogen_code)
+OUTPUT = os.path.join(STAGE3PATH, pathogen_code)
+STAGE2 = os.path.join(root, "..", "output", "stage2", pathogen_code)
 
 # Load ChEMBL data for pathogen
-chembl_pathogen = pd.read_csv(os.path.join(OUTPUT, "08_chembl_cleaned_data.csv.gz"), low_memory=False)
+chembl_pathogen = pd.read_csv(os.path.join(STAGE2, "08_chembl_cleaned_data.csv.gz"), low_memory=False)
 
 # Build assay → compound set mapping, then free the full table
 # Use None instead of NaN for consistent dictionary keys
@@ -31,10 +32,10 @@ del chembl_pathogen
 
 # Load expert cutoffs and individual LM results
 expert_cutoffs = load_expert_cutoffs(CONFIGPATH)
-individual_lm = pd.read_csv(os.path.join(OUTPUT, "13_individual_LM.csv"))
+individual_lm = pd.read_csv(os.path.join(OUTPUT, "14_individual_LM.csv"))
 
 # All pathogen compounds (for coverage stats)
-pathogen_compounds = set(pd.read_csv(os.path.join(OUTPUT, "07_compound_counts.csv.gz"))["compound_chembl_id"])
+pathogen_compounds = set(pd.read_csv(os.path.join(STAGE2, "07_compound_counts.csv.gz"))["compound_chembl_id"])
 
 
 labels = ["A", "B"]
@@ -117,7 +118,7 @@ selected_df = pd.DataFrame(selected, columns=[
     "overlap_mx", "pos_mx", "ratio_mx", "cpds_mx",
 ])
 
-selected_df.to_csv(os.path.join(OUTPUT, "14_individual_selected_LM.csv"), index=False)
+selected_df.to_csv(os.path.join(OUTPUT, "15_individual_selected_LM.csv"), index=False)
 
 # Sanity check: one dataset per assay triplet within each label
 for label in labels:

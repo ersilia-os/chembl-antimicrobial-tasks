@@ -6,8 +6,8 @@ This guide explains how to access ML-ready datasets from the ChEMBL antimicrobia
 
 **The pipeline does NOT require manual sifting through `output/datasets`.** Instead, researchers can systematically access datasets through these key files:
 
-- **`17_final_datasets.csv`** - Lists all selected datasets with metadata
-- **`18_assays_master.csv`** - Master reference with comprehensive assay information and selection status
+- **`18_final_datasets.csv`** - Lists all selected datasets with metadata
+- **`19_assays_master.csv`** - Master reference with comprehensive assay information and selection status
 - **Organized ZIP archives** - Datasets grouped by type for efficient loading
 
 ## Dataset Access Workflow
@@ -21,7 +21,7 @@ import pandas as pd
 
 # Load the final dataset selection table
 pathogen_code = "mtuberculosis"  # Replace with your pathogen
-final_datasets = pd.read_csv(f'output/{pathogen_code}/17_final_datasets.csv')
+final_datasets = pd.read_csv(f'output/stage3/{pathogen_code}/18_final_datasets.csv')
 
 # View selected datasets only
 selected = final_datasets[final_datasets['selected'] == True]
@@ -45,9 +45,9 @@ sys.path.append('src')
 from model_utils import load_all_gz_csvs_from_zip, load_data_from_zip
 
 # Load all datasets from ZIP archives
-datasets_qt = load_all_gz_csvs_from_zip(f'output/{pathogen_code}/12_datasets/datasets_qt.zip')
-datasets_mx = load_all_gz_csvs_from_zip(f'output/{pathogen_code}/12_datasets/datasets_mx.zip')
-datasets_ql = load_all_gz_csvs_from_zip(f'output/{pathogen_code}/12_datasets/datasets_ql.zip')
+datasets_qt = load_all_gz_csvs_from_zip(f'output/stage3/{pathogen_code}/13_datasets/datasets_qt.zip')
+datasets_mx = load_all_gz_csvs_from_zip(f'output/stage3/{pathogen_code}/13_datasets/datasets_mx.zip')
+datasets_ql = load_all_gz_csvs_from_zip(f'output/stage3/{pathogen_code}/13_datasets/datasets_ql.zip')
 
 print(f"Loaded {len(datasets_qt)} quantitative, {len(datasets_mx)} mixed, {len(datasets_ql)} qualitative datasets")
 
@@ -61,14 +61,14 @@ if filename in datasets_qt:
 
 ### Step 3: Access Merged Datasets
 
-Merged datasets are stored in the `12_datasets/M/` directory:
+Merged datasets are stored in the `13_datasets/M/` directory:
 
 ```python
 import os
 import gzip
 
 # Load merged datasets directly
-merged_dir = f'output/{pathogen_code}/12_datasets/M'
+merged_dir = f'output/stage3/{pathogen_code}/13_datasets/M'
 merged_files = [f for f in os.listdir(merged_dir) if f.endswith('.csv.gz')]
 
 merged_datasets = {}
@@ -90,7 +90,7 @@ from dataset_utils import make_dataset_filename
 
 # For individual datasets, build filename from metadata
 def get_individual_dataset_filename(row):
-    """Build dataset filename from 17_final_datasets.csv row"""
+    """Build dataset filename from 18_final_datasets.csv row"""
     if row['dataset_type'] == 'quantitative':
         return make_dataset_filename(row['name'].split('_')[0], row['activity_type'],
                                    row['unit'], 'quantitative', row['cutoff'])
@@ -103,7 +103,7 @@ def get_individual_dataset_filename(row):
 
 # For merged datasets, filename is directly available
 def get_merged_dataset_filename(row):
-    """Get merged dataset filename from 17_final_datasets.csv row"""
+    """Get merged dataset filename from 18_final_datasets.csv row"""
     return f"{row['name']}.csv.gz"
 
 # Example usage
@@ -120,15 +120,15 @@ for idx, row in selected.head().iterrows():
 
 ### Dataset Organization
 ```
-output/<pathogen_code>/
-├── 17_final_datasets.csv           # Selected datasets with metadata
-├── 18_assays_master.csv           # Master reference table
-├── 12_datasets/
+output/stage3/<pathogen_code>/
+├── 18_final_datasets.csv           # Selected datasets with metadata
+├── 19_assays_master.csv           # Master reference table
+├── 13_datasets/
 │   ├── datasets_qt.zip            # Quantitative datasets
 │   ├── datasets_ql.zip            # Qualitative datasets
 │   ├── datasets_mx.zip            # Mixed datasets
 │   └── M/                         # Merged dataset files
-└── correlations/                  # Model predictions for analysis
+└── 14_correlations/                  # Model predictions for analysis
 ```
 
 ### Dataset File Format
@@ -160,19 +160,19 @@ def load_selected_datasets(pathogen_code):
     """Load all selected datasets for a pathogen"""
 
     # Load selection metadata
-    final_datasets = pd.read_csv(f'output/{pathogen_code}/17_final_datasets.csv')
+    final_datasets = pd.read_csv(f'output/stage3/{pathogen_code}/18_final_datasets.csv')
     selected = final_datasets[final_datasets['selected'] == True]
 
     # Load individual datasets from ZIP archives
-    datasets_qt = load_all_gz_csvs_from_zip(f'output/{pathogen_code}/12_datasets/datasets_qt.zip')
-    datasets_mx = load_all_gz_csvs_from_zip(f'output/{pathogen_code}/12_datasets/datasets_mx.zip')
-    datasets_ql = load_all_gz_csvs_from_zip(f'output/{pathogen_code}/12_datasets/datasets_ql.zip')
+    datasets_qt = load_all_gz_csvs_from_zip(f'output/stage3/{pathogen_code}/13_datasets/datasets_qt.zip')
+    datasets_mx = load_all_gz_csvs_from_zip(f'output/stage3/{pathogen_code}/13_datasets/datasets_mx.zip')
+    datasets_ql = load_all_gz_csvs_from_zip(f'output/stage3/{pathogen_code}/13_datasets/datasets_ql.zip')
 
     all_datasets = {**datasets_qt, **datasets_mx, **datasets_ql}
 
     # Load merged datasets
     import os, gzip
-    merged_dir = f'output/{pathogen_code}/12_datasets/M'
+    merged_dir = f'output/stage3/{pathogen_code}/13_datasets/M'
     if os.path.exists(merged_dir):
         for filename in os.listdir(merged_dir):
             if filename.endswith('.csv.gz'):

@@ -8,22 +8,23 @@ import os
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import CORRELATION_THRESHOLD
+from default import CORRELATION_THRESHOLD, STAGE3PATH
 from pathogen_utils import load_pathogen
 from dataset_utils import make_dataset_filename
 
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
 
-print("Step 17: Evaluating correlations among datasets")
+print("Step 18: Evaluating correlations among datasets")
 
-OUTPUT = os.path.join(root, "..", "output", pathogen_code)
+OUTPUT = os.path.join(STAGE3PATH, pathogen_code)
+STAGE2 = os.path.join(root, "..", "output", "stage2", pathogen_code)
 
 
 def _parse_assay_key(s):
     assay_id, activity_type, unit = s.split("|")
     return (assay_id, activity_type, np.nan if unit == "" else unit)
-path_to_correlations = os.path.join(OUTPUT, "13_correlations")
+path_to_correlations = os.path.join(OUTPUT, "14_correlations")
 labels = ["A", "B", "M"]
 
 # ---------------------------------------------------------------------------
@@ -43,21 +44,21 @@ for label in labels:
 # Build assay → compound set mapping
 # ---------------------------------------------------------------------------
 
-chembl = pd.read_csv(os.path.join(OUTPUT, "08_chembl_cleaned_data.csv.gz"), low_memory=False)
+chembl = pd.read_csv(os.path.join(STAGE2, "08_chembl_cleaned_data.csv.gz"), low_memory=False)
 assay_to_compounds = defaultdict(set)
 for assay_id, activity_type, unit, compound_chembl_id in chembl[["assay_chembl_id", "activity_type", "unit", "compound_chembl_id"]].values:
     assay_to_compounds[(assay_id, activity_type, unit)].add(compound_chembl_id)
 del chembl
 
-pathogen_compounds = set(pd.read_csv(os.path.join(OUTPUT, "07_compound_counts.csv.gz"))["compound_chembl_id"])
+pathogen_compounds = set(pd.read_csv(os.path.join(STAGE2, "07_compound_counts.csv.gz"))["compound_chembl_id"])
 
 # ---------------------------------------------------------------------------
 # Build unified final_datasets table (individual A/B + merged M)
 # Only ORGANISM assays are included in the correlation analysis.
 # ---------------------------------------------------------------------------
 
-individual_selected = pd.read_csv(os.path.join(OUTPUT, "14_individual_selected_LM.csv"))
-merged_selected = pd.read_csv(os.path.join(OUTPUT, "16_merged_selected_LM.csv"))
+individual_selected = pd.read_csv(os.path.join(OUTPUT, "15_individual_selected_LM.csv"))
+merged_selected = pd.read_csv(os.path.join(OUTPUT, "17_merged_selected_LM.csv"))
 print(f"Total datasets: {len(individual_selected) + len(merged_selected)}")
 
 individual_selected = individual_selected[individual_selected["target_type"] == "ORGANISM"].reset_index(drop=True)
@@ -68,7 +69,7 @@ print(f"ORGANISM datasets: {len(individual_selected) + len(merged_selected)}")
 individual_selected["cpds"] = individual_selected[["cpds_qt", "cpds_mx"]].max(axis=1)
 individual_selected["positives"] = individual_selected[["pos_qt", "pos_mx"]].max(axis=1)
 
-# Build canonical model names matching the filenames saved in step 13
+# Build canonical model names matching the filenames saved in step 14
 individual_selected["name"] = [
     make_dataset_filename(assay_id, activity_type, unit, dataset_type, cutoff).replace(".csv.gz", "")
     for assay_id, activity_type, unit, dataset_type, cutoff
@@ -112,7 +113,7 @@ name_to_compounds = {
 }
 
 # Override compound sets for M datasets using actual saved files (assay_to_compounds lookups are unreliable for merged groups)
-merged_dir = os.path.join(OUTPUT, "12_datasets", "M")
+merged_dir = os.path.join(OUTPUT, "13_datasets", "M")
 for name in list(name_to_compounds.keys()):
     if name.startswith("M_"):
         filepath = os.path.join(merged_dir, f"{name}.csv.gz")
@@ -154,7 +155,7 @@ results_df = pd.DataFrame(results, columns=[
     "strategy_1", "name_1", "strategy_2", "name_2",
     "spearman", "hit_overlap_1000", "hit_overlap_100", "compound_overlap",
 ])
-results_df.to_csv(os.path.join(OUTPUT, "17_dataset_correlations.csv"), index=False)
+results_df.to_csv(os.path.join(OUTPUT, "18_dataset_correlations.csv"), index=False)
 
 # ---------------------------------------------------------------------------
 # Greedy dataset selection: discard datasets too correlated with already-selected ones
@@ -176,7 +177,7 @@ final_datasets["selected"] = [
     [label, name] in selected
     for label, name in final_datasets[["label", "name"]].values.tolist()
 ]
-final_datasets.to_csv(os.path.join(OUTPUT, "17_final_datasets.csv"), index=False)
+final_datasets.to_csv(os.path.join(OUTPUT, "18_final_datasets.csv"), index=False)
 
 if len(final_datasets[final_datasets['selected']]) > 0:
     print(f"Selected datasets per label: {dict(Counter(final_datasets[final_datasets['selected']]['label']))}")

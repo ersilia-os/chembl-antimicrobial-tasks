@@ -6,7 +6,6 @@ from pydantic import BaseModel
 from typing import List
 from tqdm import tqdm
 import pandas as pd
-import numpy as np
 import ollama
 import json
 import csv
@@ -25,7 +24,7 @@ except Exception as e:
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import DATAPATH, CONFIGPATH, LLM_MODEL
+from default import DATAPATH, CONFIGPATH, LLM_MODEL, STAGE1PATH
 
 LLM_TIMEOUT = 600  # seconds; ollama.chat() calls that exceed this are retried
 _ollama_client = ollama.Client(timeout=LLM_TIMEOUT)
@@ -74,7 +73,7 @@ if pathogen not in ORGANISM_CHEMBL_IDS:
 else:
     organism_chembl_id = ORGANISM_CHEMBL_IDS[pathogen]
 
-OUTPUT = os.path.join(root, "..", "output", pathogen_code)
+OUTPUT = os.path.join(root, "..", "output", "stage2", pathogen_code)
 
 print(f"Processing pathogen: {pathogen} ({pathogen_code})")
 
@@ -88,7 +87,7 @@ assay_info = assays_data.set_index("chembl_id")[["doc_id", "description", "assay
 
 # Detailed assay descriptions
 try:
-    assay_descriptions = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "00_assay_descriptions.csv"))
+    assay_descriptions = pd.read_csv(os.path.join(STAGE1PATH, "00_assay_descriptions.csv"))
     descriptions = assay_descriptions.set_index("chembl_id")["description"].to_dict()
 except:
     descriptions = {}
@@ -99,7 +98,7 @@ docs_data = pd.read_csv(os.path.join(DATAPATH, "chembl_activities", "docs.csv"),
 doc_info = docs_data.set_index("doc_id")[["title", "abstract", "journal", "pubmed_id", "doi"]].to_dict("index")
 
 # Target information — loaded from pre-joined file produced by step 00
-_tds_path = os.path.join(DATAPATH, "chembl_processed", "00_target_dictionary_synonyms.csv")
+_tds_path = os.path.join(STAGE1PATH, "00_target_dictionary_synonyms.csv")
 target_dictionary = pd.read_csv(_tds_path, low_memory=False)
 target_dictionary = target_dictionary[
     target_dictionary["organism"].str.contains(pathogen, case=False, na=False)

@@ -9,7 +9,7 @@ import os
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import DATAPATH, DECOY_RATIO, MIN_CPDS_CONDITION_A, MIN_POSITIVES_CONDITION_A, MIN_POSITIVES_CONDITION_B
+from default import DECOY_RATIO, MIN_CPDS_CONDITION_A, MIN_POSITIVES_CONDITION_A, MIN_POSITIVES_CONDITION_B, STAGE1PATH, STAGE3PATH
 from pathogen_utils import load_pathogen
 from dataset_utils import make_dataset_filename
 from model_utils import (
@@ -47,28 +47,29 @@ conditions = {"A": condition_a, "B": condition_b}
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
 
-print("Step 13")
+print("Step 14")
 
-OUTPUT = os.path.join(root, "..", "output", pathogen_code)
+OUTPUT = os.path.join(STAGE3PATH, pathogen_code)
+STAGE2 = os.path.join(root, "..", "output", "stage2", pathogen_code)
 
-# Load dataset summary from step 12
+# Load dataset summary from step 13
 cols = [
     "assay_id", "activity_type", "unit", "target_type", "target_type_curated_extra",
     "cpds", "direction", "dataset_type", "expert_cutoff",
     "pos_qt", "ratio_qt", "cpds_qt", "pos_ql", "ratio_ql", "cpds_ql",
     "overlap_mx", "pos_mx", "ratio_mx", "cpds_mx",
 ]
-assay_datasets = pd.read_csv(os.path.join(OUTPUT, "12_datasets.csv"))[cols]
+assay_datasets = pd.read_csv(os.path.join(OUTPUT, "13_datasets.csv"))[cols]
 
 # Load expert cutoffs for hierarchical assignment
 from pathogen_utils import load_expert_cutoffs
 expert_cutoffs = load_expert_cutoffs(os.path.join(root, "..", "config"))
 
-pathogen_compounds = set(pd.read_csv(os.path.join(OUTPUT, "07_compound_counts.csv.gz"))["compound_chembl_id"])
+pathogen_compounds = set(pd.read_csv(os.path.join(STAGE2, "07_compound_counts.csv.gz"))["compound_chembl_id"])
 
 # Load all Morgan fingerprints into memory
 print("Loading ECFPs...")
-ecfps = load_ecfp_all(os.path.join(DATAPATH, "chembl_processed", "06_chembl_ecfps.h5"))
+ecfps = load_ecfp_all(os.path.join(STAGE1PATH, "06_chembl_ecfps.h5"))
 
 # Decoy pool: all ChEMBL compounds not tested against this pathogen
 decoys_pool = set(i for i in ecfps if i not in pathogen_compounds)
@@ -80,14 +81,14 @@ print(f"Sampling reference set from decoy pool ({len(decoys_pool)} compounds)...
 rng_ref = random.Random(42)
 reference_set = rng_ref.sample(sorted(decoys_pool), min(10000, len(decoys_pool)))
 pd.DataFrame(reference_set, columns=["reference_compounds"]).to_csv(
-    os.path.join(OUTPUT, "13_reference_set.csv.gz"), index=False
+    os.path.join(OUTPUT, "14_reference_set.csv.gz"), index=False
 )
 
 # Reference feature matrix
 x_ref = np.array([ecfps[cid] for cid in reference_set])
 
 # Output directory for reference set predictions
-PATH_TO_CORRELATIONS = os.path.join(OUTPUT, "13_correlations")
+PATH_TO_CORRELATIONS = os.path.join(OUTPUT, "14_correlations")
 os.makedirs(PATH_TO_CORRELATIONS, exist_ok=True)
 
 # ---------------------------------------------------------------------------
@@ -157,7 +158,7 @@ def run_model(assay, label):
 
     filename = make_dataset_filename(assay_id, activity_type, unit, dataset_type, expert_cutoff)
     zip_name = "datasets_qt.zip" if dataset_type == "quantitative" else "datasets_mx.zip"
-    df = load_data_from_zip(os.path.join(OUTPUT, "12_datasets", zip_name), filename)
+    df = load_data_from_zip(os.path.join(OUTPUT, "13_datasets", zip_name), filename)
 
     compound_ids = set(df["compound_chembl_id"].astype(str))
     X = np.array(df["compound_chembl_id"].map(ecfps).tolist())
@@ -272,7 +273,7 @@ for label, condition_fn in conditions.items():
 # ---------------------------------------------------------------------------
 
 individual_lm = pd.concat(results, ignore_index=True)
-individual_lm.to_csv(os.path.join(OUTPUT, "13_individual_LM.csv"), index=False)
+individual_lm.to_csv(os.path.join(OUTPUT, "14_individual_LM.csv"), index=False)
 
 all_compounds = set(cid for lab in label_compounds.values() for cid in lab)
 print(f"\nOverall coverage (A+B): {round(100 * len(all_compounds) / len(pathogen_compounds), 1)}%")

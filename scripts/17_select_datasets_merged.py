@@ -6,23 +6,24 @@ import os
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import CONFIGPATH, AUROC_MIN_THRESHOLD, AUROC_IMPROVEMENT_THRESHOLD
+from default import CONFIGPATH, AUROC_MIN_THRESHOLD, AUROC_IMPROVEMENT_THRESHOLD, STAGE3PATH
 from pathogen_utils import load_pathogen, load_expert_cutoffs, reference_cutoff
 
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
 
-print("Step 16: Selecting merged datasets")
+print("Step 17: Selecting merged datasets")
 
-OUTPUT = os.path.join(root, "..", "output", pathogen_code)
+OUTPUT = os.path.join(STAGE3PATH, pathogen_code)
+STAGE2 = os.path.join(root, "..", "output", "stage2", pathogen_code)
 
 # Load expert cutoffs
 expert_cutoffs = load_expert_cutoffs(CONFIGPATH)
 
 # Load merged LM results
-merged_lm = pd.read_csv(os.path.join(OUTPUT, "15_merged_LM.csv"))
+merged_lm = pd.read_csv(os.path.join(OUTPUT, "16_merged_LM.csv"))
 
-pathogen_compounds = set(pd.read_csv(os.path.join(OUTPUT, "07_compound_counts.csv.gz"))["compound_chembl_id"])
+pathogen_compounds = set(pd.read_csv(os.path.join(STAGE2, "07_compound_counts.csv.gz"))["compound_chembl_id"])
 
 # ---------------------------------------------------------------------------
 # Identify unique merged groups (base name + metadata)
@@ -85,10 +86,10 @@ selected_df = pd.DataFrame(selected, columns=[
     "name", "direction", "assay_type", "strain", "target_chembl_id",
     "n_assays", "n_cpds_union", "positives", "ratio", "avg", "std", "assay_keys",
 ])
-selected_df.to_csv(os.path.join(OUTPUT, "16_merged_selected_LM.csv"), index=False)
+selected_df.to_csv(os.path.join(OUTPUT, "17_merged_selected_LM.csv"), index=False)
 
 # Coverage from actual saved merged datasets (avoids assay-key lookup issues)
-merged_dir = os.path.join(OUTPUT, "12_datasets", "M")
+merged_dir = os.path.join(OUTPUT, "13_datasets", "M")
 original_compounds = {"ORG": set(), "SP": set()}
 selected_compounds = {"ORG": set(), "SP": set()}
 

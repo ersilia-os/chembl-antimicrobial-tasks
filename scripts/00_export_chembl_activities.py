@@ -3,7 +3,7 @@ Step 00 — Export ChEMBL tables and generate curation summaries.
 
 Exports 13 raw tables from a local PostgreSQL ChEMBL installation to CSV
 (data/chembl_activities/). Then generates frequency-count summary CSVs of
-key activity fields (saved to data/chembl_processed/).
+key activity fields (saved to output/stage1/).
 
 IMPORTANT: The summary files produced here (00_activity_comments.csv,
 00_standard_text.csv, 00_activity_std_units.csv) inform the manual curation process.
@@ -20,10 +20,10 @@ import pandas as pd
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import DATABASE_NAME, CHEMBL_USR, CHEMBL_PWD, DATAPATH
+from default import DATABASE_NAME, CHEMBL_USR, CHEMBL_PWD, DATAPATH, STAGE1PATH
 
 output_dir = os.path.join(DATAPATH, "chembl_activities")
-processed_dir = os.path.join(DATAPATH, "chembl_processed")
+processed_dir = STAGE1PATH
 
 activity_tables = [
     "activities",
@@ -101,8 +101,8 @@ def curate_activity_files():
     out = out.sort_values('count', ascending=False, ignore_index=True)
     total_count = out['count'].sum()
     out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
-    out.to_csv(os.path.join(DATAPATH, "chembl_processed", "00_activity_comments.csv"), index=False)
-    print(f"Activity comments [counts] stored in {os.path.join(DATAPATH, 'chembl_processed', '00_activity_comments.csv')}")
+    out.to_csv(os.path.join(STAGE1PATH, "00_activity_comments.csv"), index=False)
+    print(f"Activity comments [counts] stored in {os.path.join(STAGE1PATH, '00_activity_comments.csv')}")
 
     # Activity type - standard units
     s = df[["standard_type", "standard_units"]].astype("string").fillna("")
@@ -113,8 +113,8 @@ def curate_activity_files():
     )
     total_count = out['count'].sum()
     out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
-    out.to_csv(os.path.join(DATAPATH, "chembl_processed", "00_activity_std_units.csv"), index=False)
-    print(f"Activity type - unit pairs [counts] stored in {os.path.join(DATAPATH, 'chembl_processed', '00_activity_std_units.csv')}")
+    out.to_csv(os.path.join(STAGE1PATH, "00_activity_std_units.csv"), index=False)
+    print(f"Activity type - unit pairs [counts] stored in {os.path.join(STAGE1PATH, '00_activity_std_units.csv')}")
 
     # Standard units
     s = df['standard_units'].astype("string").str.strip().fillna("")
@@ -126,8 +126,8 @@ def curate_activity_files():
     total_count = out['count'].sum()
     out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
     out = out.sort_values('count', ascending=False, ignore_index=True)
-    out.to_csv(os.path.join(DATAPATH, "chembl_processed", "00_standard_units.csv"), index=False)
-    print(f"Units [counts] stored in {os.path.join(DATAPATH, 'chembl_processed', '00_standard_units.csv')}")
+    out.to_csv(os.path.join(STAGE1PATH, "00_standard_units.csv"), index=False)
+    print(f"Units [counts] stored in {os.path.join(STAGE1PATH, '00_standard_units.csv')}")
 
     # Standard text
     s = df['standard_text_value'].astype("string").str.strip().fillna("")
@@ -139,8 +139,8 @@ def curate_activity_files():
     total_count = out['count'].sum()
     out['cumulative_prop'] = (out['count'].cumsum() / total_count).round(3)
     out = out.sort_values('count', ascending=False, ignore_index=True)
-    out.to_csv(os.path.join(DATAPATH, "chembl_processed", "00_standard_text.csv"), index=False)
-    print(f"Standard text [counts] stored in {os.path.join(DATAPATH, 'chembl_processed', '00_standard_text.csv')}")
+    out.to_csv(os.path.join(STAGE1PATH, "00_standard_text.csv"), index=False)
+    print(f"Standard text [counts] stored in {os.path.join(STAGE1PATH, '00_standard_text.csv')}")
 
 def curate_assay_files():
     """Extract (assay_id, chembl_id, description) from assays.csv.
@@ -151,8 +151,8 @@ def curate_assay_files():
     df = pd.read_csv(os.path.join(output_dir, "assays.csv"), low_memory=False)
     s = df[['assay_id','chembl_id','description']]
     s = s.sort_values("assay_id", ascending=True, ignore_index=True)
-    s.to_csv(os.path.join(DATAPATH, "chembl_processed", "00_assay_descriptions.csv"), index=False)
-    print(f"Assay descriptions stored in {os.path.join(DATAPATH, 'chembl_processed', '00_assay_descriptions.csv')}")
+    s.to_csv(os.path.join(STAGE1PATH, "00_assay_descriptions.csv"), index=False)
+    print(f"Assay descriptions stored in {os.path.join(STAGE1PATH, '00_assay_descriptions.csv')}")
 
 def build_target_dictionary_synonyms():
     """Join target_dictionary with all component synonyms.
@@ -178,7 +178,7 @@ def build_target_dictionary_synonyms():
               .apply(lambda s: ";".join(s))
     )
     td["synonyms"] = td["tid"].map(synonym_map).fillna("")
-    outfile = os.path.join(DATAPATH, "chembl_processed", "00_target_dictionary_synonyms.csv")
+    outfile = os.path.join(STAGE1PATH, "00_target_dictionary_synonyms.csv")
     td.to_csv(outfile, index=False)
     print(f"Target dictionary with synonyms stored in {outfile}")
 

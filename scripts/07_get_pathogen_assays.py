@@ -1,11 +1,10 @@
-from collections import Counter
 import pandas as pd
 import sys
 import os
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import DATAPATH, CONFIGPATH
+from default import STAGE1PATH
 from pathogen_utils import load_pathogen, load_manual_assays, load_excluded_assays, load_assay_metadata, build_assays_info
 
 print("Step 07")
@@ -13,13 +12,13 @@ print("Step 07")
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
 
-OUTPATH = os.path.join(root, "..", "output", pathogen_code)
+OUTPATH = os.path.join(root, "..", "output", "stage2", pathogen_code)
 os.makedirs(OUTPATH, exist_ok=True)
 
 # 1. Load ChEMBL preprocessed data
 print("Loading ChEMBL preprocessed data...")
 chembl = pd.read_csv(
-    os.path.join(DATAPATH, "chembl_processed", "05_activities_preprocessed.csv"),
+    os.path.join(STAGE1PATH, "05_activities_preprocessed.csv"),
     low_memory=False
 )
 print(f"  Total activities: {len(chembl)}")
@@ -59,7 +58,7 @@ organism_counts.to_csv(os.path.join(OUTPATH, "07_target_organism_counts.csv"), i
 
 # 4. Compound metadata and chemical space
 compound_info = pd.read_csv(
-    os.path.join(DATAPATH, "chembl_processed", "02_compound_info.csv"), low_memory=False
+    os.path.join(STAGE1PATH, "02_compound_info.csv"), low_memory=False
 )
 ik_dict = dict(zip(compound_info["chembl_id"], compound_info["standard_inchi_key"]))
 pair_counts = chembl_pathogen[["compound_chembl_id", "smiles"]].value_counts().reset_index(name="count")

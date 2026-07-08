@@ -6,7 +6,7 @@ import os
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import DATAPATH, CONFIGPATH
+from default import CONFIGPATH, STAGE1PATH
 from pathogen_utils import load_pathogen, load_assay_metadata, build_assays_info
 
 print("Step 08")
@@ -14,7 +14,7 @@ print("Step 08")
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
 
-OUTPUT = os.path.join(root, "..", "output", pathogen_code)
+OUTPUT = os.path.join(root, "..", "output", "stage2", pathogen_code)
 
 # 1. Load raw pathogen data
 print(f"Loading raw pathogen data for {pathogen_code}...")
@@ -36,7 +36,7 @@ chembl_pathogen = chembl_pathogen[(~chembl_pathogen['value'].isna()) |
 print(f"After removing empty activities: {len(chembl_pathogen)} activities, {chembl_pathogen['compound_chembl_id'].nunique()} compounds")
 
 # 4. Keep only consensus units (or NaN units)
-consensus_units = set(pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "01_activity_std_units_converted.csv"))["unit"].dropna())
+consensus_units = set(pd.read_csv(os.path.join(STAGE1PATH, "01_activity_std_units_converted.csv"))["unit"].dropna())
 chembl_pathogen = chembl_pathogen[
     chembl_pathogen["unit"].isin(consensus_units) | chembl_pathogen["unit"].isna()
 ].reset_index(drop=True)

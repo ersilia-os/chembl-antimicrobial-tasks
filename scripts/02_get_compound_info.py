@@ -7,7 +7,7 @@ InChI key, canonical SMILES, and RDKit-calculated molecular weight (MW).
 
 Input:  data/chembl_activities/compound_structures.csv
         data/chembl_activities/molecule_dictionary.csv
-Output: data/chembl_processed/02_compound_info.csv
+Output: output/stage1/02_compound_info.csv
 """
 
 from rdkit.Chem import Descriptors
@@ -22,10 +22,10 @@ import os
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 
-from default import DATAPATH
+from default import DATAPATH, STAGE1PATH
 
 print("Step 02")
-output_dir = os.path.join(DATAPATH, "chembl_processed")
+output_dir = STAGE1PATH
 os.makedirs(output_dir, exist_ok=True)
 print("Loading compound tables")
 df1 = pd.read_csv(os.path.join(DATAPATH, "chembl_activities", "compound_structures.csv"), low_memory=False)

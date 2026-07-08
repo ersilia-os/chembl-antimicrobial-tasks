@@ -7,7 +7,7 @@ import os
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import DATAPATH, CONFIGPATH, DECOY_RATIO
+from default import CONFIGPATH, DECOY_RATIO, STAGE1PATH, STAGE3PATH
 from pathogen_utils import load_pathogen, load_expert_cutoffs, load_pubchem_assays, strain_norm_key, load_strain_equivalences
 from dataset_utils import make_dataset_filename
 from model_utils import load_ecfp_all, load_all_gz_csvs_from_zip, KFoldTrain, TrainRF, add_decoys, downsample_negatives
@@ -15,9 +15,10 @@ from model_utils import load_ecfp_all, load_all_gz_csvs_from_zip, KFoldTrain, Tr
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
 
-print("Step 15")
+print("Step 16")
 
-OUTPUT = os.path.join(root, "..", "output", pathogen_code)
+OUTPUT = os.path.join(STAGE3PATH, pathogen_code)
+STAGE2 = os.path.join(root, "..", "output", "stage2", pathogen_code)
 
 # Shared column lists
 keys = ["assay_id", "activity_type", "unit"]
@@ -109,15 +110,15 @@ def to_merge_unique_cpds(df, group_keys, assay_to_compounds):
 # Setup
 # ---------------------------------------------------------------------------
 
-path_to_correlations = os.path.join(OUTPUT, "13_correlations")
+path_to_correlations = os.path.join(OUTPUT, "14_correlations")
 os.makedirs(os.path.join(path_to_correlations, "M"), exist_ok=True)
 
 # Load and merge assay metadata tables
 print("Loading assay metadata...")
-assays_cleaned = pd.read_csv(os.path.join(OUTPUT, "08_assays_cleaned.csv"))
-assays_parameters = pd.read_csv(os.path.join(OUTPUT, "09_assays_parameters_full.csv"))
-assay_data_info = pd.read_csv(os.path.join(OUTPUT, "12_assay_data_info.csv"))
-individual_selected_lm = pd.read_csv(os.path.join(OUTPUT, "14_individual_selected_LM.csv"))
+assays_cleaned = pd.read_csv(os.path.join(STAGE2, "08_assays_cleaned.csv"))
+assays_parameters = pd.read_csv(os.path.join(STAGE2, "09_assays_parameters_full.csv"))
+assay_data_info = pd.read_csv(os.path.join(OUTPUT, "13_assay_data_info.csv"))
+individual_selected_lm = pd.read_csv(os.path.join(OUTPUT, "15_individual_selected_LM.csv"))
 
 accepted_assays = set(tuple(row) for row in individual_selected_lm[keys].values)
 
@@ -143,7 +144,7 @@ assays_merged["accepted_in_individual_lm"] = [tuple(row) in accepted_assays for 
 
 # Build assay → compound set mapping, then free the full table
 print("Mapping assays to compounds...")
-chembl = pd.read_csv(os.path.join(OUTPUT, "08_chembl_cleaned_data.csv.gz"), low_memory=False)
+chembl = pd.read_csv(os.path.join(STAGE2, "08_chembl_cleaned_data.csv.gz"), low_memory=False)
 assay_to_compounds = defaultdict(set)
 for assay_id, activity_type, unit, compound_chembl_id in chembl[["assay_chembl_id", "activity_type", "unit", "compound_chembl_id"]].values:
     unit_key = None if pd.isna(unit) else unit
@@ -152,21 +153,21 @@ del chembl
 
 # Load fingerprints, reference set, and define decoy pool
 print("Loading ECFPs...")
-ecfps = load_ecfp_all(os.path.join(DATAPATH, "chembl_processed", "06_chembl_ecfps.h5"))
+ecfps = load_ecfp_all(os.path.join(STAGE1PATH, "06_chembl_ecfps.h5"))
 
 print("Loading reference set...")
-reference_set = pd.read_csv(os.path.join(OUTPUT, "13_reference_set.csv.gz"))["reference_compounds"].tolist()
+reference_set = pd.read_csv(os.path.join(OUTPUT, "14_reference_set.csv.gz"))["reference_compounds"].tolist()
 x_ref = np.array([ecfps[cid] for cid in reference_set if cid in ecfps])
 
-pathogen_compounds = set(pd.read_csv(os.path.join(OUTPUT, "07_compound_counts.csv.gz"))["compound_chembl_id"])
+pathogen_compounds = set(pd.read_csv(os.path.join(STAGE2, "07_compound_counts.csv.gz"))["compound_chembl_id"])
 decoys_pool = set(i for i in ecfps if i not in pathogen_compounds)
 
 expert_cutoffs = load_expert_cutoffs(CONFIGPATH)
 
 # Load all individual datasets from zip archives into memory
 print("Loading individual datasets...")
-dfs_qt = load_all_gz_csvs_from_zip(os.path.join(OUTPUT, "12_datasets", "datasets_qt.zip"))
-dfs_mx = load_all_gz_csvs_from_zip(os.path.join(OUTPUT, "12_datasets", "datasets_mx.zip"))
+dfs_qt = load_all_gz_csvs_from_zip(os.path.join(OUTPUT, "13_datasets", "datasets_qt.zip"))
+dfs_mx = load_all_gz_csvs_from_zip(os.path.join(OUTPUT, "13_datasets", "datasets_mx.zip"))
 print(f"  Quantitative: {len(dfs_qt)} | Mixed: {len(dfs_mx)}")
 
 # ---------------------------------------------------------------------------
@@ -224,7 +225,7 @@ print(f"  SINGLE PROTEIN groups: {len(to_merge_single_protein)}")
 # ---------------------------------------------------------------------------
 # Merge and model
 # ---------------------------------------------------------------------------
-# Track merging analysis for detailed comments in step 18
+# Track merging analysis for detailed comments in step 19
 # ---------------------------------------------------------------------------
 
 def parse_assay_key(assay_key_str):
@@ -582,7 +583,7 @@ for target_type, (to_merge, filtered_assays) in merge_candidates.items():
                 y_prob_ref = rf.predict_proba(x_ref)[:, 1]
                 np.savez_compressed(os.path.join(path_to_correlations, "M", f"{name_}_ref_probs.npz"), y_prob_ref=y_prob_ref)
 
-                outdir = os.path.join(OUTPUT, "12_datasets", "M")
+                outdir = os.path.join(OUTPUT, "13_datasets", "M")
                 os.makedirs(outdir, exist_ok=True)
                 data = data[data["smiles"] != "decoy"].reset_index(drop=True)
                 data.to_csv(os.path.join(outdir, f"{name_}.csv.gz"), index=False, compression="gzip")
@@ -596,7 +597,7 @@ merged_lm_df = pd.DataFrame(merged_lm, columns=[
     "target_type_curated_extra", "strain", "target_chembl_id",
     "n_assays", "n_cpds_union", "positives", "ratio", "avg", "std", "assay_keys",
 ])
-merged_lm_df.to_csv(os.path.join(OUTPUT, "15_merged_LM.csv"), index=False)
+merged_lm_df.to_csv(os.path.join(OUTPUT, "16_merged_LM.csv"), index=False)
 
 # Save detailed merging analysis for script 18 comments
 merging_analysis_df = pd.DataFrame(merging_analysis)
@@ -619,7 +620,7 @@ else:
         "group_size", "group_compounds", "failure_reason", "group_keys",
         "n_positives", "auroc", "merged_group_name",
     ])
-merging_analysis_df.to_csv(os.path.join(OUTPUT, "15_merging_analysis.csv"), index=False)
+merging_analysis_df.to_csv(os.path.join(OUTPUT, "16_merging_analysis.csv"), index=False)
 print(f"Saved merging analysis for {len(merging_analysis_df)} assay attempts")
 
 for tt, label in [("ORGANISM", "ORG"), ("SINGLE PROTEIN", "SP")]:

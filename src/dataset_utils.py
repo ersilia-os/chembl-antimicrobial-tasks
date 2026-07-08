@@ -307,6 +307,52 @@ def binarize_with_expert_cutoff(assay_data_quantitative, expert_cutoff, directio
     return assay_data_quantitative
 
 
+def binarize_conservative(assay_data_quantitative, expert_cutoff, direction):
+    """Qualifier-aware, conservative binarisation ("prove-the-hit" rule).
+
+    Unlike `binarize_with_expert_cutoff`, this respects the censoring qualifier
+    in the `relation` column and only labels a compound ACTIVE (1) when the
+    measurement *proves* it lies on the active side of the cutoff. Ambiguous or
+    wrong-side censored records (whose true value could sit either side of the
+    cutoff) are labelled INACTIVE (0) rather than guessed. Rows are kept, never
+    dropped. This strictly shrinks the active set relative to a bare threshold.
+
+    Value-less rows (`value` is NaN) are the recovered qualitative-inactive
+    molecules step 22 carries into the dataset: they have no measured value to
+    prove a hit, so they are always labelled INACTIVE (0). This is enforced
+    explicitly via `value.notna()` rather than relying on NaN comparison
+    semantics.
+
+    Only '=', '>' and '<' relations occur in the curated data.
+
+    Parameters
+    ----------
+    assay_data_quantitative : pandas.DataFrame
+        Must contain numeric `value` and a `relation` column ('=', '>' or '<').
+    expert_cutoff : float
+        Activity threshold.
+    direction : int
+        +1 -> higher = more active (active iff proven value >= cutoff);
+        -1 -> lower = more active (active iff proven value <= cutoff).
+
+    Returns
+    -------
+    pandas.DataFrame
+        Input dataframe with an added binary `bin` column.
+    """
+    value = assay_data_quantitative["value"]
+    relation = assay_data_quantitative["relation"].astype(str)
+    has_value = value.notna()  # value-less qualitative-inactive rows are never active
+    if direction == +1:
+        # proven active only if '=' or '>' AND value already at/above the cutoff
+        active = has_value & relation.isin(["=", ">"]) & (value >= expert_cutoff)
+    else:
+        # proven active only if '=' or '<' AND value already at/below the cutoff
+        active = has_value & relation.isin(["=", "<"]) & (value <= expert_cutoff)
+    assay_data_quantitative["bin"] = active.astype(int)
+    return assay_data_quantitative
+
+
 def set_variables_quantitative(assay_data_quantitative):
     """
     Compute basic statistics for a quantitative, binarized assay dataset.
@@ -443,3 +489,137 @@ def zip_and_remove(datasets_dir):
         os.remove(fp)
 
     return len(qt_files), len(ql_files), len(mx_files)
+
+
+# ---------------------------------------------------------------------------
+# Curation helpers (steps 22–24) — merged from the former curation_v2_utils.
+# The v2 unit of work is the (assay_id, activity_type) pair; molecules are
+# compared by InChIKey. Activity categories are assigned from an explicit,
+# user-reviewed inclusion list keyed by (activity_type, unit):
+#   DR = dose-response / concentration endpoints (e.g. MIC, IC50; umol.L-1);
+#   SP = single-point readouts (% and zone-of-inhibition mm);
+#   anything not in config/activity_type_categories.csv -> UNCATEGORIZED.
+# ---------------------------------------------------------------------------
+
+# Filename-safe slugs for units (binarisation output, step 23).
+UNIT_SLUG = {"umol.L-1": "uM", "%": "pct", "mm": "mm"}
+
+
+def load_activity_categories(config_path):
+    """Load the (activity_type, unit) -> category inclusion list (step 22).
+
+    Reads config/activity_type_categories.csv. Returns a dict keyed by
+    (activity_type, unit) -> 'DR' or 'SP'. Combinations absent from the file are
+    treated as UNCATEGORIZED by `assign_activity_category`.
+    """
+    df = pd.read_csv(os.path.join(config_path, "activity_type_categories.csv"))
+    return {(str(a), str(u)): str(c)
+            for a, u, c in zip(df["activity_type"], df["unit"], df["category"])}
+
+
+def assign_activity_category(activity_type, unit, categories):
+    """Return the activity category ('DR', 'SP', or 'UNCATEGORIZED') for an
+    (activity_type, unit) pair, using the inclusion map from
+    `load_activity_categories`."""
+    return categories.get((str(activity_type), str(unit)), "UNCATEGORIZED")
+
+
+def per_pair_molecule_flags(acts, key):
+    """Per (pair, inchikey) presence flags used by the step-21 curation.
+
+    `acts` must carry the `key` columns plus 'inchikey', 'value' and 'text_flag'.
+    Rows with a null InChIKey are ignored. Returns a DataFrame with columns
+    `key + ['inchikey', 'has_num', 'has_active', 'has_inactive']`:
+        has_num       the molecule has >=1 numeric record in the pair
+        has_active    it has >=1 text active flag (text_flag == 1)
+        has_inactive  it has >=1 text inactive flag (text_flag == -1)
+    Shared by `build()` (recovered-inactive recovery) and the attrition path so
+    both derive the same per-pair molecule membership from one implementation.
+    """
+    a = acts[acts["inchikey"].notna()].copy()
+    a["_num"] = a["value"].notna()
+    a["_act"] = a["text_flag"] == 1
+    a["_ina"] = a["text_flag"] == -1
+    return (a.groupby(key + ["inchikey"])
+            .agg(has_num=("_num", "any"), has_active=("_act", "any"),
+                 has_inactive=("_ina", "any"))
+            .reset_index())
+
+
+def recovered_inactive_mask(molflags):
+    """Boolean mask over `per_pair_molecule_flags` rows selecting recovered
+    qualitative-inactive molecules: no numeric record, a purely-inactive text
+    flag, and no active flag (curator rule, 2026-07-01)."""
+    return ((~molflags["has_num"]) & molflags["has_inactive"]
+            & (~molflags["has_active"]))
+
+
+def dataset_inchikey_sets(acts, key):
+    """Per-pair set of the InChIKeys that actually land in the written dataset =
+    numeric molecules UNION recovered qualitative inactives.
+
+    Returns a dict {pair_tuple: set(inchikey)}. This is the single canonical
+    "dataset membership" used for every molecule count/union in the attrition
+    figures, so plots match the datasets step 21 writes (not the broader set of
+    all tested molecules, nor the numeric-only subset).
+    """
+    mf = per_pair_molecule_flags(acts, key)
+    keep = mf[mf["has_num"] | (mf["has_inactive"] & ~mf["has_active"])]
+    return {k: set(g["inchikey"]) for k, g in keep.groupby(key)}
+
+
+def dedup_most_active_by_inchikey(df, direction, preserve_qualifier=False):
+    """Keep one row per InChIKey, the single most active measurement.
+
+    Mirrors the step-12 intra-assay disambiguation but matches molecules on
+    `inchikey` instead of `compound_chembl_id`. Censored measurements on the wrong
+    side of the biological direction are first reset to the group extreme via
+    `adjust_relation` (needs only the direction, not any cutoff).
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Numeric records for one (assay_id, activity_type) pair. Must contain
+        'inchikey', 'value' and 'relation'.
+    direction : int
+        +1 -> higher = more active (keep maximum); -1 -> lower = more active
+        (keep minimum). Any other value: keep the first record per InChIKey.
+    preserve_qualifier : bool, default False
+        If False (legacy behaviour), the kept row carries the `adjust_relation`
+        output: wrong-side censored values are replaced by the group extreme and
+        every relation becomes "=". If True, selection of the most-active record
+        is unchanged, but the kept row's ORIGINAL `value` and `relation` are
+        restored so downstream binarisation can reason about the qualifier
+        (a '>' survives only when a molecule has no better record, i.e. a pure
+        non-inhibitor). Used by step 22 to enable conservative binarisation.
+    """
+    df = df.copy()
+    if preserve_qualifier:
+        df["_orig_value"] = df["value"]
+        df["_orig_relation"] = df["relation"].astype(str)
+
+    if direction in (1, -1):
+        cut = get_cut_value(df, direction)
+        df = adjust_relation(df, direction, cut)
+        ascending = direction == -1  # minimum for -1, maximum for +1
+        # mergesort is stable -> deterministic tie-breaking (reproducible)
+        df = df.sort_values("value", ascending=ascending, kind="mergesort")
+    # else: undefined direction (should not occur for numeric data); keep first.
+
+    kept = df.drop_duplicates(subset="inchikey", keep="first").reset_index(drop=True)
+    if preserve_qualifier:
+        kept["value"] = kept["_orig_value"]
+        kept["relation"] = kept["_orig_relation"]
+        kept = kept.drop(columns=["_orig_value", "_orig_relation"])
+    return kept
+
+
+def load_category_cutoffs(config_path):
+    """Load the single fixed binarisation cutoff per unit (step 23).
+
+    Reads config/category_cutoffs.csv (columns: category, unit, cutoff) and returns
+    a `{unit: cutoff}` dict. The direction (which side is active) is taken from each
+    dataset's own `direction` column, not from here.
+    """
+    df = pd.read_csv(os.path.join(config_path, "category_cutoffs.csv"))
+    return {str(u): float(c) for u, c in zip(df["unit"], df["cutoff"])}

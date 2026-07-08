@@ -6,15 +6,16 @@ import os
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import CONFIGPATH
+from default import CONFIGPATH, STAGE3PATH
 from pathogen_utils import load_pathogen, load_expert_cutoffs, reference_cutoff, strain_norm_key, load_strain_equivalences
 
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
 
-print("Step 18: Preparing assay master table")
+print("Step 19: Preparing assay master table")
 
-OUTPUT = os.path.join(root, "..", "output", pathogen_code)
+OUTPUT = os.path.join(STAGE3PATH, pathogen_code)
+STAGE2 = os.path.join(root, "..", "output", "stage2", pathogen_code)
 
 keys = ["assay_id", "activity_type", "unit"]
 
@@ -38,16 +39,16 @@ columns_data_info = [
 ]
 
 print("Loading data...")
-assays_cleaned = pd.read_csv(os.path.join(OUTPUT, "08_assays_cleaned.csv"))
-assays_clusters = pd.read_csv(os.path.join(OUTPUT, "10_assays_clusters.csv"))[keys + columns_clusters]
-assays_parameters = pd.read_csv(os.path.join(OUTPUT, "09_assays_parameters_full.csv"))[keys + columns_parameters]
+assays_cleaned = pd.read_csv(os.path.join(STAGE2, "08_assays_cleaned.csv"))
+assays_clusters = pd.read_csv(os.path.join(STAGE2, "10_assays_clusters.csv"))[keys + columns_clusters]
+assays_parameters = pd.read_csv(os.path.join(STAGE2, "09_assays_parameters_full.csv"))[keys + columns_parameters]
 # Normalized strain key: formatting/catalog-prefix variants collapsed, ATCC fallback
 # when the strain name is absent, plus curated cross-collection / name<->number
 # equivalences mapped to one canonical strain; see strain_norm_key()
 assays_parameters["assay_strain_norm"] = strain_norm_key(
     assays_parameters["assay_strain_curated"], assays_parameters["atcc_id"],
     load_strain_equivalences(pathogen_code))
-assay_data_info = pd.read_csv(os.path.join(OUTPUT, "12_assay_data_info.csv"))[keys + columns_data_info]
+assay_data_info = pd.read_csv(os.path.join(OUTPUT, "13_assay_data_info.csv"))[keys + columns_data_info]
 
 print("Merging tables...")
 assays_master = assays_cleaned.merge(assays_clusters, on=keys, how="left", validate="1:1")
@@ -63,7 +64,7 @@ assays_master["evaluated_cutoffs"] = [
 
 # Build AUROC lookup from individual modeling results (loaded later in script)
 # We need to load individual_lm early to build the AUROC lookup
-individual_lm = pd.read_csv(os.path.join(OUTPUT, "13_individual_LM.csv"))
+individual_lm = pd.read_csv(os.path.join(OUTPUT, "14_individual_LM.csv"))
 
 # Create AUROC lookup: (assay_id, activity_type, unit) -> {cutoff: auroc}
 auroc_lookup = {}
@@ -85,10 +86,10 @@ assays_master["evaluated_aurocs"] = [
 ]
 
 # ---------------------------------------------------------------------------
-# Add ratio columns from 12_datasets.csv
+# Add ratio columns from 13_datasets.csv
 # ---------------------------------------------------------------------------
 
-datasets_12 = pd.read_csv(os.path.join(OUTPUT, "12_datasets.csv")).sort_values(keys + ["expert_cutoff"])
+datasets_13 = pd.read_csv(os.path.join(OUTPUT, "13_datasets.csv")).sort_values(keys + ["expert_cutoff"])
 
 
 def _agg_ratios(grp):
@@ -102,7 +103,7 @@ def _agg_ratios(grp):
     })
 
 
-ratio_cols = datasets_12.groupby(keys, dropna=False).apply(_agg_ratios).reset_index()
+ratio_cols = datasets_13.groupby(keys, dropna=False).apply(_agg_ratios).reset_index()
 assays_master = assays_master.merge(ratio_cols, on=keys, how="left")
 
 # ---------------------------------------------------------------------------
@@ -121,12 +122,12 @@ def assay_keys_to_set(df, label=None):
     subset = df if label is None else df[df["label"] == label]
     return set(_parse_assay_key(s) for row in subset["assay_keys"] for s in row.split(";"))
 
-merged_lm = pd.read_csv(os.path.join(OUTPUT, "15_merged_LM.csv"))
-individual_selected_lm = pd.read_csv(os.path.join(OUTPUT, "14_individual_selected_LM.csv"))
-merged_selected_lm = pd.read_csv(os.path.join(OUTPUT, "16_merged_selected_LM.csv"))
-merging_analysis = pd.read_csv(os.path.join(OUTPUT, "15_merging_analysis.csv"))
-final_datasets = pd.read_csv(os.path.join(OUTPUT, "17_final_datasets.csv"))
-correlations = pd.read_csv(os.path.join(OUTPUT, "17_dataset_correlations.csv"))
+merged_lm = pd.read_csv(os.path.join(OUTPUT, "16_merged_LM.csv"))
+individual_selected_lm = pd.read_csv(os.path.join(OUTPUT, "15_individual_selected_LM.csv"))
+merged_selected_lm = pd.read_csv(os.path.join(OUTPUT, "17_merged_selected_LM.csv"))
+merging_analysis = pd.read_csv(os.path.join(OUTPUT, "16_merging_analysis.csv"))
+final_datasets = pd.read_csv(os.path.join(OUTPUT, "18_final_datasets.csv"))
+correlations = pd.read_csv(os.path.join(OUTPUT, "18_dataset_correlations.csv"))
 
 considered_a = set(tuple(r) for r in individual_lm[individual_lm["label"] == "A"][keys].values)
 considered_b = set(tuple(r) for r in individual_lm[individual_lm["label"] == "B"][keys].values)
@@ -161,7 +162,7 @@ def _norm_key(key):
 dataset_type_map = {_norm_key(tuple(r[:3])): r[3] for r in assay_data_info[keys + ["dataset_type"]].values}
 
 # Quantitative stats lookup (best case across all cutoffs) — for informative failure comments in A/B
-_qt_valid = datasets_12[datasets_12["cpds_qt"].notna()].copy()
+_qt_valid = datasets_13[datasets_13["cpds_qt"].notna()].copy()
 if len(_qt_valid) > 0:
     _qt_agg = (
         _qt_valid.groupby(keys, dropna=False)
@@ -181,7 +182,7 @@ else:
     cpds_qt_map = pos_qt_map = ratio_qt_map = {}
     per_cutoff_qt_map = {}
 
-# Best AUROC per (label, assay_key) from step 13 — use _norm_key to avoid NaN!=NaN issue
+# Best AUROC per (label, assay_key) from step 14 — use _norm_key to avoid NaN!=NaN issue
 best_auroc_map = {}
 for lbl in ["A", "B"]:
     for (a, at, u), grp in individual_lm[individual_lm["label"] == lbl].groupby(keys, dropna=False):
@@ -200,7 +201,7 @@ for lbl, assay_keys_str, name in final_datasets[["label", "assay_keys", "name"]]
 
 # Create mapping from assay key to merged group name for detailed M comments
 assay_to_merged_group = {}
-# From merged_lm (step 15) - all merged groups attempted
+# From merged_lm (step 16) - all merged groups attempted
 for _, row in merged_lm.iterrows():
     base_name = "_".join(row["name"].split("_")[:-1])  # Strip cutoff suffix: M_ORG0_MIC_10.0→M_ORG0_MIC
     for assay_key_str in row["assay_keys"].split(";"):
@@ -272,7 +273,7 @@ def _generate_a_comment(nkey, activity_type, unit, target_type_extra, dtype, has
         if not has_cutoff:
             return "Not considered for A: no expert cutoff defined for this (activity_type, unit, target_type) combination"
 
-        # Use middle cutoff stats — the hierarchical assignment in step 13 is based on the middle
+        # Use middle cutoff stats — the hierarchical assignment in step 14 is based on the middle
         # cutoff ratio, so reporting max-across-cutoffs stats can produce contradictory messages.
         cutoff_list = expert_cutoffs.get((activity_type, unit, target_type_extra, pathogen_code), [])
         mid_cutoff = reference_cutoff(cutoff_list, unit)
@@ -466,13 +467,13 @@ assays_master["comment_M"] = comments_m
 eval_cutoff_map = {}
 eval_label_map = {}
 
-# Map individual datasets that were evaluated (A and B conditions from step 14)
+# Map individual datasets that were evaluated (A and B conditions from step 15)
 for _, row in individual_selected_lm.iterrows():
     assay_key = _norm_key(tuple(row[keys]))
     eval_cutoff_map[assay_key] = row["cutoff"]
     eval_label_map[assay_key] = row["label"]
 
-# Map merged datasets that were evaluated (M conditions from step 16)
+# Map merged datasets that were evaluated (M conditions from step 17)
 for _, row in merged_selected_lm.iterrows():
     base_name = "_".join(row["name"].split("_")[:-1])  # Strip cutoff suffix: M_ORG0_MIC_10.0→M_ORG0_MIC
     for assay_key_str in row["assay_keys"].split(";"):
@@ -558,5 +559,5 @@ all_cols = [
     "pubchem",
 ]
 
-assays_master[all_cols].to_csv(os.path.join(OUTPUT, "18_assays_master.csv"), index=False)
+assays_master[all_cols].to_csv(os.path.join(OUTPUT, "19_assays_master.csv"), index=False)
 print("Assay master table saved.")

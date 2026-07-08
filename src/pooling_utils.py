@@ -1,503 +1,407 @@
 """
-Pooling engine for the fresh ORG dataset-creation strategy (post-step-12 redesign).
+Pooling utilities (dataset-pooling rebuild, steps 23+).
 
-This module is STRICTLY ADDITIVE: it only reads existing `output/<code>/` and `config/`
-files and never modifies them. It implements one shared engine used by three dataset-shaping
-strategies (see scripts/22_build_pooled_org_datasets.py):
+Strategy-B style *transfer* signal: train a RandomForest on one dataset A and use
+it to predict another dataset B's molecules that are NOT shared with A (a true
+generalisation test). A high AUROC ("A predicts B well") is evidence that A and B
+can be pooled. The signal is directional; for a pair with too few disjoint test
+molecules (or a single-class test set) the cell is left undefined (NaN).
 
-    S1  two pooled binary datasets per pathogen (one Dose-Response, one Single-Point)
-    S2  endpoint-family binary datasets (a handful)
-    S3  adaptive concordance-clustering (data-driven number of binary datasets)
+Adapted from the parked Strategy-B code (tmp/src/pooling_b_utils.py,
+pooling_v2_utils.py, scaffold_utils.py). This clean module depends only on the
+current src tree (`default`); it does not import anything from tmp/.
 
-Core ideas
-----------
-- Work on ORGANISM assays only, numeric-valued records only.
-- Split by assay format using `direction`: Dose-Response (direction == -1, potency endpoints)
-  vs Single-Point (direction == +1, % / zone readouts).
-- Deduplicate molecules by standardized InChIKey; within an assay keep the most-potent row.
-- Binarize each (assay, activity_type, unit) endpoint at its reference expert cutoff, then pool
-  binary labels across assays (a molecule is active if active under any contributing endpoint).
-- Resolve contradictions with a concordance graph + a model-in-the-loop check: an assay that
-  disagrees with the reference on shared molecules is dropped only if removing it does not reduce
-  the pooled dataset's cross-validated AUROC.
-
-Reused utilities: dataset_utils.{get_cut_value, adjust_relation, disambiguate_compounds,
-binarize_with_expert_cutoff}, pathogen_utils.{load_expert_cutoffs, reference_cutoff},
-model_utils.{load_ecfp_subset_by_chembl_id, add_decoys, downsample_negatives, KFoldTrain}.
+Functions
+---------
+morgan_matrix(inchikey_to_smiles, radius, n_bits)
+    Morgan fingerprints (uint8 bit vectors) per InChIKey, from SMILES.
+transfer_matrix(datasets, fps, min_test)
+    Directional train-A -> predict-B (disjoint) AUROC / F1 / count matrices.
 """
 
 import os
-import pickle
+import sys
+import glob
+from collections import defaultdict, Counter
+from multiprocessing import Pool, cpu_count
+
 import numpy as np
 import pandas as pd
+import networkx as nx
+from networkx.algorithms.community import greedy_modularity_communities
+from rdkit import Chem, DataStructs
+from rdkit.Chem import rdMolDescriptors
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import connected_components
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import roc_auc_score, f1_score
 
-from dataset_utils import (
-    get_cut_value,
-    adjust_relation,
-    disambiguate_compounds,
-    binarize_with_expert_cutoff,
-)
-from pathogen_utils import load_expert_cutoffs, reference_cutoff
-from model_utils import (
-    load_ecfp_subset_by_chembl_id,
-    add_decoys,
-    downsample_negatives,
-    KFoldTrain,
-)
-from default import DATAPATH, DECOY_RATIO
-
-SEED = 42  # matches the hardcoded seed used across model_utils (no project-wide RANDOM_SEED exists)
-NA = "<NA>"
-
-# ---- default engine parameters (overridable from the CLI; flagged in the plan) ----
-DEFAULTS = dict(
-    min_shared=5,            # K: min shared molecules for a concordance comparison to count
-    concordance_threshold=0.70,   # below this two endpoints are "discordant"
-    auroc_tolerance=0.02,    # max AUROC drop tolerated when dropping a discordant assay
-    min_actives_to_model=10, # need at least this many actives to attempt CV AUROC
-    max_model_checks=200,    # cap on in-loop model evaluations per pathogen (cost guard)
-    max_datasets_per_bucket=6,  # S3: cap; smallest clusters merged into the residual dataset
-    n_estimators_inloop=50,  # lighter RF for the in-loop modellability check
-    max_model_rows=20000,    # subsample cap for the in-loop AUROC proxy (speed)
-)
-
-ECFP_H5 = os.path.join(DATAPATH, "chembl_processed", "06_chembl_ecfps.h5")
+root = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, root)
+from default import FP_RADIUS, FP_BITS, MIN_TEST, RANDOM_SEED
 
 
-# ===========================================================================
-# Loading & endpoint preparation
-# ===========================================================================
+# --- fingerprints -----------------------------------------------------------
 
-def _norm(series):
-    return series.astype("string").fillna(NA).str.strip()
-
-
-def _key(assay, act, unit):
-    a = assay if isinstance(assay, str) else str(assay)
-    u = unit if (isinstance(unit, str) and unit.strip()) else NA
-    return (a.strip(), str(act).strip(), u)
+def _fingerprint(smiles, radius, n_bits):
+    mol = Chem.MolFromSmiles(str(smiles))
+    if mol is None:
+        return None
+    bv = rdMolDescriptors.GetMorganFingerprintAsBitVect(mol, radius, nBits=n_bits)
+    arr = np.zeros((n_bits,), dtype=np.uint8)
+    DataStructs.ConvertToNumpyArray(bv, arr)
+    return arr
 
 
-def assign_family(activity_type, unit, bucket):
-    """Coarse endpoint family for strategy S2."""
-    at = str(activity_type).upper()
-    if bucket == "DR":
-        if at.startswith("MIC"):
-            return "DR_growth_MIC"          # MIC, MIC50, MIC80, MIC90
-        return "DR_other_potency"           # IC50, EC50, GI50, ED50, KI, KD, ...
-    # SP
-    if unit == "mm":
-        return "SP_zone"                    # inhibition zone diameter
-    return "SP_percent"                     # % inhibition / activity / growth
+def morgan_matrix(inchikey_to_smiles, radius=FP_RADIUS, n_bits=FP_BITS):
+    """Return {inchikey: uint8[n_bits]} Morgan fingerprints (invalid SMILES skipped)."""
+    fps = {}
+    for ik, smi in inchikey_to_smiles.items():
+        fp = _fingerprint(smi, radius, n_bits)
+        if fp is not None:
+            fps[ik] = fp
+    return fps
 
 
-def load_endpoints(pathogen_code, output_root, config_path, cache=True):
-    """Build per-(assay, activity_type, unit) binarized ORG endpoints.
+# --- transfer matrix --------------------------------------------------------
+# Worker globals for the parallel transfer matrix (inherited via fork on Linux, so
+# the large universe array is shared copy-on-write rather than pickled per task).
+_TX = _TD = _TL = None
+_TMIN = MIN_TEST
 
-    Strategy/reference-independent, so it is cached per pathogen under
-    `output/<code>/22_pooled/_cache_endpoints.pkl` (additive) to make repeated runs fast.
+
+def _init_transfer(Xuni, didx, dlab, min_test):
+    global _TX, _TD, _TL, _TMIN
+    _TX, _TD, _TL, _TMIN = Xuni, didx, dlab, min_test
+
+
+def _transfer_row(ai):
+    """Compute one trainer A's row of the transfer matrix (worker process)."""
+    Xuni, didx, dlab, min_test = _TX, _TD, _TL, _TMIN
+    n, U = len(didx), Xuni.shape[0]
+    auroc = np.full(n, np.nan, dtype=np.float32)
+    f1 = np.full(n, np.nan, dtype=np.float32)
+    nn = np.zeros(n, dtype=np.int32)
+    idxA, yA = didx[ai], dlab[ai]
+    if idxA.size == 0 or yA.min() == yA.max():
+        return ai, auroc, f1, nn
+    rf = RandomForestClassifier(n_estimators=100, max_features="sqrt", n_jobs=1,
+                                random_state=RANDOM_SEED).fit(Xuni[idxA], yA)
+    prob = rf.predict_proba(Xuni)[:, 1]
+    A_mask = np.zeros(U, dtype=bool)
+    A_mask[idxA] = True
+    for bj in range(n):
+        if bj == ai:
+            continue
+        idxB, yB = didx[bj], dlab[bj]
+        if idxB.size == 0:
+            continue
+        keep = ~A_mask[idxB]                       # B's molecules NOT in A (disjoint test)
+        k = int(keep.sum())
+        if k < min_test:
+            continue
+        yt = yB[keep]
+        if yt.min() == yt.max():                   # single-class test set -> AUROC undefined
+            continue
+        pb = prob[idxB[keep]]
+        auroc[bj] = roc_auc_score(yt, pb)
+        f1[bj] = f1_score(yt, (pb >= 0.5).astype(int), zero_division=0)
+        nn[bj] = k
+    return ai, auroc, f1, nn
+
+
+def transfer_matrix(datasets, fps, min_test=MIN_TEST, log=print):
+    """Directional model-transfer matrix on disjoint molecules.
+
+    Parameters
+    ----------
+    datasets : list of (id, inchikeys: np.ndarray, labels: np.ndarray)
+        Non-degenerate datasets only (each has both classes).
+    fps : dict {inchikey: fingerprint}
+    min_test : int
+        Minimum disjoint test molecules (with both classes) to score a cell.
 
     Returns
     -------
-    endpoints : dict[key -> DataFrame[inchikey, compound_chembl_id, smiles, value, score, bin]]
-    meta : dict[key -> dict(bucket, family, activity_type, unit, n_cpds, has_cutoff)]
-    org_inchikeys : set   (all unique InChIKeys assessed in ORG assays, numeric+qual, for coverage)
+    ids : list[str]
+    AUROC, F1 : (n, n) float32   M[A, B] = transfer from trainer A to test B (NaN if unscored)
+    N : (n, n) int32             number of disjoint test molecules scored
     """
-    pdir = os.path.join(output_root, pathogen_code)
-    cache_path = os.path.join(pdir, "22_pooled", "_cache_endpoints.pkl")
-    if cache and os.path.exists(cache_path):
-        with open(cache_path, "rb") as fh:
-            return pickle.load(fh)
-    expert = load_expert_cutoffs(config_path)
+    ids = [d[0] for d in datasets]
+    n = len(datasets)
+    uni = sorted({ik for _, iks, _ in datasets for ik in iks if ik in fps})
+    pos = {ik: i for i, ik in enumerate(uni)}
+    Xuni = np.vstack([fps[ik] for ik in uni]) if uni else np.empty((0, FP_BITS), dtype=np.uint8)
 
-    # InChIKey + smiles map
-    counts = pd.read_csv(os.path.join(pdir, "07_compound_counts.csv.gz"),
-                         usecols=["compound_chembl_id", "inchikey", "smiles"])
-    cid2ik = dict(zip(counts["compound_chembl_id"], counts["inchikey"]))
-    cid2smi = dict(zip(counts["compound_chembl_id"], counts["smiles"]))
+    didx, dlab = [], []
+    for _, iks, ys in datasets:
+        ii = [pos[ik] for ik in iks if ik in pos]
+        ll = [y for ik, y in zip(iks, ys) if ik in pos]
+        didx.append(np.array(ii, dtype=int))
+        dlab.append(np.array(ll, dtype=int))
 
-    # ORG (assay, activity_type, unit) keys from the step-12 classification (read-only)
-    info = pd.read_csv(os.path.join(pdir, "12_assay_data_info.csv"), low_memory=False)
-    org = info[info["target_type_curated_extra"] == "ORGANISM"]
-    org_keys = {_key(a, act, u) for a, act, u in
-                zip(org["assay_id"], org["activity_type"], org["unit"])}
+    AUROC = np.full((n, n), np.nan, dtype=np.float32)
+    F1 = np.full((n, n), np.nan, dtype=np.float32)
+    N = np.zeros((n, n), dtype=np.int32)
+    if n == 0:
+        return ids, AUROC, F1, N
 
-    cleaned = pd.read_csv(
-        os.path.join(pdir, "08_chembl_cleaned_data.csv.gz"),
-        usecols=["assay_chembl_id", "compound_chembl_id", "activity_type", "unit",
-                 "value", "relation", "direction", "pchembl_calculated"],
-        low_memory=False,
-    )
-    cleaned["key"] = [_key(a, act, u) for a, act, u in
-                      zip(cleaned["assay_chembl_id"], cleaned["activity_type"], cleaned["unit"])]
+    # Parallelise across trainers A (embarrassingly parallel). Workers inherit the
+    # universe array via fork (copy-on-write); each worker RF uses n_jobs=1 to avoid
+    # oversubscribing cores.
+    n_workers = max(1, min(12, cpu_count() - 2))
+    _init_transfer(Xuni, didx, dlab, min_test)     # set globals; workers inherit via fork
+    done = 0
+    with Pool(processes=n_workers) as pool:
+        for ai, a_row, f_row, n_row in pool.imap_unordered(_transfer_row, range(n), chunksize=4):
+            AUROC[ai] = a_row
+            F1[ai] = f_row
+            N[ai] = n_row
+            done += 1
+            if done % 200 == 0:
+                log(f"    transfer: {done}/{n} trainers ({n_workers} workers)")
+    return ids, AUROC, F1, N
 
-    # all ORG InChIKeys (for coverage denominator), before numeric filtering
-    org_rows_all = cleaned[cleaned["key"].isin(org_keys)]
-    org_inchikeys = {cid2ik.get(c) for c in org_rows_all["compound_chembl_id"].unique()}
-    org_inchikeys.discard(None)
-    org_inchikeys.discard(np.nan)
 
-    # numeric-valued ORG records with a usable direction
-    df = org_rows_all[org_rows_all["value"].notna() & org_rows_all["direction"].isin([-1.0, 1.0])]
+# --- pools ------------------------------------------------------------------
 
-    endpoints, meta = {}, {}
-    for key, g in df.groupby("key"):
-        assay, act, unit = key
-        direction = int(g["direction"].iloc[0])
-        bucket = "DR" if direction == -1 else "SP"
-
-        # censored-value fix + most-potent measurement per compound (reused utilities)
-        cut = get_cut_value(g, direction)
-        g2 = adjust_relation(g, direction, cut)
-        g2 = disambiguate_compounds(g2, direction)
-
-        # map to InChIKey; if two compound ids collapse to one key, keep the most active
-        g2 = g2.copy()
-        g2["inchikey"] = g2["compound_chembl_id"].map(cid2ik)
-        g2 = g2[g2["inchikey"].notna()]
-        if g2.empty:
-            continue
-        g2 = disambiguate_compounds(g2.rename(columns={"compound_chembl_id": "_cid_tmp",
-                                                       "inchikey": "compound_chembl_id"}),
-                                    direction).rename(columns={"compound_chembl_id": "inchikey",
-                                                               "_cid_tmp": "compound_chembl_id"})
-
-        unit_key = unit if unit != NA else np.nan
-        cutoffs = expert.get((act, unit_key, "ORGANISM", pathogen_code))
-        refc = reference_cutoff(cutoffs, unit_key) if cutoffs else None
-        has_cutoff = refc is not None
-        if has_cutoff:
-            g2 = binarize_with_expert_cutoff(g2, refc, direction)
+def _transfer_adjacency(AUROC, threshold, rule):
+    with np.errstate(invalid="ignore"):
+        if rule == "bidirectional":
+            M = np.minimum(AUROC, AUROC.T)          # both directions required
+        elif rule == "unidirectional":
+            M = np.fmax(AUROC, AUROC.T)             # either scored direction counts
         else:
-            g2["bin"] = np.nan  # no expert cutoff -> cannot binarize; excluded from binary pools
-
-        g2["smiles"] = g2["compound_chembl_id"].map(cid2smi)
-        g2["score"] = g2["pchembl_calculated"] if bucket == "DR" else g2["value"]
-
-        endpoints[key] = g2[["inchikey", "compound_chembl_id", "smiles", "value", "score", "bin"]].reset_index(drop=True)
-        meta[key] = dict(bucket=bucket, family=assign_family(act, unit, bucket),
-                         activity_type=act, unit=unit, n_cpds=g2["inchikey"].nunique(),
-                         has_cutoff=has_cutoff)
-
-    result = (endpoints, meta, org_inchikeys)
-    if cache:
-        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
-        with open(cache_path, "wb") as fh:
-            pickle.dump(result, fh)
-    return result
+            raise ValueError(f"unknown rule: {rule!r}")
+        adj = M >= threshold                        # NaN >= t -> False
+    np.fill_diagonal(adj, False)
+    return adj
 
 
-# ===========================================================================
-# Concordance graph
-# ===========================================================================
+def greedy_modularity_pools(AUROC, threshold, rule="bidirectional"):
+    """Pools = greedy-modularity communities of the transfer graph at `threshold`.
 
-def load_overlap_pairs(pathogen_code, output_root):
-    """Candidate overlapping assay-endpoint pairs from 11_assays_overlap.csv (read-only)."""
-    path = os.path.join(output_root, pathogen_code, "11_assays_overlap.csv")
-    if not os.path.exists(path) or os.path.getsize(path) < 5:
-        return []
-    o = pd.read_csv(path)
-    pairs = []
-    for r in o.itertuples(index=False):
-        k1 = _key(r.assay_id_1, r.activity_type_1, r.unit_1)
-        k2 = _key(r.assay_id_2, r.activity_type_2, r.unit_2)
-        if k1 != k2:
-            pairs.append((k1, k2))
-    return pairs
+    Unlike connected components, modularity does not percolate a graph into one blob via
+    transitive weak links; it partitions it into communities and stops at the modularity
+    peak (pool count is emergent, no internal threshold). Isolated datasets become
+    singleton communities. Community ids are assigned largest-first (0 = biggest pool).
 
-
-def concordance(ep_a, ep_b, min_shared):
-    """Fraction of shared InChIKeys with the same binary label; None if < min_shared or unbinarised."""
-    a = ep_a.dropna(subset=["bin"])[["inchikey", "bin"]]
-    b = ep_b.dropna(subset=["bin"])[["inchikey", "bin"]]
-    m = a.merge(b, on="inchikey", suffixes=("_a", "_b"))
-    if len(m) < min_shared:
-        return None, len(m)
-    return float((m["bin_a"] == m["bin_b"]).mean()), len(m)
-
-
-def build_concordance(endpoints, meta, pairs, params):
-    """Return dict[(k1,k2)] -> (concordance, n_shared) for same-bucket overlapping pairs."""
-    out = {}
-    seen = set()
-    for k1, k2 in pairs:
-        if k1 not in endpoints or k2 not in endpoints:
-            continue
-        if meta[k1]["bucket"] != meta[k2]["bucket"]:
-            continue
-        pair = tuple(sorted([k1, k2]))
-        if pair in seen:
-            continue
-        seen.add(pair)
-        c, n = concordance(endpoints[k1], endpoints[k2], params["min_shared"])
-        if c is not None:
-            out[pair] = (c, n)
-    return out
-
-
-# ===========================================================================
-# Pooling, modellability, conflict pruning
-# ===========================================================================
-
-# Features in 06_chembl_ecfps.h5 are keyed by compound_chembl_id, but pooled rows are keyed by
-# InChIKey. We carry a representative compound_chembl_id per InChIKey to fetch fingerprints.
-
-def pool_endpoints_with_cid(endpoints, keys):
-    frames = []
-    for k in keys:
-        if k not in endpoints:
-            continue
-        f = endpoints[k].dropna(subset=["bin"])[["inchikey", "compound_chembl_id", "smiles", "bin"]]
-        if len(f):
-            frames.append(f)
-    if not frames:
-        return pd.DataFrame(columns=["inchikey", "compound_chembl_id", "smiles", "bin"])
-    data = pd.concat(frames, ignore_index=True)
-    data = (data.sort_values("bin", ascending=False)
-                .groupby("inchikey", as_index=False)
-                .agg(bin=("bin", "max"),
-                     compound_chembl_id=("compound_chembl_id", "first"),
-                     smiles=("smiles", "first")))
-    return data
-
-
-def cv_auroc(pool_df, ecfps, decoys_pool, params):
-    """Relative modellability proxy: 4-fold CV AUROC on the pooled binary labels.
-
-    Self-contained on the assay-measured molecules (no synthetic decoys) — this is used only to
-    compare pools (does dropping a discordant assay change AUROC?), so absolute realism is not
-    required. Returns None when there are too few actives or inactives to cross-validate.
+    Returns
+    -------
+    labels : np.ndarray (n,)   community id per dataset
     """
-    rows = pool_df[pool_df["compound_chembl_id"].isin(ecfps)]
-    n_pos, n_neg = int(rows["bin"].sum()), int((rows["bin"] == 0).sum())
-    if n_pos < max(params["min_actives_to_model"], 4) or n_neg < 4:
-        return None
-    # subsample large pools (relative proxy only) — stratified, preserving the class ratio
-    cap = params.get("max_model_rows", 20000)
-    if len(rows) > cap:
-        rng = np.random.RandomState(SEED)
-        pos = rows[rows["bin"] == 1]
-        neg = rows[rows["bin"] == 0]
-        frac = cap / len(rows)
-        n_pos_keep = max(4, int(round(len(pos) * frac)))
-        n_neg_keep = max(4, int(round(len(neg) * frac)))
-        pos = pos.iloc[rng.choice(len(pos), size=min(n_pos_keep, len(pos)), replace=False)]
-        neg = neg.iloc[rng.choice(len(neg), size=min(n_neg_keep, len(neg)), replace=False)]
-        rows = pd.concat([pos, neg])
-    X = np.array([ecfps[c] for c in rows["compound_chembl_id"]])
-    Y = rows["bin"].to_numpy().astype(int)
-    mean_auroc, _ = KFoldTrain(X, Y, n_splits=4,
-                               n_estimators=params["n_estimators_inloop"], random_state=SEED)
-    return mean_auroc
+    n = AUROC.shape[0]
+    adj = _transfer_adjacency(AUROC, threshold, rule)
+    G = nx.from_scipy_sparse_array(csr_matrix(np.triu(adj)))
+    labels = np.empty(n, dtype=int)
+    for cid, comm in enumerate(sorted(greedy_modularity_communities(G), key=len, reverse=True)):
+        for node in comm:
+            labels[node] = cid
+    return labels
 
 
-def select_reference(group_keys, meta, conc, reference):
-    """Pick the reference endpoint within a group: 'medoid' or 'largest'."""
-    if reference == "largest":
-        return max(group_keys, key=lambda k: meta[k]["n_cpds"])
-    # medoid: highest shared-weighted mean concordance with overlapping neighbours
-    best, best_score = None, -1.0
-    for k in group_keys:
-        num = den = 0.0
-        for (a, b), (c, n) in conc.items():
-            if k == a or k == b:
-                num += c * n
-                den += n
-        score = (num / den) if den else -1.0
-        if score > best_score or (score == best_score and (best is None or meta[k]["n_cpds"] > meta[best]["n_cpds"])):
-            best, best_score = k, score
-    return best if best is not None else max(group_keys, key=lambda k: meta[k]["n_cpds"])
+# --- pool building (shared by the pooling steps 23-26) ----------------------
 
+def load_binarised_datasets(bdir):
+    """Load every binarised dataset in one pathogen/category directory.
 
-def _neighbor_concordance(group_keys, conc):
-    """Shared-weighted mean concordance of each endpoint with its overlap neighbours."""
-    kset = set(group_keys)
-    num = {k: 0.0 for k in group_keys}
-    den = {k: 0.0 for k in group_keys}
-    for (a, b), (c, n) in conc.items():
-        if a in kset and b in kset:
-            num[a] += c * n; den[a] += n
-            num[b] += c * n; den[b] += n
-    return {k: (num[k] / den[k]) if den[k] else None for k in group_keys}
-
-
-def prune_discordant(group_keys, endpoints, meta, conc, reference, ecfps, decoys_pool, params, log):
-    """Resolve each discordant assay pair by dropping the 'loser', guarded by modellability.
-
-    For every overlapping pair whose concordance is below threshold, the loser is chosen by the
-    reference policy — `largest`: drop the smaller assay; `medoid`: drop the one less concordant
-    with its other neighbours (the consensus outlier). The loser is dropped only if removing it
-    does not lower the pooled CV AUROC by more than the tolerance; otherwise both are kept.
-
-    Returns (kept_keys, dropped_keys).
+    Returns
+    -------
+    datasets : list of dicts {id, iks, labels, values, ikset}
+    ik2info  : {inchikey: (smiles, compound_chembl_id)}   first occurrence wins
     """
-    group_keys = list(group_keys)
-    if len(group_keys) < 2:
-        return group_keys, []
+    datasets, ik2info = [], {}
+    for f in sorted(glob.glob(os.path.join(bdir, "*.csv.gz"))):
+        dsid = os.path.basename(f)[:-len(".csv.gz")]
+        df = pd.read_csv(f).drop_duplicates("inchikey")
+        iks = df["inchikey"].to_numpy()
+        for ik, smi, cid in zip(iks, df["smiles"].to_numpy(), df["compound_chembl_id"].to_numpy()):
+            ik2info.setdefault(ik, (smi, cid))
+        rels = (df["relation"].astype(str).to_numpy() if "relation" in df.columns
+                else np.array(["="] * len(iks)))
+        datasets.append({"id": dsid, "iks": iks,
+                         "labels": df["bin"].to_numpy().astype(int),
+                         "values": df["value"].to_numpy(dtype=float),
+                         "relations": rels,
+                         "ikset": frozenset(iks)})
+    return datasets, ik2info
 
-    nbr = _neighbor_concordance(group_keys, conc)
-    kset = set(group_keys)
-    discordant_pairs = sorted(
-        [(p, c, n) for p, (c, n) in conc.items()
-         if c < params["concordance_threshold"] and p[0] in kset and p[1] in kset],
-        key=lambda t: t[1])
 
-    kept = set(group_keys)
-    dropped = []
-    base = cv_auroc(pool_endpoints_with_cid(endpoints, list(kept)), ecfps, decoys_pool, params)
-    checks = 0
-    for (a, b), c, n in discordant_pairs:
-        if a not in kept or b not in kept:
-            continue  # one already dropped resolving an earlier pair
-        # choose the loser per policy
-        if reference == "largest":
-            loser = a if meta[a]["n_cpds"] <= meta[b]["n_cpds"] else b
-        else:  # medoid: drop the consensus outlier (lower neighbour concordance)
-            ca, cb = nbr.get(a) or -1, nbr.get(b) or -1
-            loser = a if ca <= cb else b
-        if checks >= params["max_model_checks"]:
-            log.append("      model-check cap reached; keeping remaining discordant pairs")
-            break
-        trial = list(kept - {loser})
-        auroc_wo = cv_auroc(pool_endpoints_with_cid(endpoints, trial), ecfps, decoys_pool, params)
-        checks += 1
-        if base is None or auroc_wo is None or auroc_wo >= base - params["auroc_tolerance"]:
-            kept.discard(loser)
-            dropped.append(loser)
-            base = auroc_wo if auroc_wo is not None else base
-            log.append(f"      drop {loser[0]} ({meta[loser]['activity_type']}) — conc={c:.2f} "
-                       f"n={n} vs {(b if loser==a else a)[0]}; AUROC={base}")
+def load_dataset_meta(summary_csv, category, cutoffs, unit_slug):
+    """Map dataset id -> (unit, direction, cutoff) from a 22_binarisation_summary.csv.
+
+    `unit_slug` is passed in (dataset_utils.UNIT_SLUG) to keep this module decoupled.
+    """
+    summ = pd.read_csv(summary_csv)
+    summ = summ[summ["category"] == category]
+    meta = {}
+    for r in summ.itertuples(index=False):
+        stem = f"{r.assay_id}_{str(r.activity_type).replace('/', '-')}_{unit_slug.get(r.unit, str(r.unit))}"
+        meta[stem] = (r.unit, int(r.direction), cutoffs.get(r.unit, r.cutoff))
+    return meta
+
+
+def merge_datasets(datasets, meta, ik2info, report_diag=False):
+    """Merge a set of datasets to ONE row per molecule via the value-resolution policy.
+
+    For each molecule, group its observations by (unit, direction, cutoff); pick the group
+    with highest priority ('%' first, then most observations - implements "% prevails" for
+    the rare cross-unit SP molecule and averaging-within-unit everywhere else); average the
+    values in that group and re-binarise CONSERVATIVELY against the unit's cutoff/direction.
+
+    Conservative (qualifier-aware) re-binarisation mirrors step 22's `binarize_conservative`:
+    a molecule is active (1) only if the AVERAGED value lies on the active side of the cutoff
+    AND at least one contributing measurement PROVES a hit (an uncensored/right-way qualifier
+    on the active side). Censored records (e.g. "< cutoff") and value-less rows never count as
+    active. This makes a single-dataset merge reproduce the stored step-22 bins exactly.
+
+    `datasets` is a list of dicts each carrying `id`, `iks`, `values`, `relations`.
+
+    If `report_diag` is True, also return a dict of two transparency counters (labels are
+    never changed by this):
+      - `n_flipped`       : molecules with `proven and not on_side` - a proving measurement
+                            exists but averaging dragged the mean to the inactive side.
+      - `n_proof_demoted` : molecules with `on_side and not proven` - the averaged value is on
+                            the active side but no measurement proves the hit, so the
+                            conservative rule keeps them inactive (a plain threshold would not).
+    Returns `(df, diag)` when set, else just `df`.
+    """
+    permol = defaultdict(lambda: defaultdict(list))       # ik -> (unit, direction, cutoff) -> [(value, relation)]
+    for d in datasets:
+        unit, direction, cutoff = meta[d["id"]]
+        rels = d.get("relations")
+        if rels is None:
+            rels = ["="] * len(d["iks"])
+        for ik, v, rel in zip(d["iks"], d["values"], rels):
+            permol[ik][(unit, direction, cutoff)].append((v, str(rel)))
+
+    rows, n_flipped, n_proof_demoted = [], 0, 0
+    for ik, groups in permol.items():
+        # priority: '%' unit first, then the group with the most measurements
+        key = max(groups, key=lambda k: (1 if k[0] == "%" else 0, len(groups[k])))
+        unit, direction, cutoff = key
+        obs = groups[key]
+        vals = [v for v, _ in obs if v == v]              # drop NaN (value-less rows)
+        avg = float(np.mean(vals)) if vals else float("nan")
+        if direction < 0:
+            on_side = (avg == avg) and (avg <= cutoff)
+            proven = any((v == v) and (r in ("=", "<")) and (v <= cutoff) for v, r in obs)
         else:
-            log.append(f"      keep both {a[0]}/{b[0]} conc={c:.2f} n={n} "
-                       f"(dropping {loser[0]} would lower AUROC {auroc_wo:.3f}<{base:.3f})")
-    return list(kept), dropped
+            on_side = (avg == avg) and (avg >= cutoff)
+            proven = any((v == v) and (r in ("=", ">")) and (v >= cutoff) for v, r in obs)
+        b = int(on_side and proven)
+        if proven and not on_side:                        # proving measurement averaged out
+            n_flipped += 1
+        elif on_side and not proven:                      # on active side but no proof (censored)
+            n_proof_demoted += 1
+        smi, cid = ik2info[ik]
+        rows.append((ik, cid, smi, avg, unit, b))
+    df = pd.DataFrame(rows, columns=["inchikey", "compound_chembl_id", "smiles",
+                                     "value", "unit", "bin"])
+    if report_diag:
+        return df, {"n_flipped": n_flipped, "n_proof_demoted": n_proof_demoted}
+    return df
 
 
-# ===========================================================================
-# Strategy builders
-# ===========================================================================
+# --- near-duplicate folding (step-23 pre-transfer) --------------------------
 
-def _dataset_record(name, bucket, keys, endpoints, meta, ecfps, decoys_pool, params, dropped=None):
-    pool = pool_endpoints_with_cid(endpoints, keys)
-    auroc = cv_auroc(pool, ecfps, decoys_pool, params)
-    return dict(
-        name=name, bucket=bucket,
-        n_assays=len(keys), n_dropped=len(dropped or []),
-        n_mols=len(pool), n_actives=int(pool["bin"].sum()) if len(pool) else 0,
-        auroc=auroc,
-        data=pool, keys=list(keys), dropped=list(dropped or []),
-    )
+def _neardup_edges(datasets, overlap_thr, discord_thr, maxpost):
+    """Edges between near-duplicate datasets, via a frequency-capped inverted index.
 
+    Two datasets get an edge iff containment overlap |A n B| / min(|A|,|B|) >= overlap_thr AND
+    the fraction of their SHARED molecules with disagreeing stored bins < discord_thr.
 
-def build_S1(endpoints, meta, conc, reference, ecfps, decoys_pool, params, log):
-    datasets = []
-    for bucket in ["DR", "SP"]:
-        keys = [k for k, m in meta.items() if m["bucket"] == bucket and m["has_cutoff"]]
-        if not keys:
-            continue
-        log.append(f"  [{bucket}] {len(keys)} endpoints -> pruning")
-        kept, dropped = prune_discordant(keys, endpoints, meta, conc, reference,
-                                         ecfps, decoys_pool, params, log)
-        datasets.append(_dataset_record(f"ORG_{bucket}", bucket, kept, endpoints, meta,
-                                        ecfps, decoys_pool, params, dropped))
-    return datasets
-
-
-def build_S2(endpoints, meta, conc, reference, ecfps, decoys_pool, params, log):
-    datasets = []
-    families = sorted({m["family"] for m in meta.values() if m["has_cutoff"]})
-    for fam in families:
-        keys = [k for k, m in meta.items() if m["family"] == fam and m["has_cutoff"]]
-        if not keys:
-            continue
-        bucket = meta[keys[0]]["bucket"]
-        log.append(f"  [{fam}] {len(keys)} endpoints -> pruning")
-        kept, dropped = prune_discordant(keys, endpoints, meta, conc, reference,
-                                         ecfps, decoys_pool, params, log)
-        datasets.append(_dataset_record(fam, bucket, kept, endpoints, meta,
-                                        ecfps, decoys_pool, params, dropped))
-    return datasets
-
-
-def _connected_components(keys, conc, params):
-    """Union-find over high-concordance edges; returns list of components (lists of keys)."""
-    parent = {k: k for k in keys}
-
-    def find(x):
-        while parent[x] != x:
-            parent[x] = parent[parent[x]]
-            x = parent[x]
-        return x
-
-    def union(a, b):
-        ra, rb = find(a), find(b)
-        if ra != rb:
-            parent[ra] = rb
-
-    kset = set(keys)
-    for (a, b), (c, n) in conc.items():
-        if a in kset and b in kset and c >= params["concordance_threshold"]:
-            union(a, b)
-    comps = {}
-    for k in keys:
-        comps.setdefault(find(k), []).append(k)
-    return list(comps.values())
-
-
-def build_S3(endpoints, meta, conc, reference, ecfps, decoys_pool, params, log):
-    """Adaptive clustering: high-concordance connected components become datasets;
-    isolated/non-overlapping endpoints are pooled into a per-bucket residual dataset."""
-    datasets = []
-    for bucket in ["DR", "SP"]:
-        keys = [k for k, m in meta.items() if m["bucket"] == bucket and m["has_cutoff"]]
-        if not keys:
-            continue
-        comps = _connected_components(keys, conc, params)
-        multi = sorted([c for c in comps if len(c) > 1], key=len, reverse=True)
-        singletons = [c[0] for c in comps if len(c) == 1]
-
-        # cap: keep the largest clusters, merge the rest into the residual pool
-        cap = params["max_datasets_per_bucket"] - 1  # reserve one slot for the residual
-        if len(multi) > cap:
-            overflow = multi[cap:]
-            multi = multi[:cap]
-            singletons += [k for comp in overflow for k in comp]
-        log.append(f"  [{bucket}] {len(keys)} endpoints -> {len(multi)} clusters + "
-                   f"{len(singletons)} pooled into residual")
-        for i, comp in enumerate(multi):
-            datasets.append(_dataset_record(f"ORG_{bucket}_cluster{i}", bucket, comp, endpoints,
-                                            meta, ecfps, decoys_pool, params))
-        if singletons:
-            datasets.append(_dataset_record(f"ORG_{bucket}_residual", bucket, singletons, endpoints,
-                                            meta, ecfps, decoys_pool, params))
-    return datasets
-
-
-STRATEGIES = {"S1": build_S1, "S2": build_S2, "S3": build_S3}
-
-
-def load_features_and_decoys(endpoints, pathogen_code, output_root, cache=True):
-    """Load ECFP fingerprints for all compounds in the endpoints, plus a decoy pool.
-
-    The per-pathogen ECFP subset is cached (additive) under
-    `output/<code>/22_pooled/_cache_ecfps.npz`, since the source HDF5 is 1.4 GB and scanning it
-    for every run is the dominant cost.
+    Candidate pairs are generated from molecules present in <= maxpost datasets (ubiquitous
+    molecules are skipped for candidate generation only - a genuine near-duplicate shares its
+    rarer molecules too). Exact overlap / discordance are then computed on the FULL molecule sets.
+    Returns list of (i, j, overlap, discordance) with i < j.
     """
-    cids = set()
-    for ep in endpoints.values():
-        cids.update(ep["compound_chembl_id"].tolist())
+    n = len(datasets)
+    ikset = [d["ikset"] for d in datasets]
+    bins = [dict(zip(d["iks"], d["labels"])) for d in datasets]
+    freq = Counter()
+    for s in ikset:
+        for ik in s:
+            freq[ik] += 1
+    index = defaultdict(list)
+    for i, s in enumerate(ikset):
+        for ik in s:
+            if freq[ik] <= maxpost:
+                index[ik].append(i)
 
-    cache_path = os.path.join(output_root, pathogen_code, "22_pooled", "_cache_ecfps.npz")
-    if cache and os.path.exists(cache_path):
-        z = np.load(cache_path, allow_pickle=False)
-        ecfps = {cid: fp for cid, fp in zip(z["ids"].astype(str), z["fps"])}
+    edges = []
+    for i in range(n):
+        co = Counter()
+        for ik in ikset[i]:
+            if freq[ik] <= maxpost:
+                for j in index[ik]:
+                    if j > i:
+                        co[j] += 1
+        si = len(ikset[i])
+        for j in co:                                   # only pairs sharing >= 1 non-ubiquitous mol
+            inter = ikset[i] & ikset[j]
+            ni = len(inter)
+            if ni == 0:
+                continue
+            ov = ni / min(si, len(ikset[j]))
+            if ov < overlap_thr:
+                continue
+            disc = sum(1 for ik in inter if bins[i][ik] != bins[j][ik]) / ni
+            if disc < discord_thr:
+                edges.append((i, j, ov, disc))
+    return edges
+
+
+def fold_near_duplicates(datasets, meta, ik2info, overlap_thr=0.90, discord_thr=0.10, maxpost=100):
+    """Fold near-duplicate datasets (connected components of the near-dup graph) into single nodes.
+
+    Runs over ALL datasets (eligible + degenerate + small). Each connected component with >1 member
+    is merged via `merge_datasets` into one node; every node carries `members` (its original
+    dataset ids) so downstream pooling can expand back to the source datasets.
+
+    Returns
+    -------
+    nodes : list of dicts {id, iks, labels, values, ikset, members}
+    fold_rows : list of provenance dicts (only for folded groups of >= 2 members)
+    """
+    n = len(datasets)
+    edges = _neardup_edges(datasets, overlap_thr, discord_thr, maxpost)
+    if edges:
+        r = [e[0] for e in edges] + [e[1] for e in edges]
+        c = [e[1] for e in edges] + [e[0] for e in edges]
+        adj = csr_matrix((np.ones(len(r)), (r, c)), shape=(n, n))
     else:
-        ecfps = load_ecfp_subset_by_chembl_id(ECFP_H5, cids)
-        if cache and ecfps:
-            os.makedirs(os.path.dirname(cache_path), exist_ok=True)
-            ids = np.array(list(ecfps.keys()))
-            fps = np.array([ecfps[i] for i in ids])
-            np.savez_compressed(cache_path, ids=ids, fps=fps)
+        adj = csr_matrix((n, n))
+    _, comp = connected_components(adj, directed=False)
+    groups = defaultdict(list)
+    for i, ci in enumerate(comp):
+        groups[ci].append(i)
+    edge_by_pair = {(e[0], e[1]): (e[2], e[3]) for e in edges}
 
-    decoys_pool = list(ecfps.keys())  # unused by the current cv_auroc proxy; kept for signature
-    return ecfps, decoys_pool
+    nodes, fold_rows = [], []
+    for idxs in groups.values():
+        if len(idxs) == 1:
+            d = datasets[idxs[0]]
+            node = dict(d)
+            node["members"] = [d["id"]]
+            nodes.append(node)
+            continue
+        orig = [datasets[i] for i in idxs]
+        df = merge_datasets(orig, meta, ik2info)
+        rep = max(orig, key=lambda d: len(d["ikset"]))["id"]
+        iks = df["inchikey"].to_numpy()
+        node = {"id": f"{rep}_merged{len(idxs)}", "iks": iks,
+                "labels": df["bin"].to_numpy().astype(int),
+                "values": df["value"].to_numpy(dtype=float),
+                "relations": np.array(["="] * len(iks)),   # resolved node; unused downstream
+                "ikset": frozenset(iks),
+                "members": [datasets[i]["id"] for i in idxs]}
+        nodes.append(node)
+        ovs = [edge_by_pair[(a, b)][0] for a in idxs for b in idxs if (a, b) in edge_by_pair]
+        dcs = [edge_by_pair[(a, b)][1] for a in idxs for b in idxs if (a, b) in edge_by_pair]
+        fold_rows.append({"fold_id": node["id"], "n_members": len(idxs),
+                          "members": "|".join(node["members"]),
+                          "n_molecules": len(node["ikset"]),
+                          "min_edge_overlap": round(min(ovs), 4) if ovs else float("nan"),
+                          "max_edge_discordance": round(max(dcs), 4) if dcs else float("nan")})
+    return nodes, fold_rows

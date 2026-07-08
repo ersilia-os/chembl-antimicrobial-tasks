@@ -22,7 +22,7 @@ Output (loaded at runtime by strain_norm_key via load_strain_equivalences):
 Manual curation seed (takes precedence over BacDive; can split/reassign groups):
     config/strains/strain_equivalences_manual.csv
 """
-import os, re, sys, json, time, urllib.parse, urllib.request
+import os, sys, json, time, urllib.parse, urllib.request
 from collections import Counter, defaultdict
 
 root = os.path.dirname(os.path.abspath(__file__))

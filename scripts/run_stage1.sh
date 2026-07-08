@@ -9,7 +9,7 @@ python $SCRIPT_DIR/01_prepare_manual_files.py
 echo ""
 echo "ACTION REQUIRED before continuing:"
 echo "  Fill in manual_curation_direction in:"
-echo "    data/chembl_processed/01_activity_std_units_converted.csv"
+echo "    output/stage1/01_activity_std_units_converted.csv"
 echo "  Save the result as:"
 echo "    config/activity_std_units_manual_curation.csv"
 echo ""

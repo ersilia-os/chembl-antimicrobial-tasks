@@ -5,7 +5,7 @@ import os
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import DATAPATH
+from default import DATAPATH, STAGE1PATH
 
 print("Step 04")
 print("Loading data...")
@@ -25,8 +25,8 @@ assays = pd.read_csv(os.path.join(DATAPATH, "chembl_activities", "assays.csv"), 
 targets = pd.read_csv(os.path.join(DATAPATH, "chembl_activities", "target_dictionary.csv"), low_memory=True)
 
 # Load compounds
-compounds = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "02_compound_info.csv"), low_memory=True)
-compounds_standardized = pd.read_csv(os.path.join(DATAPATH, "chembl_processed", "03_compound_info_standardized.csv"), low_memory=True)
+compounds = pd.read_csv(os.path.join(STAGE1PATH, "02_compound_info.csv"), low_memory=True)
+compounds_standardized = pd.read_csv(os.path.join(STAGE1PATH, "03_compound_info_standardized.csv"), low_memory=True)
 compounds['standardized_smiles'] = compounds_standardized['standardized_smiles']
 compounds['standardized_MW'] = compounds_standardized['standardized_MW']
 
@@ -80,4 +80,4 @@ new_activities = new_activities.rename(columns={'standardized_smiles': 'smiles',
 print("Saving results...")
 
 # Create file
-new_activities.to_csv(os.path.join(DATAPATH, "chembl_processed", "04_activities_all_raw.csv"), index=False)
+new_activities.to_csv(os.path.join(STAGE1PATH, "04_activities_all_raw.csv"), index=False)

@@ -1,22 +1,18 @@
-from collections import Counter
 from tqdm import tqdm
 import pandas as pd
-import numpy as np
-import pickle
 import sys
 import os
 
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import DATAPATH, CONFIGPATH
 from pathogen_utils import load_pathogen
 
 # Load pathogen info
 pathogen_code = sys.argv[1]
 pathogen = load_pathogen(pathogen_code)
 
-OUTPUT = os.path.join(root, "..", "output", pathogen_code)
+OUTPUT = os.path.join(root, "..", "output", "stage2", pathogen_code)
 
 print("Step 11")
 

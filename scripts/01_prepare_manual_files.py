@@ -4,7 +4,7 @@ Step 01 — Prepare config files for manual curation.
 Generates two files that require human review before the pipeline
 can proceed to step 05 and step 08:
 
-1. data/chembl_processed/01_activity_std_units_converted.csv — (activity_type, unit) pairs with
+1. output/stage1/01_activity_std_units_converted.csv — (activity_type, unit) pairs with
    counts, where activity_type is harmonized and units are converted via
    ucum_manual.csv. A curator fills in the manual_curation_direction column
    (1 = higher value means more active, -1 = lower value means more active)
@@ -12,17 +12,17 @@ can proceed to step 05 and step 08:
    config/activity_std_units_manual_curation.csv
    This is required by step 08.
 
-2. data/chembl_processed/01_harmonized_types_map.csv — maps each harmonized activity_type to
+2. output/stage1/01_harmonized_types_map.csv — maps each harmonized activity_type to
    the count and list of raw standard_type strings that collapse into it.
    Human-readable reference; not consumed by downstream pipeline steps.
 
 Run this script after step 00 and before step 05/08.
 
-Input:  data/chembl_processed/00_activity_std_units.csv
+Input:  output/stage1/00_activity_std_units.csv
         config/ucum_manual.csv
         config/synonyms.csv
-Output: data/chembl_processed/01_activity_std_units_converted.csv  (requires manual curation -> config/activity_std_units_manual_curation.csv)
-        data/chembl_processed/01_harmonized_types_map.csv
+Output: output/stage1/01_activity_std_units_converted.csv  (requires manual curation -> config/activity_std_units_manual_curation.csv)
+        output/stage1/01_harmonized_types_map.csv
 """
 
 import pandas as pd
@@ -31,7 +31,7 @@ import os
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import DATAPATH, CONFIGPATH
+from default import CONFIGPATH, STAGE1PATH
 from pathogen_utils import harmonize
 
 
@@ -54,7 +54,7 @@ def prepare_harmonized_types_map(activity_std_units):
         .reset_index()
         .sort_values("count", ascending=False, ignore_index=True)
     )
-    outfile = os.path.join(DATAPATH, "chembl_processed", "01_harmonized_types_map.csv")
+    outfile = os.path.join(STAGE1PATH, "01_harmonized_types_map.csv")
     os.makedirs(os.path.dirname(outfile), exist_ok=True)
     mapping.to_csv(outfile, index=False)
 
@@ -70,7 +70,7 @@ def prepare_unit_curation_file(activity_std_units):
     maps standard_units to final_unit via ucum_manual.csv, collapses synonyms via
     synonyms.csv, then re-aggregates counts by (activity_type, unit).
 
-    Produces data/chembl_processed/01_activity_std_units_converted.csv for manual curation.
+    Produces output/stage1/01_activity_std_units_converted.csv for manual curation.
     A curator should fill in the manual_curation_direction column (1 = higher value
     means more active, -1 = lower value means more active) and save the result as
     config/activity_std_units_manual_curation.csv before running step 08.
@@ -96,7 +96,7 @@ def prepare_unit_curation_file(activity_std_units):
     total = out["count"].sum()
     out["cumulative_prop"] = (out["count"].cumsum() / total).round(3)
 
-    outfile = os.path.join(DATAPATH, "chembl_processed","01_activity_std_units_converted.csv")
+    outfile = os.path.join(STAGE1PATH,"01_activity_std_units_converted.csv")
     out.to_csv(outfile, index=False)
 
     n_mapped = out["unit"].notna().sum()
@@ -109,7 +109,7 @@ def prepare_unit_curation_file(activity_std_units):
 if __name__ == "__main__":
     print("Step 01")
     activity_std_units = pd.read_csv(
-        os.path.join(DATAPATH, "chembl_processed", "00_activity_std_units.csv"),
+        os.path.join(STAGE1PATH, "00_activity_std_units.csv"),
         low_memory=False
     )
     print("Preparing harmonized activity types map...")

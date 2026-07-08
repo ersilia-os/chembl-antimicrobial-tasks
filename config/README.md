@@ -14,7 +14,7 @@ A single file `synonyms.csv` where the synonyms of the same assay_type (MIC90 & 
 `standard_text_manual_curation.csv` assigns +1, -1 or 0 to each text value (for example, Not Active) according to active (1), inactive (-1) or unknown (0). Created by manual curation of `data/chembl_activities/standard_text.csv`
 
 ## Activity direction
-`activity_std_units_manual_curation.csv` assigns the direction of each assay coupled to its unit of measurement (standardised by UCUM). Created by manual processing of `data/chembl_processed/00b_activity_std_units_converted.csv`
+`activity_std_units_manual_curation.csv` assigns the direction of each assay coupled to its unit of measurement (standardised by UCUM). Created by manual processing of `output/stage1/01_activity_std_units_converted.csv`
 
 ## Activity comments
 `activity_comments_manual_curation.csv` assigns +1,-1 or 0 to each comment (proportion of each comment in the document is shown) according to active (1), inactive (-1) or unknown (0). Created by manual curation of `data/chembl_activities/activity_comments.csv`

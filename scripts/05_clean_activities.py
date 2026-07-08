@@ -5,7 +5,7 @@ import os
 
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import DATAPATH, CONFIGPATH
+from default import DATAPATH, CONFIGPATH, STAGE1PATH
 from pathogen_utils import harmonize
 
 
@@ -55,7 +55,7 @@ print("Step 05")
 # 1. Load data and drop rows with no SMILES
 print("Loading data...")
 activities_all_raw = pd.read_csv(
-    os.path.join(DATAPATH, "chembl_processed", "04_activities_all_raw.csv"),
+    os.path.join(STAGE1PATH, "04_activities_all_raw.csv"),
     low_memory=False
 )
 nans = activities_all_raw["smiles"].isna().sum()
@@ -183,12 +183,12 @@ text_flag_summary = (
     .sort_values("count", ascending=False, ignore_index=True)
 )
 text_flag_summary.to_csv(
-    os.path.join(DATAPATH, "chembl_processed", "05_activity_std_units_curated_comments.csv"), index=False
+    os.path.join(STAGE1PATH, "05_activity_std_units_curated_comments.csv"), index=False
 )
 
 # 13. Save final preprocessed activities
 print("Saving results...")
 activities_all_raw.to_csv(
-    os.path.join(DATAPATH, "chembl_processed", "05_activities_preprocessed.csv"), index=False
+    os.path.join(STAGE1PATH, "05_activities_preprocessed.csv"), index=False
 )
 print("Done.")

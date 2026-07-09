@@ -23,6 +23,15 @@ KFoldTrain(X, Y, n_splits, n_estimators, random_state)
 
 TrainRF(X, Y, n_estimators)
     Train a Random Forest on all data and return the fitted model.
+
+cv_oof_predict(X, Y, n_splits, n_estimators, random_state)
+    Stratified K-fold out-of-fold probability predictions (one per sample).
+
+youden_threshold(y_true, y_prob)
+    Youden-index-optimal probability cutoff from a single ROC.
+
+balanced_agreement(y_true, y_pred)
+    Mean recall over the classes present in y_true (single-class safe).
 """
 
 import os
@@ -257,8 +266,11 @@ def youden_threshold(y_true, y_prob):
     """
     fpr, tpr, thr = roc_curve(y_true, y_prob)
     j = tpr - fpr
-    k = int(np.argmax(j))
-    return float(thr[k]), float(tpr[k]), float(1.0 - fpr[k]), float(j[k])
+    # roc_curve prepends a sentinel threshold at index 0 (np.inf / max(score)+1, tpr=fpr=0,
+    # J=0); skip it so a poor model can't return an out-of-range cutoff. Clamp to [0,1].
+    k = 1 + int(np.argmax(j[1:])) if len(thr) > 1 else 0
+    cutoff = float(min(max(thr[k], 0.0), 1.0))
+    return cutoff, float(tpr[k]), float(1.0 - fpr[k]), float(j[k])
 
 
 def balanced_agreement(y_true, y_pred):

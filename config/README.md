@@ -19,3 +19,9 @@ A single file `synonyms.csv` where the synonyms of the same assay_type (MIC90 & 
 ## Activity comments
 `activity_comments_manual_curation.csv` assigns +1,-1 or 0 to each comment (proportion of each comment in the document is shown) according to active (1), inactive (-1) or unknown (0). Created by manual curation of `data/chembl_activities/activity_comments.csv`
 
+## Stage-4 binarisation cutoffs (step 22)
+Three files control the active/inactive cutoff applied in `scripts/22_binarise_datasets.py`:
+- `category_cutoffs.csv`: the **global default** cutoff per unit, applied to every pathogen (`umol.L-1 → 10`, `% → 50`, `mm → 20`).
+- `category_cutoff_candidates.csv`: the **low/middle/high candidate values** per unit (`umol.L-1 5;10;20`, `% 50;75;90`, `mm 10;20;30`) — the only values a per-pathogen override may select. Stringency is direction-dependent: for `umol.L-1` (direction −1) a **lower** value is the more stringent cutoff; for `%`/`mm` (direction +1) a **higher** value is.
+- `category_cutoffs_overrides.csv`: **per-pathogen overrides** as `(pathogen_code, unit, tier)`, `tier ∈ {low, middle, high}`. It **ships empty**, so by default every pathogen uses the global default. A per-pathogen cutoff is a threshold decision — fill this in only after reviewing the cutoff-sensitivity diagnostic (`output/stage4/general_plots/27_cutoff_sensitivity.png` / `.csv`, and each pathogen's `22_cutoff_sensitivity.csv`) and with sign-off.
+

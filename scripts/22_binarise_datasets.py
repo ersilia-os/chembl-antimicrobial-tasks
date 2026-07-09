@@ -4,14 +4,29 @@ Step 22 - Binarise curated datasets and plot the results.
 First turns the retained, quantitative datasets from step 21 into binary
 active/inactive labels, then renders the per-pathogen binarisation figures.
 Runs on ONE pathogen per invocation (like steps 07-20); loop with scripts/run_step.sh.
-Cross-pathogen comparison figures are a separate step (23).
+Cross-pathogen comparison figures (and the aggregation of 22_cutoff_sensitivity.csv)
+are a separate step (27).
 
-Binarisation uses a single fixed cutoff keyed by unit, loaded from
-`config/category_cutoffs.csv` (umol.L-1 -> 10, % -> 50, mm -> 20).
+Binarisation uses a cutoff keyed by unit, loaded from `config/category_cutoffs.csv`
+(the global default: umol.L-1 -> 10, % -> 50, mm -> 20). A pathogen may deviate from the
+default via `config/category_cutoffs_overrides.csv` (pathogen_code, unit, tier), which
+selects a low/middle/high candidate value from `config/category_cutoff_candidates.csv`
+(umol.L-1 5;10;20, % 50;75;90, mm 10;20;30). Per-pathogen overrides live in
+`config/category_cutoffs_overrides.csv`; currently pfalciparum and spneumoniae use the DR
+"low" tier (5 umol.L-1 instead of the 10 umol.L-1 default), and these have been signed off.
+Pathogens not listed there fall back to the global default in `config/category_cutoffs.csv`.
+Add further overrides only after reviewing the cutoff-sensitivity diagnostic (below) and with
+sign-off - the choice is a threshold decision. The resolved
+cutoff is recorded per dataset in the summary and carried into the binarised files.
 
-The cutoff *value* is keyed by unit; the *direction* (which side is active) is taken
-from each dataset's own `direction` column (the curated authority), so the rare SP
-assays where the low end is active (direction = -1) are handled correctly.
+The cutoff *value* is keyed by unit (and pathogen, if overridden); the *direction* (which
+side is active) is taken from each dataset's own `direction` column (the curated
+authority), so the rare SP assays where the low end is active (direction = -1) are handled
+correctly.
+
+A per-pathogen cutoff-sensitivity table (`22_cutoff_sensitivity.csv`) reports the
+dataset-aggregated active ratio at each low/middle/high candidate per (category, unit).
+It is diagnostic only - it changes no label - and is the evidence for choosing an override.
 
 Binarisation is conservative and qualifier-aware ("prove-the-hit"), via
 `dataset_utils.binarize_conservative`: a compound is labelled active (1) only when
@@ -38,16 +53,15 @@ and active/inactive stay consistent with step 21), per pathogen
     22_binarisation_overview.png    per-category active-ratio histograms, active ratio
                                     vs dataset size, class composition by datasets and
                                     by molecules.
-    22_eos1klk_actives.png, 22_eos1klk_category.png, 22_eos1klk_clusters.png
+    22_eos1klk_actives.png, 22_eos1klk_category.png
                                     from the eos1klk (lazychemvis) 2D coordinates:
                                     the four PCA/t-MAP/t-SNE/UMAP projections coloured
-                                    by active/inactive, DR/shared/SP/other, and the
-                                    largest compatibility-group pools.
+                                    by active/inactive and by DR/shared/SP/other.
     22_eos1klk_*.csv                companion "ready datasets": the plotted points
                                     (inchikey, per-projection x/y, group) for each of
-                                    the three embedding figures.
+                                    the two embedding figures.
 
-Active-call cut-offs: DR <= 10 uM; SP >= 50 % or >= 20 mm.
+Active-call cut-offs (global default): DR <= 10 uM; SP >= 50 % or >= 20 mm.
 
 Inputs (output/stage4/<pathogen>/):
     21_curation_summary.csv         retained datasets + category/unit/direction
@@ -57,6 +71,8 @@ Outputs (output/stage4/<pathogen>/):
     22_binarised/DR/<assay>_<type>_<slug>.csv.gz   (inchikey, compound_chembl_id,
     22_binarised/SP/<assay>_<type>_<slug>.csv.gz    smiles, value, relation, bin)
     22_binarisation_summary.csv                     one row per binarised dataset
+    22_cutoff_sensitivity.csv                       active ratio at low/middle/high per
+                                                    (category, unit); diagnostic only
     22_binarisation_overview.png, 22_eos1klk_*.png  per-pathogen figures
     22_eos1klk_*.csv                                companion point CSVs for the eos figures
 
@@ -78,7 +94,10 @@ root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import CONFIGPATH, STAGE4PATH
 from pathogen_utils import load_pathogen
-from dataset_utils import load_category_cutoffs, UNIT_SLUG, binarize_conservative
+from dataset_utils import (
+    load_category_cutoffs, load_category_cutoff_candidates, CUTOFF_TIERS,
+    UNIT_SLUG, binarize_conservative,
+)
 from plot_utils import (
     binarisation_stats, composition_counts,
     pathogen_coords,
@@ -100,7 +119,8 @@ def binarise(pathogen_code):
 
     print(f"Step 22 - {pathogen_code} ({pathogen})")
 
-    cutoffs = load_category_cutoffs(CONFIGPATH)
+    cutoffs = load_category_cutoffs(CONFIGPATH, pathogen_code)
+    candidates = load_category_cutoff_candidates(CONFIGPATH)
     print(f"  cutoffs by unit: {cutoffs}")
 
     summary = pd.read_csv(os.path.join(OUTPUT, "21_curation_summary.csv"), low_memory=False)
@@ -134,6 +154,8 @@ def binarise(pathogen_code):
 
     out_cols = ["inchikey", "compound_chembl_id", "smiles", "value", "relation", "bin"]
     rows = []
+    # cutoff-sensitivity accumulator: (category, unit, tier) -> [n_datasets, n_mol, n_active]
+    sens = {}
     for r in tqdm(to_bin.itertuples(index=False), total=len(to_bin), desc="  binarising"):
         assay_id, activity_type, unit, category = r.assay_id, r.activity_type, r.unit, r.category
         cutoff = cutoffs[unit]
@@ -161,11 +183,42 @@ def binarise(pathogen_code):
         rows.append([assay_id, activity_type, unit, category, cutoff, direction,
                      n, n_active, n_inactive, n_qual_inactive, active_ratio, degenerate])
 
+        # Cutoff sensitivity: re-binarise this dataset at each low/middle/high candidate
+        # for its unit (safe now the primary file is written; binarize_conservative
+        # overwrites df["bin"]). Accumulates the dataset-aggregated active ratio per tier.
+        if unit in candidates:
+            for tier, cutoff_t in candidates[unit].items():
+                na = int((binarize_conservative(df, cutoff_t, direction)["bin"] == 1).sum())
+                acc = sens.setdefault((category, unit, tier), [0, 0, 0])
+                acc[0] += 1
+                acc[1] += n
+                acc[2] += na
+
     summary_cols = ["assay_id", "activity_type", "unit", "category", "cutoff", "direction",
                     "n_molecules", "n_active", "n_inactive", "n_qual_inactive", "active_ratio", "degenerate"]
     out = pd.DataFrame(rows, columns=summary_cols).sort_values(
         ["category", "n_molecules"], ascending=[True, False]).reset_index(drop=True)
     out.to_csv(os.path.join(OUTPUT, "22_binarisation_summary.csv"), index=False)
+
+    # Cutoff-sensitivity table: dataset-aggregated active ratio at each low/middle/high
+    # candidate per (category, unit). This is DIAGNOSTIC ONLY - it does not change any
+    # label; it is the evidence for choosing a per-pathogen override (see
+    # config/category_cutoffs_overrides.csv). active_ratio uses the same dataset-aggregated
+    # semantics as the summary (Sum n_active / Sum n_molecules), so a molecule tested in
+    # several assays is counted several times.
+    tier_order = {t: i for i, t in enumerate(CUTOFF_TIERS)}
+    sens_rows = []
+    for (category, unit, tier), (nd, nm, na) in sens.items():
+        sens_rows.append([category, unit, tier, candidates[unit][tier], nd, nm, na,
+                          round(na / nm, 5) if nm else float("nan")])
+    sens_df = pd.DataFrame(sens_rows, columns=[
+        "category", "unit", "tier", "cutoff", "n_datasets", "n_molecules",
+        "n_active", "active_ratio"])
+    if len(sens_df):
+        sens_df = sens_df.sort_values(
+            ["category", "unit", "tier"],
+            key=lambda c: c.map(tier_order) if c.name == "tier" else c).reset_index(drop=True)
+    sens_df.to_csv(os.path.join(OUTPUT, "22_cutoff_sensitivity.csv"), index=False)
 
     n_dr = int((out["category"] == "DR").sum())
     n_sp = int((out["category"] == "SP").sum())
@@ -220,7 +273,7 @@ class RatioVsSizePlot(BasePlot):
             if len(idx) > CAP_POINTS:
                 idx = rng.choice(idx, size=CAP_POINTS, replace=False)
             ax.scatter(sz[idx], r[idx], color=color, alpha=0.15, edgecolors="none", s=6)
-            bi = np.digitize(sz, bins)
+            bi = np.clip(np.digitize(sz, bins), 1, len(bins) - 1)
             means = np.array([r[bi == k].mean() if (bi == k).any() else np.nan
                               for k in range(1, len(bins))])
             m = np.isfinite(means)
@@ -314,7 +367,7 @@ def process(pathogen_code):
     print(f"  contradictory -> DR {stats['dr_contra']:.3f} SP {stats['sp_contra']:.3f} "
           f"| cross shared {stats['cross_shared']:.3f} contradictory {stats['cross_contra']:.3f}")
 
-    # eos1klk embedding figures (per pathogen): actives, category, and largest pools,
+    # eos1klk embedding figures (per pathogen): actives and category,
     # each across the four projections. Skipped if the coordinates are unavailable.
     # Each also emits a companion CSV of the plotted points (coords + group), which live
     # in no other stage-4 CSV.
@@ -336,19 +389,6 @@ def process(pathogen_code):
                              ("SP only", issp & ~isdr, pc.color("sp_only")),
                              ("shared DR+SP", isdr & issp, pc.color("shared"))]).save(
             out, "22_eos1klk_category", companion=True)
-        # 3. the 10 largest compatibility-group pools (across DR+SP), rest grey
-        allp = sorted(stats["top_pools"]["DR"] + stats["top_pools"]["SP"],
-                      key=lambda t: t[0], reverse=True)[:10]
-        pcols = pc.cyclic(len(allp)) if allp else []
-        iks = cc["inchikey"].values
-        assigned = np.zeros(len(cc), dtype=bool)
-        pool_groups = []
-        for i, (sz, members) in enumerate(allp):
-            m = np.fromiter((k in members for k in iks), dtype=bool, count=len(iks)) & ~assigned
-            assigned |= m
-            pool_groups.append((f"pool {i + 1} (n={sz})", m, pcols[i]))
-        EmbeddingFigure(cc, [("other", ~assigned, pc.color("other"))] + pool_groups).save(
-            out, "22_eos1klk_clusters", legend_ncol=4, companion=True)
 
     return stats
 

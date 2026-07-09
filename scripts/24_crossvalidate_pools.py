@@ -8,9 +8,9 @@ collect the out-of-fold (OOF) probability for each molecule, and from that singl
   - choose the best probability cutoff by the YOUDEN index (max sensitivity + specificity - 1).
 
 Which pools are modelled ("modellable"):
-  - every MULTI-dataset pool that is CV-able (both classes, >= MIN_PER_CLASS per class); AND
-  - a SINGLETON only if it has >= SINGLETON_MIN_MOLECULES molecules AND is CV-able. This promotes a
-    large single-assay screen to a real model while keeping small single-assay singletons out.
+  - ANY pool (multi-dataset OR singleton) with >= MIN_MODELLABLE_MOLECULES molecules AND CV-able
+    (both classes, >= MIN_PER_CLASS per class). A single symmetric size floor is applied to multi-dataset
+    pools and single-assay singletons alike; pools below it are deferred to step 25 for recovery.
 (`chemspace_frac`, from 23_chemspace_partition.csv `n_total`, is reported for context but not gated on.)
 
 Plain CV (no decoys/downsampling); RF(100) on Morgan FPs - the same model family as the transfer.
@@ -35,7 +35,7 @@ Usage:
     python scripts/24_crossvalidate_pools.py saureus mtuberculosis
     python scripts/24_crossvalidate_pools.py --plot-only saureus     # redraw the overview from cached CV
 
-Thresholds are module-level constants below (SINGLETON_MIN_MOLECULES, MIN_PER_CLASS, N_SPLITS);
+Thresholds are module-level constants below (MIN_MODELLABLE_MOLECULES, MIN_PER_CLASS, N_SPLITS);
 edit them there rather than via the command line.
 """
 
@@ -71,7 +71,9 @@ stylia.set_style("article")
 CATEGORIES = ["DR", "SP"]
 MIN_PER_CLASS = 5                       # CV-able floor: >= this many actives AND inactives
 N_SPLITS = 5                            # 5-fold => 80/20 per fold
-SINGLETON_MIN_MOLECULES = 200           # a singleton is modelled only if it has >= this many molecules
+MIN_MODELLABLE_MOLECULES = 100          # symmetric size floor: a pool (multi-dataset OR singleton) is
+                                        # modelled only if it has >= this many molecules; smaller pools are
+                                        # deferred to step 25 for recovery (mirrors the PubChem branch)
 
 output_base = os.path.join(root, "..", "output")
 
@@ -119,22 +121,22 @@ def process(pathogen_code):
 
         for r in sub.itertuples(index=False):
             df = pool_dfs[r.pool_id]
-            df = df[df["inchikey"].isin(fps)]
+            df = df[df["inchikey"].isin(fps)]                    # keep only fingerprintable molecules
+            n_mol = len(df)                                      # count actually modelled/cross-validated
             y = df["bin"].to_numpy().astype(int)
             na, ni = int((y == 1).sum()), int((y == 0).sum())
-            frac = round(r.n_molecules / total, 6) if total else np.nan
-            include = (not r.is_singleton) or (r.n_molecules >= SINGLETON_MIN_MOLECULES)
+            frac = round(n_mol / total, 6) if total else np.nan
+            include = n_mol >= MIN_MODELLABLE_MOLECULES          # symmetric floor on post-fingerprint count
             cv_able = na >= MIN_PER_CLASS and ni >= MIN_PER_CLASS
             modelled = bool(include and cv_able)
             row = {"pathogen": pathogen_code, "category": category, "pool_id": r.pool_id,
-                   "is_singleton": bool(r.is_singleton), "n_molecules": int(r.n_molecules),
+                   "is_singleton": bool(r.is_singleton), "n_molecules": n_mol,
                    "chemspace_frac": frac, "n_active": na, "n_inactive": ni,
                    "active_ratio": round(na / (na + ni), 5) if (na + ni) else np.nan,
                    "modelled": modelled, "auroc": np.nan, "youden_cutoff": np.nan,
                    "sensitivity": np.nan, "specificity": np.nan}
             if not modelled:
-                row["reason"] = ("singleton_below_min_molecules" if (r.is_singleton and not include)
-                                 else "not_cv_able")
+                row["reason"] = "below_min_molecules" if not include else "not_cv_able"
                 rows.append(row); continue
             X = np.stack([fps[ik] for ik in df["inchikey"]])
             oof = cv_oof_predict(X, y, n_splits=N_SPLITS)
@@ -149,7 +151,7 @@ def process(pathogen_code):
 
         nmod = int(sum(1 for x in rows if x["category"] == category and x["modelled"]))
         print(f"  {category}: {len(sub)} pools -> {nmod} modelled "
-              f"(singleton molecules >= {SINGLETON_MIN_MOLECULES})")
+              f"(molecules >= {MIN_MODELLABLE_MOLECULES})")
 
     if not rows:
         return None
@@ -164,7 +166,7 @@ def process(pathogen_code):
 # Pool status buckets (reason -> label, colour). Shared by the status panel.
 _STATUS = [("modelled", "modelled", "cobalt"),
            ("not_cv_able", "1 class / <5", "amber"),
-           ("singleton_below_min_molecules", f"<{SINGLETON_MIN_MOLECULES} mol", "silver")]
+           ("below_min_molecules", f"<{MIN_MODELLABLE_MOLECULES} mol", "silver")]
 
 
 def _order_modelled(summ):

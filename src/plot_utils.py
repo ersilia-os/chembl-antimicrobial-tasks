@@ -1,15 +1,15 @@
 """
-Shared figures subsystem for the stage-4 plotting scripts (steps 21-28).
+Shared figures subsystem for the stage-4 plotting scripts (steps 21-27).
 
 Holds the pieces that both the per-pathogen scripts (21, 22) and the cross-pathogen
-script (23) rely on, so they never diverge:
+script (27) rely on, so they never diverge:
 
   - stylia house-style setup (print + article, applied at import).
   - Plot constants (target-type labels, attrition stages, size bins, category maps,
     eos1klk embedding coordinates, active-call cut-off notes, ...).
-  - Generic drawing helpers (mol_region, cat_label, size_bins, _xticks, _pad_ylim).
+  - Generic drawing helpers (mol_region, cat_label, size_bins, _xticks).
   - eos1klk (lazychemvis) embedding helpers (load_coords, pathogen_coords,
-    embed_figure, pathogen_colors, smiles_to_pathogens).
+    embed_figure, pathogen_colors).
   - Per-pathogen AGGREGATORS that read a pathogen's outputs and RETURN the results
     dict (no figures drawn):
         curation_stats(code)       - what step 21's process() computes.
@@ -18,7 +18,7 @@ script (23) rely on, so they never diverge:
     composition_counts).
 
 The per-pathogen figure helpers stay in scripts 21/22; the cross-pathogen figure
-helpers live in script 23. This module holds only the shared inputs to both.
+helpers live in script 27. This module holds only the shared inputs to both.
 """
 
 import os
@@ -38,7 +38,7 @@ from default import RANDOM_SEED, STAGE1PATH, STAGE2PATH, STAGE4PATH
 from dataset_utils import UNIT_SLUG, dataset_inchikey_sets
 
 # Format: print | Style: article - publication house style, shared by all stage-4 plots
-# (steps 21-28). Change with stylia.set_format() / stylia.set_style().
+# (steps 21-27). Change with stylia.set_format() / stylia.set_style().
 stylia.set_format("print")
 stylia.set_style("article")
 
@@ -134,7 +134,6 @@ CAT_DISPLAY = {"DR": "Dose Response", "SP": "Single Point"}
 COMPOSITION = ["all-inactive", "mixed", "all-active"]
 HIT_LABELS = ["1 assay", "2 assays", "≥3 assays"]  # times an active molecule is hit
 COMPAT_LABELS = ["singleton", "in a pair", "group ≥3"]  # poolable-group size of a dataset
-LOC_LABELS = ["usable only", "in both", "lost: active", "lost: inactive"]  # molecule location
 
 # eos1klk (lazychemvis) precomputed 2D coordinates: 4 projections x (x, y).
 EOS_H5 = os.path.join(STAGE2PATH, "general", "12_eos1klk_predictions.h5")
@@ -144,8 +143,6 @@ _COORDS = None  # cached smiles -> 8-coord DataFrame
 
 # Active-call cut-offs, annotated on every binarised plot.
 CUT = {"DR": "≤10 µM", "SP": "≥50% / 20 mm"}
-CUT_NOTE = "active: DR ≤10 µM · SP ≥50%/20 mm"
-PAD = 0.04  # axis padding fraction so points don't sit on the limits
 
 
 # --- generic drawing helpers ------------------------------------------------
@@ -153,11 +150,6 @@ PAD = 0.04  # axis padding fraction so points don't sit on the limits
 def _xticks(ax, labels):
     ax.set_xticks(np.arange(len(labels)))
     ax.set_xticklabels(labels, rotation=45, ha="right")
-
-
-def _pad_ylim(ax, lo, hi):
-    span = hi - lo
-    ax.set_ylim(lo - PAD * span, hi + PAD * span)
 
 
 # --- eos1klk embedding helpers (precomputed 2D coordinates) -----------------
@@ -210,17 +202,6 @@ def embed_figure(cc, groups, path, legend_ncol=None):
     stylia.save_figure(path)
 
 
-def smiles_to_pathogens(codes):
-    """smiles -> set of pathogen codes that tested it (from each 07_all_smiles.csv)."""
-    sm2path = defaultdict(set)
-    for c in codes:
-        f = os.path.join(STAGE2PATH, c, "07_all_smiles.csv")
-        if os.path.exists(f):
-            for s in pd.read_csv(f)["smiles"].dropna().unique():
-                sm2path[s].add(c)
-    return sm2path
-
-
 def pathogen_colors(codes):
     """Stable per-pathogen colours. Keyed to the canonical config/pathogens.csv order (not
     the caller's list order/length), so a given pathogen keeps the SAME colour across every
@@ -247,7 +228,7 @@ def crossassay_metrics(pathogen_code, df):
                       / #{tested in >= 2 assays}
                       (disagreement among molecules tested more than once)
 
-    plus hit_bins, overlap, location and pool metrics, and a "cross" block comparing
+    plus hit_bins, overlap and pool metrics, and a "cross" block comparing
     DR vs SP over molecules tested in BOTH categories
     (active-in-a-category = active in any assay of that category):
 
@@ -263,7 +244,6 @@ def crossassay_metrics(pathogen_code, df):
         sub = df[df["category"] == cat]
         active_assays, tested_assays = Counter(), Counter()
         has_active, has_inactive = set(), set()
-        in_usable, in_degen = set(), set()  # molecules by dataset usability
         tested_sets = []  # per-dataset tested-molecule sets (for pairwise overlap)
         group_mols = defaultdict(set)       # compatibility group -> pooled molecule union
         group_active = defaultdict(set)     # compatibility group -> active (any-assay) union
@@ -277,7 +257,6 @@ def crossassay_metrics(pathogen_code, df):
             inactives = d.loc[d["bin"] == 0, "inchikey"].unique()
             tested_here = set(d["inchikey"].unique())
             tested_sets.append(tested_here)
-            (in_degen if r.degenerate else in_usable).update(tested_here)
             sk = "" if pd.isna(getattr(r, "assay_strain_norm", "")) else getattr(r, "assay_strain_norm", "")
             gkey = (r.activity_type, r.unit, r.direction, sk)
             group_mols[gkey] |= tested_here
@@ -304,12 +283,6 @@ def crossassay_metrics(pathogen_code, df):
                 a, b = tested_sets[i], tested_sets[j]
                 u = len(a | b)
                 jac.append((len(a & b) / u) if u else 0.0)
-        # molecule "location": usable-only / in-both / degenerate-only (lost if the
-        # degenerate datasets are deleted), the lost slice split active vs inactive.
-        degen_only = in_degen - in_usable
-        lost_active = degen_only & has_active
-        loc_bins = [len(in_usable - in_degen), len(in_usable & in_degen),
-                    len(lost_active), len(degen_only - lost_active)]
         pool_keys = [k for k in group_mols if group_n[k] >= 2]
         pool_sizes = [len(group_mols[k]) for k in pool_keys]
         pool_ratios = [len(group_active[k]) / len(group_mols[k]) for k in pool_keys]
@@ -319,13 +292,9 @@ def crossassay_metrics(pathogen_code, df):
             "hit_bins": hit_bins,
             "overlap_sample": jac,
             "frac_sharing": float(np.mean([1.0 if v > 0 else 0.0 for v in jac])) if jac else np.nan,
-            "loc_bins": loc_bins,
             "pool_sizes": pool_sizes,
             "pool_ratios": pool_ratios,
             "tested_iks": set(tested_assays),
-            "top_pools": [(len(group_mols[k]), frozenset(group_mols[k]))
-                          for k in sorted(pool_keys, key=lambda kk: len(group_mols[kk]),
-                                          reverse=True)[:12]],
         }
         active_any[cat] = has_active
         tested_any[cat] = set(tested_assays)
@@ -489,10 +458,7 @@ def binarisation_stats(pathogen_code):
 
     Reads 22_binarisation_summary.csv and 21_curation_summary.csv, then reads the
     binarised per-dataset files via crossassay_metrics. Returns the same dict
-    22.process() returns, plus an added `top_pools` field carrying the top
-    compatibility-group pools (their member InChIKey frozensets) per category, so
-    both the per-pathogen eos-clusters figure (22) and any cross-pathogen use (23)
-    draw from the same computed membership without recomputation divergence.
+    22.process() returns.
     """
     df = pd.read_csv(os.path.join(STAGE4PATH, pathogen_code, "22_binarisation_summary.csv"))
 
@@ -533,13 +499,8 @@ def binarisation_stats(pathogen_code):
         "n_usable": n_usable,
         "compat_bins": compat_bins,
         "n_pools": n_pools,
-        "loc_bins": {c: cm[c]["loc_bins"] for c in CATS},
         "pool_sizes": {c: cm[c]["pool_sizes"] for c in CATS},
         "pool_ratios": {c: cm[c]["pool_ratios"] for c in CATS},
-        # top compatibility-group pools (per category), member InChIKey frozensets,
-        # so both the per-pathogen eos-clusters figure and cross-pathogen use share
-        # one computed membership (added field; see docstring).
-        "top_pools": {c: cm[c]["top_pools"] for c in CATS},
         # per-molecule tested/active sets (needed by the per-pathogen eos figures).
         "tested_iks": {c: cm[c]["tested_iks"] for c in CATS},
     }

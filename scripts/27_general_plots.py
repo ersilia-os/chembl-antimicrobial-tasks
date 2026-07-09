@@ -25,15 +25,32 @@ Outputs (output/stage4/general_plots/):
     27_binarisation_ratio.png         active-ratio box (DR/SP) + class composition
     27_binarisation_agreement.png     hit reproducibility / contradictions / DR↔SP agreement
     27_binarisation_active_overlap.png  active-molecule Jaccard heatmaps (DR, SP)
+    27_cutoff_sensitivity.png         active ratio at each low/middle/high candidate cutoff,
+                                      per pathogen and unit (DR µM / SP % / SP mm); current
+                                      global default starred. Diagnostic for per-pathogen
+                                      cutoff overrides - changes no label.
+    27_cutoff_sensitivity.csv         tidy (pathogen, category, unit, tier, cutoff, counts,
+                                      active_ratio, is_default) table behind that figure
     27_eos1klk_all_pathogens.png      eos1klk embedding of retained molecules, coloured by pathogen
     27_eos1klk_tmap.png               t-MAP small multiples (retained molecules), one panel per pathogen
-    27_chemspace_partition.png        step-23 molecule-coverage split (multi/singleton/not-considered)
-    27_pool_active_ratios.png         step-23 active ratio of multi-dataset pools across pathogens
+    27_pool_partition.png             step-23 molecule-coverage split (multi/singleton/not-considered)
+    27_pool_active_ratios.png         step-23 active ratio of considered pools (multi + singleton) across pathogens
     27_pool_overview.png              condensed per-pathogen pools (3x2, DR/SP): step-23 pool size,
                                       step-24 CV AUROC, step-24 CV outcome counts
     27_merge_overview.png             step-25 merge per pathogen (3x2, DR/SP): baseline→grown AUROC,
                                       leftover outcome mix, molecules absorbed
+    27_final_data_overlap.png         final-pool overlap per pathogen (2x2, DR/SP): pairwise Jaccard
+                                      overlap % + molecule-level cross-pool label conflict
+                                      (conflicting / total unique molecules)
+    27_final_data_overlap.csv         tidy per-pool-pair table (n_shared, jaccard, discrepancy)
+    27_activity_ratio.png             active ratio through the pipeline (2x2): stage distribution
+                                      22→26 (DR/SP) + per-pathogen seed→final pool ratio
+    27_activity_ratio_per_pathogen.png  small multiples: 22→26 active-ratio flow per pathogen (DR/SP)
     27_lowdata_overview.png           catch-all AUROC per deferred category (from step 26)
+    27_master_table.csv               pooling backbone: one row per binarised dataset traced
+                                      fold→pool(23)→CV(24)→merge(25)/catch-all(26) with final status
+    27_pipeline_summary.png           cross-step summary (2x3): consolidation funnel, coverage,
+                                      final-pool AUROC + active ratio, per-pathogen fate + pool counts
 
 Usage:
     python scripts/27_general_plots.py                          # all processed pathogens
@@ -44,11 +61,13 @@ import os
 import sys
 import json
 import glob
+import itertools
+from collections import defaultdict
 
 import numpy as np
 import pandas as pd
-from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
+from matplotlib.transforms import blended_transform_factory
 
 import stylia
 
@@ -61,15 +80,18 @@ from plot_utils import (
     cat_label, size_bins,
     RANDOM_SEED, CHEMBL_ACTIVITIES_05, CAP_POINTS,
     TARGET_TYPES, TARGET_TYPE_LABELS, TT_MOL_REGIONS,
-    STEP_LABELS, STEP_ORDER, CATEGORY_ORDER,
+    STEP_LABELS, STEP_ORDER,
     SIZE_LABELS,
-    CAT_DISPLAY, COMPOSITION, HIT_LABELS, COMPAT_LABELS, LOC_LABELS,
+    CAT_DISPLAY, COMPOSITION, HIT_LABELS,
 )
 import plot_colors as pc
 from plot_base import figure_legend, inset_legend, compact_yaxis
-from default import STAGE4PATH, STAGE2PATH, DATABASE_NAME
+from default import STAGE4PATH, STAGE2PATH, DATABASE_NAME, CONFIGPATH
 from pathogen_utils import load_pathogen
-from dataset_utils import UNIT_SLUG
+from dataset_utils import (
+    UNIT_SLUG, CUTOFF_TIERS,
+    load_category_cutoffs, load_category_cutoff_candidates,
+)
 
 
 # ============================================================================
@@ -135,7 +157,7 @@ def chembl_bioactive_count(cache_path):
     return n
 
 
-def plot_chembl_coverage(ax, related, total, abc):
+def plot_chembl_coverage(ax, related, total, n_pathogens, abc):
     """Donut: fraction of the bioactive ChEMBL chemical space covered by the union
     of all pathogens' cleaned molecules."""
     if not total:
@@ -146,7 +168,7 @@ def plot_chembl_coverage(ax, related, total, abc):
            startangle=90, counterclock=False, wedgeprops={"width": 0.42})
     ax.text(0, 0, f"{100 * related / total:.1f}%", ha="center", va="center")
     stylia.label(ax, xlabel="", ylabel="",
-                 title=f"Chem-space related to the 15 pathogens\n"
+                 title=f"Chem-space related to the {n_pathogens} pathogens\n"
                        f"({related:,} of {total:,} bioactive ChEMBL compounds)", abc=abc)
 
 
@@ -353,9 +375,9 @@ def plot_size_stack(ax, codes, size_lists, bin_colors, abc, weight, normalize, s
     if weight == "assays":
         xlabel, title = "Fraction of assays", "Assays by dataset size"
     elif normalize:
-        xlabel, title = "Fraction of molecule instances", "Molecule instances by dataset size"
+        xlabel, title = "Fraction of molecule instances (non-unique)", "Molecule instances by dataset size"
     else:
-        xlabel, title = "Molecule instances", "Molecule instances by dataset size"
+        xlabel, title = "Molecule instances (non-unique)", "Molecule instances by dataset size"
     stylia.label(ax, xlabel=xlabel, ylabel="", title=title, abc=abc)
 
 
@@ -371,7 +393,7 @@ def make_curation_comparison(results, out_dir):
     related = len(set().union(*sets08)) if sets08 else 0
     total_chembl = chembl_bioactive_count(os.path.join(out_dir, "27_chembl_space.json"))
     fig, axs = stylia.create_figure(1, 1, width=0.5, height=0.5)
-    plot_chembl_coverage(axs.next(), related, total_chembl, abc=None)
+    plot_chembl_coverage(axs.next(), related, total_chembl, len(results), abc=None)
     stylia.save_figure(os.path.join(out_dir, "27_curation_frac_chembl.png"))
 
     # 2. Chemical-space overlap heatmaps (square): cleaned vs retained molecules.
@@ -400,9 +422,9 @@ def make_curation_comparison(results, out_dir):
     # (b) discard cascade: fraction + count, by assay and by molecule instances
     fig, axs = stylia.create_figure(1, 4, height=0.6)
     plot_discard(axs.next(), codes, results, "step_counts", step_colors, "A", True, "assays", show_y=True)
-    plot_discard(axs.next(), codes, results, "step_mols", step_colors, "B", True, "molecule instances", show_y=False)
+    plot_discard(axs.next(), codes, results, "step_mols", step_colors, "B", True, "molecule instances (non-unique)", show_y=False)
     plot_discard(axs.next(), codes, results, "step_counts", step_colors, "C", False, "assays", show_y=False)
-    plot_discard(axs.next(), codes, results, "step_mols", step_colors, "D", False, "molecule instances", show_y=False)
+    plot_discard(axs.next(), codes, results, "step_mols", step_colors, "D", False, "molecule instances (non-unique)", show_y=False)
     figure_legend(fig, [(STEP_LABELS[st], step_colors[i]) for i, st in enumerate(STEP_ORDER)],
                   loc="upper center", anchor=(0.5, -0.02), ncol=5)
     stylia.save_figure(os.path.join(out_dir, "27_curation_discard.png"))
@@ -504,33 +526,6 @@ def plot_grouped_h(ax, codes, a_vals, b_vals, colors, labels, title, abc, xlabel
     stylia.label(ax, xlabel=xlabel, ylabel="", title=title, abc=abc)
 
 
-def plot_ratio_vs_size_pooled(ax, results, colors, abc):
-    """Active ratio vs dataset size, pooled across all pathogens: faint per-dataset
-    scatter + a binned-mean trend per category (log x)."""
-    for cat, color, skey, rkey in [("DR", colors[0], "dr_sizes", "dr_ratios"),
-                                    ("SP", colors[1], "sp_sizes", "sp_ratios")]:
-        sizes = np.concatenate([np.asarray(r[skey], dtype=float) for r in results]) \
-            if results else np.array([])
-        ratios = np.concatenate([np.asarray(r[rkey], dtype=float) for r in results]) \
-            if results else np.array([])
-        m = (sizes > 0) & np.isfinite(ratios)
-        sizes, ratios = sizes[m], ratios[m]
-        if not len(sizes):
-            continue
-        ax.scatter(sizes, ratios, color=color, alpha=0.08, edgecolors="none", s=6)
-        bins = np.logspace(np.log10(sizes.min()), np.log10(sizes.max()), 12)
-        centers = np.sqrt(bins[:-1] * bins[1:])
-        idx = np.digitize(sizes, bins)
-        means = np.array([ratios[idx == k].mean() if (idx == k).any() else np.nan
-                          for k in range(1, len(bins))])
-        mm = np.isfinite(means)
-        ax.plot(centers[mm], means[mm], color=color, marker="o", label=CAT_DISPLAY[cat])
-    ax.set_xscale("log")
-    ax.set_ylim(-0.02, 1.02)
-    stylia.label(ax, xlabel="Molecules / dataset", ylabel="Active ratio",
-                 title="Active ratio vs dataset size", abc=abc)
-
-
 # --- eos1klk cross-pathogen embedding figures -------------------------------
 
 def retained_smiles_map(results):
@@ -609,8 +604,8 @@ def make_binarisation_comparison(results, codes, out_dir):
     comp_colors = pc.composition_colors()        # all-inactive / mixed / all-active
     hit_colors = pc.cyclic(len(HIT_LABELS))      # distinct colours for hit-count bins
 
-    # 1a. ACTIVE RATIO & composition (1x3 + legends below): active ratio (DR+SP box),
-    #     class composition, active ratio vs dataset size.
+    # 1a. ACTIVE RATIO & composition (1x2 + legends below): active ratio (DR+SP box)
+    #     and class composition.
     fig, axs = stylia.create_figure(1, 2, height=0.6)
     axA = axs.next()
     plot_ratio_box_grouped(axA, codes, [r["dr_ratios"] for r in results],
@@ -667,6 +662,96 @@ def make_binarisation_comparison(results, codes, out_dir):
     make_eos_facets_figure(codes, out_dir, sm2path)
     print(f"Binarisation comparison figures (ratio, agreement, active_overlap) + "
           f"eos1klk (all_pathogens, tmap) -> {out_dir}")
+
+
+# ============================================================================
+# CUTOFF-SENSITIVITY cross-pathogen figure (per-pathogen table is in step 22)
+# ============================================================================
+# unit -> panel title; order defines panel order. mm/% are the two SP units.
+SENS_UNIT_PANELS = [("umol.L-1", "Dose response (µM)"),
+                    ("%", "Single point (% effect)"),
+                    ("mm", "Single point (zone, mm)")]
+
+
+def collect_cutoff_sensitivity(codes):
+    """Concatenate every pathogen's 22_cutoff_sensitivity.csv, tagged with `pathogen`."""
+    frames = []
+    for c in codes:
+        f = os.path.join(STAGE4PATH, c, "22_cutoff_sensitivity.csv")
+        if os.path.exists(f):
+            d = pd.read_csv(f)
+            d.insert(0, "pathogen", c)
+            frames.append(d)
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+
+
+def plot_cutoff_sensitivity_panel(ax, df_unit, codes, abbr, tier_colors, default_tier,
+                                  title, abc, show_y=True):
+    """One panel per unit: pathogens on y, active ratio on x. Three markers per pathogen
+    (low/middle/high candidate cutoff) joined by a faint line to show the achievable
+    active-ratio range; the current global default tier is starred."""
+    pos = np.arange(len(codes))
+    for i, c in enumerate(codes):
+        sub = df_unit[df_unit["pathogen"] == c]
+        pts = [(t, float(sub.loc[sub["tier"] == t, "active_ratio"].iloc[0]))
+               for t in CUTOFF_TIERS if (sub["tier"] == t).any()]
+        if not pts:
+            continue
+        ax.plot([v for _, v in pts], [pos[i]] * len(pts), color=pc.color("neutral"), zorder=1)
+        for t, v in pts:
+            ax.scatter([v], [pos[i]], color=tier_colors[t], zorder=3)
+            if t == default_tier:
+                ax.scatter([v], [pos[i]], color=pc.color("ink"), marker="*", zorder=4)
+    ax.set_xlim(-0.02, 1.02)
+    ax.set_yticks(pos); ax.set_yticklabels([abbr[c] for c in codes] if show_y else [])
+    ax.invert_yaxis()
+    stylia.label(ax, xlabel="Active ratio", ylabel="", title=title, abc=abc)
+
+
+def make_cutoff_sensitivity(codes, out_dir):
+    """Cross-pathogen cutoff sensitivity: active ratio at each low/middle/high candidate
+    cutoff, per (pathogen, unit). DIAGNOSTIC ONLY - it is the evidence for choosing a
+    per-pathogen override (config/category_cutoffs_overrides.csv) and changes no label.
+    Writes the tidy table and one figure (a panel per unit, current default starred)."""
+    sens = collect_cutoff_sensitivity(codes)
+    if sens.empty:
+        print("  [cutoff-sensitivity] no 22_cutoff_sensitivity.csv found - skipping")
+        return
+    defaults = load_category_cutoffs(CONFIGPATH)              # {unit: global default cutoff}
+    candidates = load_category_cutoff_candidates(CONFIGPATH)  # {unit: {tier: cutoff}}
+    sens["is_default"] = [candidates.get(u, {}).get(t) == defaults.get(u)
+                          for u, t in zip(sens["unit"], sens["tier"])]
+    sens.to_csv(os.path.join(out_dir, "27_cutoff_sensitivity.csv"), index=False)
+
+    def default_tier(unit):
+        for t, v in candidates.get(unit, {}).items():
+            if unit in defaults and v == defaults[unit]:
+                return t
+        return None
+
+    panels = [(u, t) for u, t in SENS_UNIT_PANELS if (sens["unit"] == u).any()]
+    abbr = pathogen_abbrev(codes)
+    tcols = pc.cyclic(len(CUTOFF_TIERS))
+    tier_colors = {t: tcols[i] for i, t in enumerate(CUTOFF_TIERS)}
+    # order pathogens by DR (µM) middle-cutoff active ratio, descending; missing last
+    dr_mid = (sens[(sens["unit"] == "umol.L-1") & (sens["tier"] == "middle")]
+              .set_index("pathogen")["active_ratio"])
+    order = sorted(codes, key=lambda c: dr_mid.get(c, -1.0), reverse=True)
+
+    fig, axs = stylia.create_figure(1, len(panels))
+    for j, (unit, title) in enumerate(panels):
+        plot_cutoff_sensitivity_panel(
+            axs.next(), sens[sens["unit"] == unit], order, abbr, tier_colors,
+            default_tier(unit), title, abc=chr(65 + j), show_y=(j == 0))
+    figure_legend(fig, [(t, tier_colors[t]) for t in CUTOFF_TIERS],
+                  loc="upper center", anchor=(0.35, -0.02), ncol=len(CUTOFF_TIERS),
+                  title="Cutoff tier")
+    fig.legend(handles=[Line2D([], [], marker="*", linestyle="none",
+                               color=pc.color("ink"), label="current global default")],
+               loc="upper center", bbox_to_anchor=(0.8, -0.02), frameon=False)
+    stylia.save_figure(os.path.join(out_dir, "27_cutoff_sensitivity.png"))
+    print(f"  cutoff-sensitivity -> {os.path.join(out_dir, '27_cutoff_sensitivity.png')} "
+          f"(+ 27_cutoff_sensitivity.csv)")
 
 
 def available_pathogens():
@@ -764,7 +849,7 @@ def build_master_table(codes):
     def resolve(r):
         if pd.notna(r["pool_id_25"]):
             return "modelled", r["grown_auroc"], r["ar_after"], r["pool_id_25"]
-        if r["catchall_kept"] is True or r["catchall_kept"] == True:
+        if r["catchall_kept"] == True:
             return "catch-all", r["catchall_auroc"], r["catchall_ar"], f'{r["category"]}_catchall'
         if pd.notna(r["pool_id_23"]) and (r["modelled"] is True):
             return "modelled", r["auroc_24"], r["ar_24"], r["pool_id_23"]
@@ -791,19 +876,6 @@ def pathogen_abbrev(codes):
     return out
 
 
-def plot_pool_counts(ax, summ, codes, colors, abbr, category, abc):
-    """Stacked bar per pathogen: number of multi-dataset pools vs singletons."""
-    sub = summ[summ["category"] == category]
-    x = np.arange(len(codes))
-    n_multi = [int((~sub[sub["pathogen"] == c]["is_singleton"]).sum()) for c in codes]
-    n_single = [int(sub[sub["pathogen"] == c]["is_singleton"].sum()) for c in codes]
-    ax.bar(x, n_multi, color=pc.color("datasets"), label="multi-dataset")
-    ax.bar(x, n_single, bottom=n_multi, color=pc.named("amber"), label="singleton")
-    ax.set_xticks(x); ax.set_xticklabels([abbr[c] for c in codes], rotation=90)
-    ax.legend()
-    stylia.label(ax, xlabel="", ylabel="pools", title=f"Pool count - {cat_label(category)}", abc=abc)
-
-
 def plot_pool_sizes(ax, summ, codes, colors, abbr, category, abc):
     """Box of pool sizes (molecules per pool, log scale) per pathogen."""
     sub = summ[summ["category"] == category]
@@ -821,23 +893,32 @@ def plot_pool_sizes(ax, summ, codes, colors, abbr, category, abc):
 
 
 def plot_chemspace(ax, part, codes, abbr, category, abc):
-    """Stacked bar per pathogen: molecule fraction in multi / singleton / not-considered."""
+    """Stacked bar per pathogen: molecule fraction in multi / singleton / not-considered.
+    Every pathogen in `codes` is shown; one with no step-23 partition on disk (skipped for
+    having < 2 eligible datasets, e.g. campylobacter) is rendered as 100% not-considered."""
     sub = part[part["category"] == category].set_index("pathogen")
-    cc = [c for c in codes if c in sub.index]
-    x = np.arange(len(cc))
-    tot = sub.loc[cc, "n_total"].to_numpy().astype(float)
-    tot[tot == 0] = np.nan
-    f_multi = sub.loc[cc, "n_multi"].to_numpy() / tot
-    f_single = sub.loc[cc, "n_singleton"].to_numpy() / tot
-    f_not = sub.loc[cc, "n_not_considered"].to_numpy() / tot
+    x = np.arange(len(codes))
+    f_multi, f_single, f_not = [], [], []
+    for c in codes:
+        if c in sub.index:
+            r = sub.loc[c]
+            tot = float(r["n_total"])
+            if tot > 0:
+                f_multi.append(r["n_multi"] / tot)
+                f_single.append(r["n_singleton"] / tot)
+                f_not.append(r["n_not_considered"] / tot)
+                continue
+        # missing partition (pathogen skipped at step 23) or empty universe -> all not-considered
+        f_multi.append(0.0); f_single.append(0.0); f_not.append(1.0)
+    f_multi, f_single, f_not = np.array(f_multi), np.array(f_single), np.array(f_not)
     ax.bar(x, f_multi, color=pc.color("datasets"), label="multi-dataset pool")
-    ax.bar(x, f_single, bottom=f_multi, color=pc.named("amber"), label="singleton")
+    ax.bar(x, f_single, bottom=f_multi, color=pc.named("periwinkle"), label="singleton")
     ax.bar(x, f_not, bottom=f_multi + f_single, color=pc.color("neutral"), label="not considered")
-    ax.set_xticks(x); ax.set_xticklabels([abbr[c] for c in cc], rotation=90)
+    ax.set_xticks(x); ax.set_xticklabels([abbr[c] for c in codes], rotation=90)
     ax.set_ylim(0, 1)
-    ax.legend()
+    inset_legend(ax, loc="upper right")   # multi / singleton / not considered (labelled bars)
     stylia.label(ax, xlabel="", ylabel="fraction of molecules",
-                 title=f"Step-23 chemical-space coverage - {cat_label(category)}", abc=abc)
+                 title=f"Step-23 pool partition - {cat_label(category)}", abc=abc)
 
 
 # dot AREA (points^2) encodes pool molecule count: SIZE_MIN..SIZE_MAX mapped linearly from n_molecules
@@ -859,9 +940,10 @@ def _size_legend_handles(nmax):
 
 
 def plot_active_ratios(ax, summ, codes, colors, abbr, category, abc, nmax):
-    """One dot per MULTI-dataset pool (y = active ratio, area proportional to n_molecules) with a
-    median line per pathogen, so pool size and activity are read together."""
-    sub = summ[(~summ["is_singleton"]) & (summ["category"] == category)]
+    """One dot per CONSIDERED pool — multi-dataset AND singleton (every pool in 23_pool_summary
+    is an eligible node) — y = active ratio, area proportional to n_molecules, with a median line
+    per pathogen, so pool size and activity are read together."""
+    sub = summ[summ["category"] == category]
     cc = [c for c in codes if (sub["pathogen"] == c).any()]
     rng = np.random.default_rng(RANDOM_SEED)
     for xi, c in enumerate(cc):
@@ -875,13 +957,13 @@ def plot_active_ratios(ax, summ, codes, colors, abbr, category, abc, nmax):
     ax.set_yticks(np.linspace(0, 1, 6))
     ax.set_xticks(np.arange(len(cc))); ax.set_xticklabels([abbr[c] for c in cc], rotation=90)
     stylia.label(ax, xlabel="", ylabel="active ratio",
-                 title=f"Step-23 multi-pool active ratio - {cat_label(category)}", abc=abc)
+                 title=f"Step-23 pool active ratio - {cat_label(category)}", abc=abc)
 
 
 def make_general_plots(codes, out_dir):
-    """Per-pathogen step-23 pool figures (chemical-space partition + multi-pool active ratio),
-    aggregated from each pathogen's step-23 outputs. Pool size / modellability now live in the
-    condensed 27_pool_overview (make_pool_overview)."""
+    """Per-pathogen step-23 pool figures (pool partition + pool active ratio, both including
+    singletons), aggregated from each pathogen's step-23 outputs. Pool size / modellability now
+    live in the condensed 27_pool_overview (make_pool_overview)."""
     summ = _collect(codes, "23_pool_summary.csv")
     if summ.empty:
         print("  [general] no 23_pool_summary.csv found - skipping pool-summary figures")
@@ -894,9 +976,9 @@ def make_general_plots(codes, out_dir):
         fig, axs = stylia.create_figure(1, 2)
         plot_chemspace(axs.next(), part, codes, abbr, "DR", "A")
         plot_chemspace(axs.next(), part, codes, abbr, "SP", "B")
-        stylia.save_figure(os.path.join(out_dir, "27_chemspace_partition.png"))
+        stylia.save_figure(os.path.join(out_dir, "27_pool_partition.png"))
 
-    nmax = max(1.0, float(summ.loc[~summ["is_singleton"], "n_molecules"].max()))
+    nmax = max(1.0, float(summ["n_molecules"].max()))   # all considered pools (incl. singletons)
     fig, axs = stylia.create_figure(1, 2)
     plot_active_ratios(axs.next(), summ, codes, colors, abbr, "DR", "A", nmax)
     plot_active_ratios(axs.next(), summ, codes, colors, abbr, "SP", "B", nmax)
@@ -904,13 +986,13 @@ def make_general_plots(codes, out_dir):
     fig.legend(handles, labels, title="molecules / pool", loc="center left",
                bbox_to_anchor=(1.0, 0.5), labelspacing=1.4, borderpad=0.8)
     stylia.save_figure(os.path.join(out_dir, "27_pool_active_ratios.png"))
-    print("  [general] wrote 27_chemspace_partition.png, 27_pool_active_ratios.png")
+    print("  [general] wrote 27_pool_partition.png, 27_pool_active_ratios.png")
 
 
-# step-24 CV outcome bins (reason value -> label, colour). "singleton (too small)" pools are
-# below the min-molecule floor at step 24 and are the ones rescued downstream by steps 25/26.
-CV_OUTCOME = [("modelled", "modelled", "turquoise"),
-              ("singleton (too small)", "singleton_below_min_molecules", "silver"),
+# step-24 CV outcome bins (reason value -> label, colour). "<100 mol" pools (multi-dataset or
+# singleton) are below the symmetric min-molecule floor at step 24 and are rescued downstream by steps 25/26.
+CV_OUTCOME = [("modelled", "modelled", "cobalt"),
+              ("<100 mol", "below_min_molecules", "silver"),
               ("not CV-able", "not_cv_able", "amber")]
 
 
@@ -938,7 +1020,7 @@ def plot_auroc_box(ax, cv, codes, colors, category, abc):
 
 def plot_cv_outcome(ax, cv, codes, category, abc, normalize=False):
     """Stacked bar per pathogen of step-23 pools by step-24 CV outcome (modelled /
-    singleton-too-small / not-CV-able). normalize=False -> absolute pool counts (bar height =
+    <100 mol / not-CV-able). normalize=False -> absolute pool counts (bar height =
     total pools, so this also carries the pool count); True -> fractions summing to 1."""
     sub = cv[cv["category"] == category]
     x = np.arange(len(codes)); bottoms = np.zeros(len(codes))
@@ -949,10 +1031,11 @@ def plot_cv_outcome(ax, cv, codes, category, abc, normalize=False):
         bottoms += vals
     ax.set_xticks(x); ax.set_xticklabels(codes, rotation=90)
     ylabel = "fraction of pools" if normalize else "pools"
-    if normalize:
-        ax.set_ylim(0, 1)
+    # headroom above the tallest bar so it never touches the top edge and the in-axis legend fits
+    ax.set_ylim(0, 1 if normalize else (float(bottoms.max()) * 1.18 if bottoms.max() > 0 else 1))
     stylia.label(ax, xlabel="", ylabel=ylabel,
                  title=f"Step-24 CV outcome of step-23 pools - {cat_label(category)}", abc=abc)
+    inset_legend(ax, loc="upper right")   # legend inside the panel (semi-transparent white bg)
 
 
 def make_pool_overview(codes, out_dir):
@@ -975,10 +1058,8 @@ def make_pool_overview(codes, out_dir):
     plot_pool_sizes(axs.next(), summ, codes, colors, abbr, "SP", "B")
     plot_auroc_box(axs.next(), cv, codes, colors, "DR", "C")
     plot_auroc_box(axs.next(), cv, codes, colors, "SP", "D")
-    plot_cv_outcome(axs.next(), cv, codes, "DR", "E", normalize=False)
+    plot_cv_outcome(axs.next(), cv, codes, "DR", "E", normalize=False)  # legend now inside E/F
     plot_cv_outcome(axs.next(), cv, codes, "SP", "F", normalize=False)
-    figure_legend(fig, [(lab, pc.named(cname)) for lab, _key, cname in CV_OUTCOME],
-                  loc="upper center", anchor=(0.5, -0.01), ncol=3)
     stylia.save_figure(os.path.join(out_dir, "27_pool_overview.png"))
     print(f"  figure -> {os.path.join(out_dir, '27_pool_overview.png')}")
 
@@ -989,8 +1070,9 @@ def make_pool_overview(codes, out_dir):
 
 # 25_merge_log `outcome` value -> (label, colour)
 MERGE_OUTCOME = [("merged", "merged", "turquoise"),
-                 ("redundant", "redundant", "silver"),
-                 ("deferred (AUROC drop)", "deferred_auroc_drop", "amber")]
+                 ("deferred (low fit)", "deferred_low_fit", "crimson"),
+                 ("deferred (AUROC drop)", "deferred_auroc_drop", "amber"),
+                 ("redundant", "redundant", "silver")]
 
 
 def plot_auroc_lift(ax, ps, codes, category, abc):
@@ -1071,17 +1153,328 @@ def make_merge_overview(codes, out_dir):
 
 
 # ============================================================================
+# FINAL-DATA overlap (molecule sharing + label conflicts between the FINAL pools)
+# ============================================================================
+
+def _final_pool_stats(codes):
+    """Load each pathogen's FINAL pools (25 grown + 26 catch-all) ONCE and derive, per category:
+      - pairs : one row per pool pair sharing >=1 molecule (n_shared, Jaccard %, discrepancy %);
+      - counts: n_pools, n_pairs (all C(n,2)), n_overlap (pairs sharing >=1 molecule);
+      - confl : molecule-level n_unique_molecules / n_in_multiple_pools / n_conflicting_label over
+                the SAME combined pool set (so C/D matches A/B, catch-all included).
+    Discrepancy = % of the shared InChIKeys whose binary label (`bin`) disagrees; a molecule is
+    'conflicting' if it appears in >1 pool with >1 distinct bin."""
+    pairs, counts, confl = [], [], []
+    for code in codes:
+        for cat in ("DR", "SP"):
+            pools = {}
+            for base in ("25_pools", "26_pools"):
+                for f in sorted(glob.glob(os.path.join(STAGE4PATH, code, base, cat, "*.csv.gz"))):
+                    pid = os.path.basename(f).replace(".csv.gz", "")
+                    d = pd.read_csv(f, usecols=["inchikey", "bin"])
+                    pools[pid] = d.groupby("inchikey")["bin"].first()
+            ids = list(pools)
+            ik_npools, ik_bins = defaultdict(int), defaultdict(set)
+            for s in pools.values():
+                for ik, b in s.items():
+                    ik_npools[ik] += 1
+                    ik_bins[ik].add(int(b))
+            if ik_npools:
+                confl.append(dict(pathogen=code, category=cat, n_unique_molecules=len(ik_npools),
+                                  n_in_multiple_pools=sum(1 for n in ik_npools.values() if n > 1),
+                                  n_conflicting_label=sum(1 for ik, n in ik_npools.items()
+                                                          if n > 1 and len(ik_bins[ik]) > 1)))
+            n_ov = 0
+            for a, b in itertools.combinations(ids, 2):
+                sa, sb = pools[a], pools[b]
+                ka, kb = set(sa.index), set(sb.index)
+                inter = ka & kb
+                if not inter:
+                    continue
+                n_ov += 1
+                ba = sa.loc[list(inter)].values
+                bb = sb.loc[list(inter)].values
+                pairs.append(dict(pathogen=code, category=cat, pool_a=a, pool_b=b,
+                                  n_shared=len(inter), jaccard=100.0 * len(inter) / len(ka | kb),
+                                  discrepancy=100.0 * float((ba != bb).mean())))
+            counts.append(dict(pathogen=code, category=cat, n_pools=len(ids),
+                               n_pairs=len(ids) * (len(ids) - 1) // 2, n_overlap=n_ov))
+    return pd.DataFrame(pairs), pd.DataFrame(counts), pd.DataFrame(confl)
+
+
+def plot_pair_box(ax, sub, codes, colors, value_col, title, ylabel, abc, logy=False, counts=None):
+    """Empty box + one jittered dot per FINAL-pool pair (dots coloured by pathogen). When `counts`
+    is given, annotate each pathogen with 'n_overlap / n_pairs' (how many of its pool pairs share
+    >=1 molecule, out of all possible pairs) so the box is read against the total, not in a vacuum."""
+    rng = np.random.default_rng(RANDOM_SEED)
+    box = pc.color("ink")
+    for xi, c in enumerate(codes):
+        v = sub.loc[sub["pathogen"] == c, value_col].to_numpy(float)
+        v = v[np.isfinite(v)]
+        if logy:
+            v = v[v > 0]
+        if len(v):
+            ax.boxplot([v], positions=[xi], widths=0.6, showfliers=False, patch_artist=False,
+                       boxprops={"color": box}, whiskerprops={"color": box},
+                       capprops={"color": box}, medianprops={"color": box})
+            ax.scatter(xi + rng.uniform(-0.18, 0.18, size=len(v)), v, s=8, alpha=0.5,
+                       color=colors[c], edgecolors="none", zorder=2)
+        if counts is not None:
+            cc = counts[counts["pathogen"] == c]
+            if len(cc) and int(cc.iloc[0]["n_pairs"]) > 0:
+                ax.text(xi, 0.98, f"{int(cc.iloc[0]['n_overlap'])}/{int(cc.iloc[0]['n_pairs'])}",
+                        transform=blended_transform_factory(ax.transData, ax.transAxes),
+                        ha="center", va="top", rotation=90, fontsize=stylia.FONTSIZE_SMALL,
+                        color=pc.color("ink"),
+                        bbox=dict(facecolor="white", alpha=0.6, edgecolor="none", pad=0.4))
+    if logy:
+        ax.set_yscale("log")
+    ax.set_xticks(np.arange(len(codes))); ax.set_xticklabels(codes, rotation=90)
+    stylia.label(ax, xlabel="", ylabel=ylabel, title=title, abc=abc)
+
+
+def plot_mol_conflict(ax, lc, codes, category, abc):
+    """Stacked bar per pathogen over its FINAL-pool unique molecules: the fraction reused in
+    >=2 pools, split into consistent vs conflicting labels. Bar height = reuse rate; the crimson
+    (bottom) segment = conflicting molecules / total unique molecules — i.e. the cross-pool
+    label conflict normalised over the whole dataset (not just the shared molecules), so it is
+    free of the 1-shared-molecule artifact the pairwise discrepancy has. Computed over the same
+    final-pool set as A/B (25 grown + 26 catch-all)."""
+    sub = lc[lc["category"] == category].set_index("pathogen")
+    x = np.arange(len(codes))
+
+    def frac(c, num):
+        if c not in sub.index:
+            return 0.0
+        tot = sub.loc[c, "n_unique_molecules"]
+        return float(sub.loc[c, num] / tot) if tot else 0.0
+
+    f_conf = np.array([frac(c, "n_conflicting_label") for c in codes])
+    f_cons = np.array([(frac(c, "n_in_multiple_pools") - frac(c, "n_conflicting_label")) for c in codes])
+    ax.bar(x, f_conf, color=pc.named("crimson"), label="reused, conflicting")
+    ax.bar(x, f_cons, bottom=f_conf, color=pc.named("turquoise"), label="reused, consistent")
+    ax.set_xticks(x); ax.set_xticklabels(codes, rotation=90)
+    stylia.label(ax, xlabel="", ylabel="fraction of unique molecules",
+                 title=f"Cross-pool label conflict - {cat_label(category)}", abc=abc)
+
+
+def make_final_data_overlap(codes, out_dir):
+    """Per-pathogen molecule sharing + label conflicts between the FINAL pools (2x2, DR left /
+    SP right):
+        row 1  pairwise Jaccard overlap % (log) between pool pairs sharing >=1 molecule;
+        row 2  cross-pool label conflict at the MOLECULE level (stacked bar per pathogen: reuse
+               rate split into consistent vs conflicting, the conflicting segment = conflicting
+               molecules / total unique molecules).
+    Writes the tidy pairwise table (incl. per-pair discrepancy) to 27_final_data_overlap.csv."""
+    pairs, counts, confl = _final_pool_stats(codes)
+    if pairs.empty and confl.empty:
+        print("  [general] no final pool files (25_pools/26_pools) - skipping final_data_overlap")
+        return
+    pairs.to_csv(os.path.join(out_dir, "27_final_data_overlap.csv"), index=False)
+    colors = pathogen_colors(codes)
+    fig, axs = stylia.create_figure(2, 2, height=0.6)
+    plot_pair_box(axs.next(), pairs[pairs.category == "DR"], codes, colors, "jaccard",
+                  f"Final-pool overlap - {cat_label('DR')}", "overlap % (Jaccard)", "A",
+                  logy=True, counts=counts[counts.category == "DR"])
+    plot_pair_box(axs.next(), pairs[pairs.category == "SP"], codes, colors, "jaccard",
+                  f"Final-pool overlap - {cat_label('SP')}", "overlap % (Jaccard)", "B",
+                  logy=True, counts=counts[counts.category == "SP"])
+    if not confl.empty:
+        plot_mol_conflict(axs.next(), confl, codes, "DR", "C")
+        plot_mol_conflict(axs.next(), confl, codes, "SP", "D")
+        figure_legend(fig, [("reused, conflicting", pc.named("crimson")),
+                            ("reused, consistent", pc.named("turquoise"))],
+                      loc="upper center", anchor=(0.5, -0.01), ncol=2)
+    stylia.save_figure(os.path.join(out_dir, "27_final_data_overlap.png"))
+    print(f"  figure -> {os.path.join(out_dir, '27_final_data_overlap.png')}")
+
+
+# ============================================================================
+# ACTIVITY RATIO through the pipeline (step 23 -> 26)
+# ============================================================================
+
+def plot_stage_ratio(ax, category, d22, p23, c24, p25, c26, abc):
+    """Active-ratio distribution at each pipeline stage (all pathogens pooled), one empty box +
+    jittered dots per stage, following the funnel:
+        22 datasets    - all binarised individual datasets (22_binarisation_summary);
+        23 pools       - the eligible pools (pooled + singletons; degenerate / <MIN_DATASET_SIZE
+                         datasets are already excluded upstream);
+        24 modelled    - the pools that passed cross-validation;
+        25 final pools - the grown pools after merging leftovers (ar_after);
+        26 catch-all   - the low-data catch-all pools.
+    Dots are capped at CAP_POINTS per stage (step 22 has ~28k datasets); the box uses all data."""
+    def stage_col(df, value_col, reason=None):
+        # a stage whose per-pathogen file was absent for every code yields a column-less
+        # empty frame (_collect); treat any frame missing the needed columns as empty
+        # rather than letting the ["category"] index raise KeyError.
+        if "category" not in df.columns or value_col not in df.columns:
+            return pd.Series([], dtype=float)
+        sel = df["category"] == category
+        if reason is not None:
+            if "reason" not in df.columns:
+                return pd.Series([], dtype=float)
+            sel = sel & (df["reason"] == reason)
+        return df.loc[sel, value_col]
+
+    stages = [
+        ("22 datasets",    stage_col(d22, "active_ratio")),
+        ("23 pools",       stage_col(p23, "active_ratio")),
+        ("24 modelled",    stage_col(c24, "active_ratio", reason="modelled")),
+        ("25 final pools", stage_col(p25, "ar_after")),
+        ("26 catch-all",   stage_col(c26, "active_ratio")),
+    ]
+    rng = np.random.default_rng(RANDOM_SEED)
+    box, dot = pc.color("ink"), pc.color(category)
+    for i, (_lab, s) in enumerate(stages):
+        v = np.asarray(s.dropna(), dtype=float); v = v[np.isfinite(v)]
+        if not len(v):
+            continue
+        ax.boxplot([v], positions=[i], widths=0.6, showfliers=False, patch_artist=False,
+                   boxprops={"color": box}, whiskerprops={"color": box},
+                   capprops={"color": box}, medianprops={"color": box})
+        d = v if len(v) <= CAP_POINTS else rng.choice(v, size=CAP_POINTS, replace=False)
+        ax.scatter(i + rng.uniform(-0.18, 0.18, size=len(d)), d, s=8, alpha=0.35,
+                   color=dot, edgecolors="none", zorder=2)
+    ax.axhline(0.5, ls="--", lw=0.8, color=pc.color("neutral"))
+    ax.set_ylim(-0.02, 1.02)
+    ax.set_xticks(range(len(stages)))
+    ax.set_xticklabels([lab for lab, _ in stages], rotation=30, ha="right")
+    stylia.label(ax, xlabel="", ylabel="active ratio",
+                 title=f"Active ratio by stage - {cat_label(category)}", abc=abc)
+
+
+def plot_ratio_beforeafter(ax, p25, c26, codes, category, abc, before_fill, after_fill):
+    """Per pathogen, two grouped boxes: seed pool active ratio (ar_before, step 25) vs FINAL pool
+    active ratio (step-25 grown ar_after PLUS step-26 catch-all). Catch-all pools have no seed, so
+    they only appear in the final box. 0.5 = class balance."""
+    sub = p25[p25["category"] == category]
+    c26c = c26[c26["category"] == category]
+    for xi, c in enumerate(codes):
+        before = sub.loc[sub["pathogen"] == c, "ar_before"].dropna().to_numpy(float)
+        after = np.concatenate([
+            sub.loc[sub["pathogen"] == c, "ar_after"].dropna().to_numpy(float),
+            c26c.loc[c26c["pathogen"] == c, "active_ratio"].dropna().to_numpy(float)])
+        for dx, v, fill in [(-0.2, before, before_fill), (0.2, after, after_fill)]:
+            if not len(v):
+                continue
+            bp = ax.boxplot([v], positions=[xi + dx], widths=0.34, showfliers=False, patch_artist=True)
+            bp["boxes"][0].set_facecolor(fill)
+            bp["medians"][0].set_color("black")
+    ax.axhline(0.5, ls="--", lw=0.8, color=pc.color("neutral"))
+    ax.set_ylim(-0.02, 1.02)
+    ax.set_xticks(np.arange(len(codes))); ax.set_xticklabels(codes, rotation=90)
+    stylia.label(ax, xlabel="", ylabel="active ratio",
+                 title=f"Seed → final pool ratio - {cat_label(category)}", abc=abc)
+
+
+def make_activity_ratio(codes, out_dir):
+    """Active ratio through the pooling pipeline (2x2): top row = distribution at each stage
+    22->26 (DR/SP, all pathogens pooled); bottom row = per-pathogen seed pool vs final pool ratio
+    (final = step-25 grown + step-26 catch-all), DR/SP. Sources: 22_binarisation_summary,
+    23_pool_summary, 24_cv_summary, 25_pool_summary, 26_cv_summary."""
+    d22 = _collect(codes, "22_binarisation_summary.csv")
+    if not d22.empty:
+        d22 = d22[d22["category"].isin(["DR", "SP"])]
+    p23 = _collect(codes, "23_pool_summary.csv")
+    c24 = _collect(codes, "24_cv_summary.csv")
+    p25 = _collect(codes, "25_pool_summary.csv")
+    c26 = _collect(codes, "26_cv_summary.csv")
+    if p23.empty or p25.empty:
+        print("  [general] missing pool summaries - skipping activity_ratio")
+        return
+    before, after = pc.lighten_named("periwinkle", 0.55), pc.named("periwinkle")
+    fig, axs = stylia.create_figure(2, 2, height=0.7)
+    plot_stage_ratio(axs.next(), "DR", d22, p23, c24, p25, c26, "A")
+    plot_stage_ratio(axs.next(), "SP", d22, p23, c24, p25, c26, "B")
+    plot_ratio_beforeafter(axs.next(), p25, c26, codes, "DR", "C", before, after)
+    plot_ratio_beforeafter(axs.next(), p25, c26, codes, "SP", "D", before, after)
+    figure_legend(fig, [("seed pool (before merge)", before),
+                        ("final pool (grown + catch-all)", after)],
+                  loc="upper center", anchor=(0.5, -0.01), ncol=2)
+    stylia.save_figure(os.path.join(out_dir, "27_activity_ratio.png"))
+    print(f"  figure -> {os.path.join(out_dir, '27_activity_ratio.png')}")
+
+
+STAGE_RATIO_SPECS = [   # (stage label, filename, ratio column, optional row filter)
+    ("22", "22_binarisation_summary.csv", "active_ratio", None),
+    ("23", "23_pool_summary.csv", "active_ratio", None),
+    ("24", "24_cv_summary.csv", "active_ratio", lambda d: d[d["reason"] == "modelled"]),
+    ("25", "25_pool_summary.csv", "ar_after", None),
+    ("26", "26_cv_summary.csv", "active_ratio", None),
+]
+
+
+def _stage_ratio_long(codes):
+    """Long-form active ratio per (pathogen, category, stage) across the 22->26 funnel. Reads each
+    step's per-pathogen file and tags the pathogen (22_binarisation_summary has no pathogen column,
+    so it is tagged on read). One row per dataset/pool."""
+    rows = []
+    for code in codes:
+        for stage, fname, col, filt in STAGE_RATIO_SPECS:
+            p = os.path.join(STAGE4PATH, code, fname)
+            if not os.path.exists(p):
+                continue
+            df = pd.read_csv(p)
+            if filt is not None:
+                df = filt(df)
+            if "category" not in df.columns or col not in df.columns:
+                continue
+            for cat in ("DR", "SP"):
+                for v in df.loc[df["category"] == cat, col].dropna():
+                    rows.append((code, cat, stage, float(v)))
+    return pd.DataFrame(rows, columns=["pathogen", "category", "stage", "ratio"])
+
+
+def make_activity_ratio_per_pathogen(codes, out_dir):
+    """Small multiples (one panel per pathogen) of the active-ratio data flow across the 22->26
+    stages, DR vs SP grouped boxes per stage. Per-pathogen breakdown of make_activity_ratio's A/B."""
+    long = _stage_ratio_long(codes)
+    if long.empty:
+        print("  [general] no stage ratios found - skipping activity_ratio_per_pathogen")
+        return
+    stages = [s for s, _, _, _ in STAGE_RATIO_SPECS]
+    drsp = (pc.color("DR"), pc.color("SP"))
+    ncols = 3
+    nrows = int(np.ceil(len(codes) / ncols))
+    fig, axs = stylia.create_figure(nrows, ncols, height=0.28 * nrows)
+    flat = np.array(axs.axs).ravel()
+    for j, (ax, code) in enumerate(zip(flat, codes)):
+        sub = long[long["pathogen"] == code]
+        for cat, col, dx in [("DR", drsp[0], -0.18), ("SP", drsp[1], 0.18)]:
+            for i, st in enumerate(stages):
+                v = sub.loc[(sub["category"] == cat) & (sub["stage"] == st), "ratio"].to_numpy()
+                if not len(v):
+                    continue
+                bp = ax.boxplot([v], positions=[i + dx], widths=0.3, showfliers=False, patch_artist=True)
+                bp["boxes"][0].set_facecolor(col)
+                bp["medians"][0].set_color("black")
+        ax.axhline(0.5, ls="--", lw=0.6, color=pc.color("neutral"))
+        ax.set_ylim(-0.02, 1.02); ax.set_xlim(-0.5, len(stages) - 0.5)
+        ax.set_xticks(range(len(stages))); ax.set_xticklabels(stages)
+        stylia.label(ax, xlabel="", ylabel="active ratio" if j % ncols == 0 else "", title=code)
+    for ax in flat[len(codes):]:
+        ax.axis("off")
+    figure_legend(fig, [("Dose Response", drsp[0]), ("Single Point", drsp[1])],
+                  loc="upper center", anchor=(0.5, -0.01), ncol=2)
+    stylia.save_figure(os.path.join(out_dir, "27_activity_ratio_per_pathogen.png"))
+    print(f"  figure -> {os.path.join(out_dir, '27_activity_ratio_per_pathogen.png')}")
+
+
+# ============================================================================
 # LOW-DATA catch-all overview (moved here from the low-data step, step 26)
 # ============================================================================
 
-CATCHALL_MIN_AUROC = 0.70   # matches step 26; the kept/dropped threshold line
+CATCHALL_MIN_AUROC = 0.70   # matches step 26; evaluation reference line only (NOT enforced)
 
 
-def make_lowdata_overview(out_dir):
-    """Catch-all CV AUROC per deferred category across pathogens (from step-26 26_cv_summary.csv)."""
+def make_lowdata_overview(codes, out_dir):
+    """Catch-all CV AUROC per deferred category across pathogens (from step-26 26_cv_summary.csv).
+    Restricted to the passed `codes` so a subset invocation only aggregates those pathogens."""
     rows = []
-    for f in sorted(glob.glob(os.path.join(STAGE4PATH, "*", "26_cv_summary.csv"))):
-        rows += pd.read_csv(f).to_dict("records")
+    for c in codes:
+        f = os.path.join(STAGE4PATH, c, "26_cv_summary.csv")
+        if os.path.exists(f):
+            rows += pd.read_csv(f).to_dict("records")
     df = pd.DataFrame(rows)
     if df.empty or "auroc" not in df.columns:
         print("  [general] no 26_cv_summary.csv found - skipping low-data overview")
@@ -1093,13 +1486,14 @@ def make_lowdata_overview(out_dir):
     df = df.sort_values("auroc", ascending=False)
     fig, axs = stylia.create_figure(1, 1)
     ax = axs.next()
-    colors = [pc.named("turquoise") if k else pc.color("neutral") for k in df.kept]
+    colors = [pc.named("turquoise") if a >= CATCHALL_MIN_AUROC else pc.named("amber")
+              for a in df.auroc]
     ax.bar(np.arange(len(df)), df.auroc.to_numpy(), color=colors)
-    ax.axhline(CATCHALL_MIN_AUROC, color=pc.named("amber"), linestyle="--")
+    ax.axhline(CATCHALL_MIN_AUROC, color=pc.color("neutral"), linestyle="--")
     ax.set_xticks(np.arange(len(df))); ax.set_xticklabels(df.label, rotation=90)
     ax.set_ylim(0.5, 1.0)
     stylia.label(ax, xlabel="", ylabel="catch-all CV AUROC",
-                 title="Low-data catch-all pools (teal = kept, grey = dropped)")
+                 title="Low-data catch-all pools (all kept; teal ≥0.70 / amber <0.70, reference not enforced)")
     stylia.save_figure(os.path.join(out_dir, "27_lowdata_overview.png"))
     print(f"  figure -> {os.path.join(out_dir, '27_lowdata_overview.png')}")
 
@@ -1110,7 +1504,12 @@ _FATE = [("modelled", "turquoise"), ("catch-all", "periwinkle"), ("uncovered", "
 def make_pipeline_summary(master, codes, out_dir):
     """Cross-step summary from the master table (2x3): the fold->pool->merge consolidation
     funnel, overall coverage, final-pool AUROC and active/inactive ratio, and per-pathogen
-    dataset fate + final-pool counts. Shared fate + DR/SP legends sit below the panels."""
+    dataset fate + final-pool counts. Shared fate + DR/SP legends sit below the panels.
+
+    Encodes the two non-enforced quality thresholds: (i) step-25's MIN_ASSIGN_BALACC deferrals fall to
+    final_status 'uncovered', so panels B (coverage) and E (per-pathogen fate) already carry their effect;
+    (ii) the 0.70 AUROC in panel C is drawn as an EVALUATION reference, not a cutoff - modelled and
+    catch-all final pools (coloured by fate) may sit below it since steps 24/26 keep on size + CV-ability."""
     abbr = {c: c for c in codes}   # full pathogen codes on the axis (no abbreviation)
     m = master
     order = sorted(codes, key=lambda c: (m[m.pathogen == c].final_status != "uncovered").mean(),
@@ -1149,7 +1548,9 @@ def make_pipeline_summary(master, codes, out_dir):
     ax.set_xticks(xb); ax.set_xticklabels([m0 for m0, _ in metrics]); ax.set_ylim(0, 1)
     stylia.label(ax, xlabel="", ylabel="fraction", title="Overall coverage", abc="B")
 
-    # C. final-pool AUROC, DR vs SP
+    # C. final-pool AUROC, DR vs SP (x), coloured by fate (modelled vs catch-all). The 0.70 line is an
+    #    EVALUATION reference, NOT a cutoff: steps 24 & 26 keep pools on size + CV-ability and only
+    #    report AUROC, so final pools - catch-alls especially - may legitimately sit below it.
     ax = axs.next()
     for i, cat in enumerate(["DR", "SP"]):
         v = pools.loc[pools.category == cat, "final_auroc"].to_numpy(float); v = v[np.isfinite(v)]
@@ -1157,11 +1558,18 @@ def make_pipeline_summary(master, codes, out_dir):
             ax.boxplot([v], positions=[i], vert=True, widths=0.5, showfliers=False,
                        boxprops={"color": pc.color("ink")}, medianprops={"color": pc.color("ink")},
                        whiskerprops={"color": pc.color("ink")}, capprops={"color": pc.color("ink")})
-            ax.scatter(i + rng.uniform(-0.15, 0.15, size=len(v)), v, s=8, alpha=0.4,
-                       color=drsp[i], edgecolors="none")
+        for status in ("modelled", "catch-all"):
+            a = pools.loc[(pools.category == cat) & (pools.final_status == status), "final_auroc"].to_numpy(float)
+            a = a[np.isfinite(a)]
+            if len(a):
+                ax.scatter(i + rng.uniform(-0.15, 0.15, size=len(a)), a, s=9, alpha=0.55,
+                           color=fcol[status], edgecolors="none")
     ax.axhline(0.7, ls="--", lw=0.8, color=pc.color("neutral"))
+    ax.text(1.48, 0.705, "0.70 reference", ha="right", va="bottom",
+            fontsize=stylia.FONTSIZE_SMALL, color=pc.color("neutral"))
     ax.set_xticks([0, 1]); ax.set_xticklabels(["DR", "SP"]); ax.set_ylim(0.4, 1.02)
-    stylia.label(ax, xlabel="", ylabel="final pool AUROC", title="Modellability (final pools)", abc="C")
+    stylia.label(ax, xlabel="", ylabel="final pool AUROC",
+                 title="Final-pool AUROC (not gated)", abc="C")
 
     # D. final-pool active ratio, DR vs SP (one point per final pool)
     ax = axs.next()
@@ -1219,8 +1627,12 @@ if __name__ == "__main__":
     binr = [binarisation_stats(c) for c in codes]
     make_curation_comparison(cur, out_dir)
     make_binarisation_comparison(binr, codes, out_dir)
+    make_cutoff_sensitivity(codes, out_dir)  # active ratio at low/middle/high per pathogen (diagnostic)
     make_general_plots(codes, out_dir)       # step-23 chemspace partition + active ratios
     make_pool_overview(codes, out_dir)       # condensed pool size + CV AUROC + CV outcome (23+24)
     make_merge_overview(codes, out_dir)      # step-25 merge: AUROC lift, leftover fate, coverage
-    make_lowdata_overview(out_dir)           # low-data catch-all overview (from step 26 outputs)
+    make_final_data_overlap(codes, out_dir)  # overlap + label discrepancy between final pools
+    make_activity_ratio(codes, out_dir)      # active ratio through the pipeline (22->26)
+    make_activity_ratio_per_pathogen(codes, out_dir)  # per-pathogen 22->26 ratio flow (small multiples)
+    make_lowdata_overview(codes, out_dir)    # low-data catch-all overview (from step 26 outputs)
     make_pipeline_summary(master, codes, out_dir)   # cross-step summary (from master table)

@@ -5,8 +5,8 @@ one-pathogen-per-invocation scripts:
 
   - Applies the publication house style (``print`` format + ``article`` style) at
     import, so any script that imports this module renders paper-ready figures.
-    ``plot_utils`` applies the same style at its own import, so the scripts that use
-    ``plot_utils`` but not ``plot_base`` (steps 23-27) stay consistent.
+    ``plot_utils`` applies the same style at its own import, so scripts stay
+    consistent whether they import ``plot_base``, ``plot_utils``, or both.
   - ``BasePlot``: each concrete panel is a subclass that draws into a *provided* stylia
     axis (never creating its own figure — per the stylia house rules) and records the
     tidy data it plotted in ``self.data`` (or ``None``). An ``is_available`` guard lets a
@@ -45,7 +45,7 @@ def compact_yaxis(ax):
     ax.yaxis.set_major_formatter(FuncFormatter(_compact))
 
 # Format: print | Style: article - publication figures. Applied at import so any importer
-# renders paper-ready; plot_utils sets the same style for the scripts that skip plot_base.
+# renders paper-ready; plot_utils sets the same style at its own import for consistency.
 stylia.set_format("print")
 stylia.set_style("article")
 

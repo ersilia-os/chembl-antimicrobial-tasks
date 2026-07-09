@@ -11,7 +11,11 @@ Per pathogen x category that has >= 1 modelled pool:
   2. Leftovers = every 22_binarised dataset not a member of a modelled pool. DEDUP: keep only each
      leftover's residual molecules (those not already in modelled_mols); drop fully-redundant leftovers.
   3. ASSIGN each leftover to the pool with the highest BALANCED ACCURACY at that pool's Youden cutoff
-     (mean of active-recall and inactive-recall on the leftover's molecules; single-class-safe).
+     (mean of active-recall and inactive-recall on the leftover's molecules; single-class-safe). Merge
+     only if that best balanced accuracy >= MIN_ASSIGN_BALACC; below that the pool mis-predicts the
+     leftover, so it is DEFERRED (low fit) rather than force-merged. NOTE deferred leftovers are NOT
+     revisited by step 26 (which only builds catch-alls for categories with 0 modelled pools), so in a
+     category that already has a modelled pool a deferred leftover stays UNCOVERED.
      NOTE: the score is over the leftover's FULL molecule set; if some of those molecules already sit
      inside a candidate pool they are in-sample for that pool's model, so its score can be optimistic.
   4. BATCH-MERGE per pool: append all assigned leftovers' residual molecules (conservatively resolved via
@@ -72,6 +76,9 @@ stylia.set_style("article")
 CATEGORIES = ["DR", "SP"]
 AUROC_TOL = 0.05           # accept a pool's batch iff grown AUROC >= baseline - AUROC_TOL (trade a little
                            # AUROC for a lot of coverage; the guard still blocks real degradations)
+MIN_ASSIGN_BALACC = 0.60   # a leftover is merged only if its best pool reaches this balanced accuracy
+                           # ((sens+spec)/2 at the pool's Youden cutoff); below it the pool mis-predicts
+                           # the leftover, so it is deferred (low fit) rather than force-merged
 N_SPLITS = 5
 output_base = os.path.join(root, "..", "output")
 
@@ -103,7 +110,6 @@ def process(pathogen_code):
             print(f"  {category}: 0 modelled pools - deferred (low-data)")
             continue
         ds, ik2info = load_binarised_datasets(os.path.join(out, "22_binarised", category))
-        by_id = {d["id"]: d for d in ds}
         meta = load_dataset_meta(os.path.join(out, "22_binarisation_summary.csv"), category, cutoffs, UNIT_SLUG)
         fps = morgan_matrix({ik: info[0] for ik, info in ik2info.items()})
 
@@ -163,8 +169,19 @@ def process(pathogen_code):
                     if s > best_score:
                         best_score, best_pid = s, pid
             lo["assigned"], lo["score"] = best_pid, best_score
-            if best_pid is not None:
+            # Only merge if the best pool actually explains the leftover (balanced accuracy >=
+            # MIN_ASSIGN_BALACC at its Youden cutoff). Below that, forcing the merge would inject
+            # label noise into the pool, so defer the leftover. (Deferred leftovers are not picked up
+            # by step 26 - which handles 0-modelled categories only - so here they stay uncovered.)
+            if best_pid is not None and best_score >= MIN_ASSIGN_BALACC:
                 assigned[best_pid].append(lo)
+            else:
+                all_log.append({"pathogen": pathogen_code, "category": category, "leftover": d["id"],
+                                "group": lo["group"], "n_full": len(d["iks"]),
+                                "n_residual": int(lo["resid_mask"].sum()),
+                                "assigned_pool": best_pid or "",
+                                "score": round(best_score, 4) if best_pid is not None else np.nan,
+                                "outcome": "deferred_low_fit"})
 
         # --- batch-merge per pool + AUROC-non-decrease guard ---
         os.makedirs(os.path.join(out, "25_pools", category), exist_ok=True)
@@ -180,7 +197,7 @@ def process(pathogen_code):
                 d = lo["d"]; m = lo["resid_mask"]
                 resid_dsets.append({"id": d["id"], "iks": d["iks"][m],
                                     "values": d["values"][m], "relations": d["relations"][m]})
-            grown_df, n_added, accepted, grown_auroc = base_df, 0, True, P["baseline"]
+            grown_df, accepted, grown_auroc = base_df, True, P["baseline"]
             if resid_dsets:
                 add_df = merge_datasets(resid_dsets, meta, ik2info)
                 cand = pd.concat([base_df, add_df], ignore_index=True).drop_duplicates("inchikey")
@@ -190,7 +207,7 @@ def process(pathogen_code):
                 grown_auroc = float(roc_auc_score(y, oof))
                 accepted = grown_auroc >= P["baseline"] - AUROC_TOL
                 if accepted:
-                    grown_df, n_added = cand, len(cand) - len(base_df)
+                    grown_df = cand
             write_df = grown_df if accepted else base_df
             write_df.to_csv(os.path.join(out, "25_pools", category, pid + ".csv.gz"), index=False)
             cov_before |= set(base_df["inchikey"]); cov_after |= set(write_df["inchikey"])
@@ -242,7 +259,9 @@ def cov_pct(cov):
 
 # --- plots (shared stage-4 plot_base framework) -----------------------------
 # leftover outcomes (merge_log `outcome` -> label, colour)
-_OUTCOME = [("merged", "merged", "turquoise"), ("deferred_auroc_drop", "deferred", "amber"),
+_OUTCOME = [("merged", "merged", "turquoise"),
+            ("deferred_low_fit", "deferred (low fit)", "crimson"),
+            ("deferred_auroc_drop", "deferred (AUROC drop)", "amber"),
             ("redundant", "redundant (no new mols)", "silver")]
 
 
@@ -298,8 +317,9 @@ class CoverageBars(BasePlot):
 
 
 class LeftoverFate(BasePlot):
-    """Leftover outcomes per category (from 25_merge_log): merged / deferred (AUROC drop) /
-    redundant (no residual molecules). The dataset-side complement to the coverage bars."""
+    """Leftover outcomes per category (from 25_merge_log): merged / deferred (low fit) /
+    deferred (AUROC drop) / redundant (no residual molecules). The dataset-side complement to
+    the coverage bars."""
 
     def __init__(self, ax, log_df, abc=None):
         super().__init__(ax, abc)

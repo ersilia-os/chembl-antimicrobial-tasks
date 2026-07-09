@@ -48,7 +48,7 @@ INACTIVE iff its qualitative records are purely inactive (text_flag == -1, no ac
 flag). A molecule with ANY active flag but no value is discarded (can't be placed
 without a measurement); flagless value-less records carry no signal and stay dropped.
 Recovered inactives count toward the MIN_MOLECULES size threshold and are written with
-value/relation = NaN; step 23 labels them inactive via binarize_conservative.
+value/relation = NaN; step 22 labels them inactive via binarize_conservative.
 
 Outputs (output/stage4/<pathogen>/):
     21_datasets/<assay_id>_<activity_type>.csv.gz   one file per retained pair
@@ -74,7 +74,7 @@ palette), applied via src/plot_base.py; colours come from the shared semantic ma
 src/plot_colors.py so DR/SP and active/inactive stay consistent across every figure.
 
 Runs on ONE pathogen per invocation (like steps 07-20); loop over pathogens with
-scripts/run_step.sh. Cross-pathogen comparison figures are a separate step (23).
+scripts/run_step.sh. Cross-pathogen comparison figures are a separate step (27).
 
 Usage:
     python scripts/21_build_curated_datasets.py <pathogen_code>
@@ -311,7 +311,7 @@ def build(pathogen_code):
         ded["category"] = cat_lookup[key]
         assay_chembl_id, activity_type = key
         # append recovered qualitative-inactive molecules (no numeric value); they
-        # are labelled inactive downstream by binarize_conservative (step 23).
+        # are labelled inactive downstream by binarize_conservative (step 22).
         rr = recov_by_key.get(key)
         if rr is not None and len(rr):
             add = pd.DataFrame({

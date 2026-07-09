@@ -1,6 +1,6 @@
 """Single source of truth for the stage-4 figures' semantic colors.
 
-Every stage-4 figure (steps 21-28) pulls its colors from here, so the palette can never
+Every stage-4 figure (steps 21-27) pulls its colors from here, so the palette can never
 drift across figures. Colors anchor to stylia's ``ArticleColors`` — the non-branded NPG
 (Nature Publishing Group) publication palette used when the figures render under
 ``stylia.set_style("article")`` (set in ``plot_base`` / ``plot_utils``).
@@ -50,12 +50,12 @@ _SEMANTIC = {
     "sizes": "amber",
     "reuse": "orchid",
     "docs": "tangerine",
-    # target-type regions (step 23 curation story)
+    # target-type regions (step 27 curation story)
     "wholecell": "turquoise",
     "protein": "amber",
     "wholecell_protein": "orchid",
     "other_region": "silver",
-    # cross-pathogen curation accents (step 23)
+    # cross-pathogen curation accents (step 27)
     "total": "cobalt",          # "% of total chemical space"
     "related": "crimson",       # ChEMBL-coverage highlight slice
     # generic
@@ -117,11 +117,6 @@ def region_colors():
 def composition_colors():
     """COMPOSITION order: all-inactive, mixed, all-active."""
     return [color("all-inactive"), color("mixed"), color("all-active")]
-
-
-def loc_colors():
-    """LOC_LABELS order: usable only, in both, lost active, lost inactive."""
-    return [named("turquoise"), named("silver"), named("crimson"), named("amber")]
 
 
 def reuse_colors():

@@ -74,7 +74,7 @@ def all_collection_nos(rec):
 
 
 def main(pathogen):
-    df = pd.read_csv(os.path.join(OUT, pathogen, "09_assays_parameters_full.csv"), low_memory=False).drop_duplicates("assay_id")
+    df = pd.read_csv(os.path.join(OUT, "stage2", pathogen, "09_assays_parameters_full.csv"), low_memory=False).drop_duplicates("assay_id")
     # data strain keys + assay counts (what we are trying to unify)
     keys = strain_norm_key(df["assay_strain_curated"], df["atcc_id"])
     data_counts = Counter(k for k in keys if k)

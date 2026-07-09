@@ -1,7 +1,8 @@
 """
-Step 23 (pooling rebuild) - Strategy-B transfer signal and pool building.
+Step 23 (pooling rebuild) - model-transfer signal and pool building.
 
-Implements Strategy B's core idea and turns it into actual pooled datasets. For each
+Uses a model-transfer signal (train a RandomForest on dataset A, score its AUROC on
+dataset B's disjoint molecules) to build actual pooled datasets. For each
 pathogen and category (DR/SP, kept separate), it:
 
   1. TRANSFER SIGNAL: trains a RandomForest on each eligible dataset A and scores its AUROC
@@ -25,7 +26,8 @@ sub-threshold / degenerate datasets stay out - folding them in by chemistry is a
 
 Chosen settings (bidirectional, POOL_THRESHOLD=0.75, greedy modularity, DR cross-type
 averaging) were selected empirically on the dev organisms. MIN_DATASET_SIZE and MIN_TEST
-are inherited from Strategy B. Dev-first: defaults to saureus, campylobacter, mtuberculosis.
+are the method's eligibility/disjoint-test floors. Dev-first: defaults to saureus,
+campylobacter, mtuberculosis.
 
 Inputs:
     config/category_cutoffs.csv                          (cutoff per unit, via CONFIGPATH)
@@ -136,24 +138,37 @@ def filter_eligible(datasets):
 
 # --- transfer matrix (compute or load cache) --------------------------------
 
-def compute_or_load_transfer(pathogen_code, category, eligible, fps, force):
-    """Reuse the cached transfer matrix if the npz exists; otherwise compute and cache it.
+def find_cached_transfer(pathogen_code, category):
+    """Return the category's transfer npz on disk, or None if there is none.
 
-    The cache filename embeds the near-duplicate fold settings (o<overlap>d<discord>) so a change
-    of fold cutoffs writes a separate cache rather than silently reusing a matrix built on a
-    different node set. No other staleness check: pass --force (or delete the file) to recompute.
+    Picks WHATEVER npz is present for the category with a deterministic, tag-blind glob
+    (sorted; first match if several). The cache is reused as-is with no version/tag/hash
+    staleness guard: delete the file (or pass --force) to force recomputation.
+    """
+    cache_dir = os.path.join(output_base, "stage4", pathogen_code, "23_transfer")
+    matches = sorted(glob.glob(os.path.join(cache_dir, f"23_transfer_{category}_*.npz")))
+    return matches[0] if matches else None
+
+
+def compute_or_load_transfer(pathogen_code, category, eligible, fps, force):
+    """Reuse the cached transfer matrix if any npz exists for the category; else compute and cache it.
+
+    Read side: take whatever npz is on disk for the category (see find_cached_transfer) - no
+    tag/version/hash match. The cache is reused as-is; delete it (or pass --force) to recompute.
+    Write side: still writes a fold-tagged filename (o<overlap>d<discord>).
     """
     cache_dir = os.path.join(output_base, "stage4", pathogen_code, "23_transfer")
     os.makedirs(cache_dir, exist_ok=True)
-    tag = f"o{int(NEAR_DUP_OVERLAP * 100)}d{int(NEAR_DUP_DISCORD * 100)}"
-    cache = os.path.join(cache_dir, f"23_transfer_{category}_{tag}.npz")
 
-    if os.path.exists(cache) and not force:
-        z = np.load(cache, allow_pickle=False)
+    cached = find_cached_transfer(pathogen_code, category) if not force else None
+    if cached is not None:
+        z = np.load(cached, allow_pickle=False)
         ids = z["ids"].tolist()
-        print(f"    [cache] loaded {cache} ({len(ids)} datasets)")
+        print(f"    [cache] loaded {cached} ({len(ids)} datasets)")
         return ids, z["AUROC"], z["F1"], z["N"]
 
+    tag = f"o{int(NEAR_DUP_OVERLAP * 100)}d{int(NEAR_DUP_DISCORD * 100)}"
+    cache = os.path.join(cache_dir, f"23_transfer_{category}_{tag}.npz")
     triples = [(d["id"], d["iks"], d["labels"]) for d in eligible]
     ids, AUROC, F1, N = transfer_matrix(triples, fps, min_test=MIN_TEST)
     np.savez_compressed(cache, ids=np.array(ids), AUROC=AUROC, F1=F1, N=N)
@@ -271,10 +286,12 @@ def replot_heatmaps(pathogen_code):
         return
     mem = pd.read_csv(mem_path)
     for category in CATEGORIES:
-        npzs = glob.glob(os.path.join(out, "23_transfer", f"23_transfer_{category}_*.npz"))
-        if not npzs:
+        # reuse whatever transfer npz is on disk for this category, as-is (tag-blind, no
+        # staleness guard); delete the file to force a recompute via a normal run.
+        cached = find_cached_transfer(pathogen_code, category)
+        if cached is None:
             continue
-        z = np.load(npzs[0], allow_pickle=False)
+        z = np.load(cached, allow_pickle=False)
         ids = [str(i) for i in z["ids"]]
         sub = mem[mem.category == category]
         d2p = dict(zip(sub.dataset_id.astype(str), sub.pool_id.astype(str)))

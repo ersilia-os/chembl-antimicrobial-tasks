@@ -17,12 +17,12 @@ Default output: docs/260622_report.csv
 
 Key definitions (confirmed with the user)
 ------------------------------------------
-- Assay counting unit: each (assay_id, activity_type, unit) row in 18_assays_master.csv.
+- Assay counting unit: each (assay_id, activity_type, unit) row in 19_assays_master.csv.
 - Molecules: cleaned activities (08), deduplicated by compound_chembl_id.
-- ORG actives/inactives: binarized datasets (12_datasets bin column). The ORG totals are
+- ORG actives/inactives: binarized datasets (13_datasets bin column). The ORG totals are
   taken at the *reference* cutoff (reference_cutoff in src/pathogen_utils.py, the same
   convention used by steps 20/21). "Kept" = molecules present in a selected dataset.
-- "Kept" datasets: selected == True in 17_final_datasets.csv (post correlation-dedup).
+- "Kept" datasets: selected == True in 18_final_datasets.csv (post correlation-dedup).
   M datasets pool several assays, counted via their assay_keys.
 """
 
@@ -180,18 +180,19 @@ def compute_pathogen(code, expert):
                  "pct_org_qtmx_chem_space_covered"]:
         out[fcol] = np.nan
 
-    pdir = os.path.join(OUTPUT_ROOT, code)
-    if not os.path.isdir(pdir):
+    pdir2 = os.path.join(OUTPUT_ROOT, "stage2", code)
+    pdir3 = os.path.join(OUTPUT_ROOT, "stage3", code)
+    if not os.path.isdir(pdir2):
         print(f"  [{code}] output folder missing — emitting zeros")
         return out
 
-    master_path = os.path.join(pdir, "18_assays_master.csv")
-    cleaned_path = os.path.join(pdir, "08_chembl_cleaned_data.csv.gz")
-    datasets_path = os.path.join(pdir, "12_datasets.csv")
-    final_path = os.path.join(pdir, "17_final_datasets.csv")
+    master_path = os.path.join(pdir3, "19_assays_master.csv")
+    cleaned_path = os.path.join(pdir2, "08_chembl_cleaned_data.csv.gz")
+    datasets_path = os.path.join(pdir3, "13_datasets.csv")
+    final_path = os.path.join(pdir3, "18_final_datasets.csv")
 
     if not os.path.exists(master_path):
-        print(f"  [{code}] 18_assays_master.csv missing — emitting zeros")
+        print(f"  [{code}] 19_assays_master.csv missing — emitting zeros")
         return out
 
     master = pd.read_csv(master_path, low_memory=False)
@@ -219,8 +220,8 @@ def compute_pathogen(code, expert):
         out["n_strains"] = int(org_strains.nunique())
 
     # ---- Funnel context: raw / cleaned assay counts (per assay x activity x unit) ----
-    raw_assays_path = os.path.join(pdir, "07_assays_raw.csv")
-    cleaned_assays_path = os.path.join(pdir, "08_assays_cleaned.csv")
+    raw_assays_path = os.path.join(pdir2, "07_assays_raw.csv")
+    cleaned_assays_path = os.path.join(pdir2, "08_assays_cleaned.csv")
     if os.path.exists(raw_assays_path):
         out["n_assays_raw"] = int(len(pd.read_csv(raw_assays_path, usecols=["assay_id"])))
     if os.path.exists(cleaned_assays_path):
@@ -319,7 +320,7 @@ def compute_pathogen(code, expert):
         for suffix in ["qt", "mx", "ql"]:
             if not targets[suffix]:
                 continue
-            zpath = os.path.join(pdir, "12_datasets", f"datasets_{suffix}.zip")
+            zpath = os.path.join(pdir3, "13_datasets", f"datasets_{suffix}.zip")
             if not os.path.exists(zpath):
                 continue
             with zipfile.ZipFile(zpath) as zf:
@@ -337,7 +338,7 @@ def compute_pathogen(code, expert):
         out["n_unique_actives_org"] = int(len(active_org))
         out["n_unique_inactives_org"] = int(len(binarized_org - active_org))
     else:
-        print(f"  [{code}] 12_datasets.csv missing — actives/inactives = 0")
+        print(f"  [{code}] 13_datasets.csv missing — actives/inactives = 0")
 
     # ---- Kept (selected) datasets: A / B / M counts and kept molecule sets ----
     kept_keys = set()       # (assay, activity, unit) triples retained in A/B/M
@@ -393,11 +394,11 @@ def compute_pathogen(code, expert):
                         kept_actives.add(cid)
 
             for name in m_names:
-                _absorb(_bins_from_file(os.path.join(pdir, "12_datasets", "M", name + ".csv.gz")))
+                _absorb(_bins_from_file(os.path.join(pdir3, "13_datasets", "M", name + ".csv.gz")))
             for suffix, names_list in by_zip.items():
                 if not names_list:
                     continue
-                zpath = os.path.join(pdir, "12_datasets", f"datasets_{suffix}.zip")
+                zpath = os.path.join(pdir3, "13_datasets", f"datasets_{suffix}.zip")
                 if not os.path.exists(zpath):
                     continue
                 with zipfile.ZipFile(zpath) as zf:
@@ -405,7 +406,7 @@ def compute_pathogen(code, expert):
                     for name in names_list:
                         _absorb(_bins_from_zip(zf, znames, name + ".csv.gz"))
     else:
-        print(f"  [{code}] 17_final_datasets.csv missing — A/B/M counts = 0")
+        print(f"  [{code}] 18_final_datasets.csv missing — A/B/M counts = 0")
 
     # ---- Discarded / kept fractions ----
     out["n_assays_not_kept"] = int(out["n_assays_org"] - len(kept_keys))
@@ -434,7 +435,7 @@ def compute_pathogen(code, expert):
     #   funnel uses) — % of ALL pathogen compounds covered by kept datasets.
     # pct_org: kept ORG mols over ORG-assessed unique mols — exact complement of
     #   frac_unique_mols_discarded.
-    counts_path = os.path.join(pdir, "07_compound_counts.csv.gz")
+    counts_path = os.path.join(pdir2, "07_compound_counts.csv.gz")
     if os.path.exists(counts_path):
         universe = pd.read_csv(counts_path, usecols=["compound_chembl_id"])["compound_chembl_id"].nunique()
         if universe > 0:

@@ -1,15 +1,13 @@
 """
 Pooling utilities (dataset-pooling rebuild, steps 23+).
 
-Strategy-B style *transfer* signal: train a RandomForest on one dataset A and use
-it to predict another dataset B's molecules that are NOT shared with A (a true
-generalisation test). A high AUROC ("A predicts B well") is evidence that A and B
-can be pooled. The signal is directional; for a pair with too few disjoint test
-molecules (or a single-class test set) the cell is left undefined (NaN).
+*Transfer* signal: train a RandomForest on one dataset A and use it to predict
+another dataset B's molecules that are NOT shared with A (a true generalisation
+test). A high AUROC ("A predicts B well") is evidence that A and B can be pooled.
+The signal is directional; for a pair with too few disjoint test molecules (or a
+single-class test set) the cell is left undefined (NaN).
 
-Adapted from the parked Strategy-B code (tmp/src/pooling_b_utils.py,
-pooling_v2_utils.py, scaffold_utils.py). This clean module depends only on the
-current src tree (`default`); it does not import anything from tmp/.
+This clean module depends only on the current src tree (`default`).
 
 Functions
 ---------
@@ -207,7 +205,7 @@ def load_binarised_datasets(bdir):
 
     Returns
     -------
-    datasets : list of dicts {id, iks, labels, values, ikset}
+    datasets : list of dicts {id, iks, labels, values, relations, ikset}
     ik2info  : {inchikey: (smiles, compound_chembl_id)}   first occurrence wins
     """
     datasets, ik2info = [], {}
@@ -352,7 +350,7 @@ def _neardup_edges(datasets, overlap_thr, discord_thr, maxpost):
     return edges
 
 
-def fold_near_duplicates(datasets, meta, ik2info, overlap_thr=0.90, discord_thr=0.10, maxpost=100):
+def fold_near_duplicates(datasets, meta, ik2info, overlap_thr=0.90, discord_thr=0.20, maxpost=100):
     """Fold near-duplicate datasets (connected components of the near-dup graph) into single nodes.
 
     Runs over ALL datasets (eligible + degenerate + small). Each connected component with >1 member

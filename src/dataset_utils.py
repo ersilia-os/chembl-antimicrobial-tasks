@@ -1,5 +1,5 @@
 """
-Dataset preparation utilities for step 12.
+Dataset preparation utilities for step 13.
 
 Functions
 ---------
@@ -37,7 +37,7 @@ get_activity_stats_quantitative(activities_quantitative)
     Compute percentile statistics for a list of activity values.
 
 make_dataset_filename(assay_id, activity_type, unit, dataset_type, expert_cutoff)
-    Build the canonical filename for a dataset file produced by step 12.
+    Build the canonical filename for a dataset file produced by step 13.
 
 zip_and_remove(datasets_dir)
     Archive _qt_, _ql, and _mx_ dataset files into zip archives and remove originals.
@@ -318,7 +318,7 @@ def binarize_conservative(assay_data_quantitative, expert_cutoff, direction):
     dropped. This strictly shrinks the active set relative to a bare threshold.
 
     Value-less rows (`value` is NaN) are the recovered qualitative-inactive
-    molecules step 22 carries into the dataset: they have no measured value to
+    molecules step 21 carries into the dataset: they have no measured value to
     prove a hit, so they are always labelled INACTIVE (0). This is enforced
     explicitly via `value.notna()` rather than relying on NaN comparison
     semantics.
@@ -422,7 +422,7 @@ def get_activity_stats_quantitative(activities_quantitative):
 
 def make_dataset_filename(assay_id, activity_type, unit, dataset_type, expert_cutoff=None):
     """
-    Build the filename for a dataset file produced by step 12.
+    Build the filename for a dataset file produced by step 13.
 
     Parameters
     ----------
@@ -492,7 +492,7 @@ def zip_and_remove(datasets_dir):
 
 
 # ---------------------------------------------------------------------------
-# Curation helpers (steps 22–24) — merged from the former curation_v2_utils.
+# Curation helpers (steps 21–26) — merged from the former curation_v2_utils.
 # The v2 unit of work is the (assay_id, activity_type) pair; molecules are
 # compared by InChIKey. Activity categories are assigned from an explicit,
 # user-reviewed inclusion list keyed by (activity_type, unit):
@@ -501,12 +501,12 @@ def zip_and_remove(datasets_dir):
 #   anything not in config/activity_type_categories.csv -> UNCATEGORIZED.
 # ---------------------------------------------------------------------------
 
-# Filename-safe slugs for units (binarisation output, step 23).
+# Filename-safe slugs for units (binarisation output, step 22).
 UNIT_SLUG = {"umol.L-1": "uM", "%": "pct", "mm": "mm"}
 
 
 def load_activity_categories(config_path):
-    """Load the (activity_type, unit) -> category inclusion list (step 22).
+    """Load the (activity_type, unit) -> category inclusion list (step 21).
 
     Reads config/activity_type_categories.csv. Returns a dict keyed by
     (activity_type, unit) -> 'DR' or 'SP'. Combinations absent from the file are
@@ -533,8 +533,9 @@ def per_pair_molecule_flags(acts, key):
         has_num       the molecule has >=1 numeric record in the pair
         has_active    it has >=1 text active flag (text_flag == 1)
         has_inactive  it has >=1 text inactive flag (text_flag == -1)
-    Shared by `build()` (recovered-inactive recovery) and the attrition path so
-    both derive the same per-pair molecule membership from one implementation.
+    Used by `dataset_inchikey_sets` (the plotting/attrition path) to derive
+    per-pair molecule membership. `build()` in step 21 does not call this; it
+    computes the equivalent molecule membership inline.
     """
     a = acts[acts["inchikey"].notna()].copy()
     a["_num"] = a["value"].notna()
@@ -544,14 +545,6 @@ def per_pair_molecule_flags(acts, key):
             .agg(has_num=("_num", "any"), has_active=("_act", "any"),
                  has_inactive=("_ina", "any"))
             .reset_index())
-
-
-def recovered_inactive_mask(molflags):
-    """Boolean mask over `per_pair_molecule_flags` rows selecting recovered
-    qualitative-inactive molecules: no numeric record, a purely-inactive text
-    flag, and no active flag (curator rule, 2026-07-01)."""
-    return ((~molflags["has_num"]) & molflags["has_inactive"]
-            & (~molflags["has_active"]))
 
 
 def dataset_inchikey_sets(acts, key):
@@ -571,7 +564,7 @@ def dataset_inchikey_sets(acts, key):
 def dedup_most_active_by_inchikey(df, direction, preserve_qualifier=False):
     """Keep one row per InChIKey, the single most active measurement.
 
-    Mirrors the step-12 intra-assay disambiguation but matches molecules on
+    Mirrors the step-13 intra-assay disambiguation but matches molecules on
     `inchikey` instead of `compound_chembl_id`. Censored measurements on the wrong
     side of the biological direction are first reset to the group extreme via
     `adjust_relation` (needs only the direction, not any cutoff).
@@ -591,7 +584,7 @@ def dedup_most_active_by_inchikey(df, direction, preserve_qualifier=False):
         is unchanged, but the kept row's ORIGINAL `value` and `relation` are
         restored so downstream binarisation can reason about the qualifier
         (a '>' survives only when a molecule has no better record, i.e. a pure
-        non-inhibitor). Used by step 22 to enable conservative binarisation.
+        non-inhibitor). Used by step 21 to enable conservative binarisation.
     """
     df = df.copy()
     if preserve_qualifier:
@@ -614,12 +607,63 @@ def dedup_most_active_by_inchikey(df, direction, preserve_qualifier=False):
     return kept
 
 
-def load_category_cutoffs(config_path):
-    """Load the single fixed binarisation cutoff per unit (step 23).
+CUTOFF_TIERS = ("low", "middle", "high")
 
-    Reads config/category_cutoffs.csv (columns: category, unit, cutoff) and returns
-    a `{unit: cutoff}` dict. The direction (which side is active) is taken from each
-    dataset's own `direction` column, not from here.
+
+def load_category_cutoff_candidates(config_path):
+    """Load the low/middle/high candidate binarisation cutoffs per unit (step 22).
+
+    Reads config/category_cutoff_candidates.csv (columns: unit, low, middle, high) and
+    returns a nested `{unit: {tier: cutoff}}` dict. These are the only cutoff values a
+    per-pathogen override may select. The three values are the written triple for the
+    unit's reference endpoint (umol.L-1 = the MIC triple 5;10;20, % = 50;75;90,
+    mm = 10;20;30). NB stringency is direction-dependent: for umol.L-1 (direction -1) a
+    LOWER value is the more stringent cutoff; for %/mm (direction +1) a HIGHER value is.
+    """
+    df = pd.read_csv(os.path.join(config_path, "category_cutoff_candidates.csv"))
+    return {str(u): {t: float(row[t]) for t in CUTOFF_TIERS}
+            for u, row in zip(df["unit"], df.to_dict("records"))}
+
+
+def load_category_cutoffs(config_path, pathogen_code=None):
+    """Load the binarisation cutoff per unit (step 22), optionally per pathogen.
+
+    Reads config/category_cutoffs.csv (columns: category, unit, cutoff) for the global
+    default `{unit: cutoff}` applied to every pathogen. When `pathogen_code` is given,
+    any matching row in config/category_cutoffs_overrides.csv (columns: pathogen_code,
+    unit, tier) replaces that unit's default with the low/middle/high candidate value
+    from config/category_cutoff_candidates.csv. Per-pathogen overrides are read from
+    category_cutoffs_overrides.csv when present, falling back to the global default for
+    any pathogen/unit without a matching row.
+
+    The direction (which side is active) is taken from each dataset's own `direction`
+    column, not from here. Returns a `{unit: cutoff}` dict.
     """
     df = pd.read_csv(os.path.join(config_path, "category_cutoffs.csv"))
-    return {str(u): float(c) for u, c in zip(df["unit"], df["cutoff"])}
+    cutoffs = {str(u): float(c) for u, c in zip(df["unit"], df["cutoff"])}
+
+    candidates = load_category_cutoff_candidates(config_path)
+    # Sanity: every global default must be one of its unit's candidate values, so the
+    # default is always expressible as a tier and overrides stay on the same scale.
+    for unit, cutoff in cutoffs.items():
+        if unit in candidates and cutoff not in candidates[unit].values():
+            raise ValueError(
+                f"default cutoff {cutoff} for unit {unit!r} in category_cutoffs.csv is not "
+                f"one of the candidates {candidates[unit]} in category_cutoff_candidates.csv")
+
+    if pathogen_code is None:
+        return cutoffs
+
+    ov = pd.read_csv(os.path.join(config_path, "category_cutoffs_overrides.csv"))
+    for r in ov[ov["pathogen_code"] == pathogen_code].itertuples(index=False):
+        unit, tier = str(r.unit), str(r.tier)
+        if tier not in CUTOFF_TIERS:
+            raise ValueError(
+                f"override for {pathogen_code}/{unit}: tier {tier!r} not in {CUTOFF_TIERS} "
+                f"(category_cutoffs_overrides.csv)")
+        if unit not in candidates:
+            raise KeyError(
+                f"override for {pathogen_code}: no candidate cutoffs for unit {unit!r} "
+                f"(add to category_cutoff_candidates.csv; configured: {sorted(candidates)})")
+        cutoffs[unit] = candidates[unit][tier]
+    return cutoffs

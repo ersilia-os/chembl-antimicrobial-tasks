@@ -235,6 +235,23 @@ def load_excluded_assays(pathogen_code):
     return set(line.strip() for line in open(path) if line.strip())
 
 
+def load_excluded_organism_terms(pathogen_code):
+    """Return the lowercased organism substrings to exclude for a pathogen.
+
+    Reads config/organisms_to_exclude/<pathogen_code>.csv (one term per line). Step 07 selects
+    assays by a substring match on the organism name, which over-includes for genus-level pathogen
+    codes (e.g. "Campylobacter" also matches H. pylori's historical synonym "Campylobacter pylori",
+    and "Enterobacter" matches the family "Enterobacteriaceae"). Any activity whose target_organism
+    contains one of these terms is dropped (unless the assay is manually included); assay_organism is
+    not matched because it is sometimes mangled and would drop genuine records.
+    Returns an empty set if the file does not exist.
+    """
+    path = os.path.join(CONFIGPATH, "organisms_to_exclude", f"{pathogen_code}.csv")
+    if not os.path.exists(path):
+        return set()
+    return set(line.strip().lower() for line in open(path) if line.strip())
+
+
 def load_pubchem_assays(pathogen_code):
     """Return the set of ChEMBL assay IDs that have a PubChem counterpart.
 

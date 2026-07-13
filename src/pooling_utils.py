@@ -30,7 +30,6 @@ from networkx.algorithms.community import greedy_modularity_communities
 from rdkit import Chem, DataStructs
 from rdkit.Chem import rdMolDescriptors
 from scipy.sparse import csr_matrix
-from scipy.sparse.csgraph import connected_components
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score, f1_score
 
@@ -228,6 +227,12 @@ def load_binarised_datasets(bdir):
 def load_dataset_meta(summary_csv, category, cutoffs, unit_slug):
     """Map dataset id -> (unit, direction, cutoff) from a 22_binarisation_summary.csv.
 
+    The cutoff is taken from the value STEP 22 recorded for each dataset (`r.cutoff`), which has
+    already resolved any per-pathogen override. This is the single source of truth: pool
+    re-binarisation then uses exactly the cutoff the binarised file used, so an override is never
+    silently dropped by a caller that loaded `cutoffs` without the pathogen code. The passed
+    `cutoffs` {unit: cutoff} dict is only a fallback for a dataset whose recorded cutoff is missing.
+
     `unit_slug` is passed in (dataset_utils.UNIT_SLUG) to keep this module decoupled.
     """
     summ = pd.read_csv(summary_csv)
@@ -235,7 +240,8 @@ def load_dataset_meta(summary_csv, category, cutoffs, unit_slug):
     meta = {}
     for r in summ.itertuples(index=False):
         stem = f"{r.assay_id}_{str(r.activity_type).replace('/', '-')}_{unit_slug.get(r.unit, str(r.unit))}"
-        meta[stem] = (r.unit, int(r.direction), cutoffs.get(r.unit, r.cutoff))
+        cutoff = r.cutoff if pd.notna(r.cutoff) else cutoffs.get(r.unit)
+        meta[stem] = (r.unit, int(r.direction), cutoff)
     return meta
 
 
@@ -350,12 +356,45 @@ def _neardup_edges(datasets, overlap_thr, discord_thr, maxpost):
     return edges
 
 
-def fold_near_duplicates(datasets, meta, ik2info, overlap_thr=0.90, discord_thr=0.20, maxpost=100):
-    """Fold near-duplicate datasets (connected components of the near-dup graph) into single nodes.
+def _greedy_clique_cover(n, edges):
+    """Partition {0..n-1} into cliques of the near-dup graph (deterministic greedy peel).
 
-    Runs over ALL datasets (eligible + degenerate + small). Each connected component with >1 member
-    is merged via `merge_datasets` into one node; every node carries `members` (its original
-    dataset ids) so downstream pooling can expand back to the source datasets.
+    Repeatedly peel a maximal clique from the remaining nodes: seed with the highest-degree
+    remaining node (ties -> lowest index), then grow by the candidate adjacent to the whole
+    current clique with the most remaining connections (ties -> lowest index). Because every
+    returned group is a clique, ALL within-group pairs satisfy the 90/20 edge test directly -
+    unlike connected components, no pair is folded in transitively via a bridging dataset.
+
+    Returns a list of index-lists (nodes with no edges come back as singletons).
+    """
+    nbr = {i: set() for i in range(n)}
+    for a, b, *_ in edges:
+        nbr[a].add(b)
+        nbr[b].add(a)
+    remaining = set(range(n))
+    groups = []
+    while remaining:
+        seed = max(remaining, key=lambda x: (len(nbr[x] & remaining), -x))
+        clique = {seed}
+        cands = nbr[seed] & remaining
+        while cands:
+            v = max(cands, key=lambda x: (len(cands & nbr[x]), -x))
+            clique.add(v)
+            cands = cands & nbr[v]
+        groups.append(sorted(clique))
+        remaining -= clique
+    return groups
+
+
+def fold_near_duplicates(datasets, meta, ik2info, overlap_thr=0.90, discord_thr=0.20, maxpost=100):
+    """Fold near-duplicate datasets (cliques of the near-dup graph) into single nodes.
+
+    Runs over ALL datasets (eligible + degenerate + small). Datasets are grouped into CLIQUES
+    of the 90/20 near-dup graph (see `_greedy_clique_cover`), so every pair inside a fold group
+    satisfies the overlap/discordance test directly - a middle dataset can no longer transitively
+    fold two datasets that fail the test between themselves. Each group with >1 member is merged
+    via `merge_datasets` into one node; every node carries `members` (its original dataset ids) so
+    downstream pooling can expand back to the source datasets.
 
     Returns
     -------
@@ -364,20 +403,11 @@ def fold_near_duplicates(datasets, meta, ik2info, overlap_thr=0.90, discord_thr=
     """
     n = len(datasets)
     edges = _neardup_edges(datasets, overlap_thr, discord_thr, maxpost)
-    if edges:
-        r = [e[0] for e in edges] + [e[1] for e in edges]
-        c = [e[1] for e in edges] + [e[0] for e in edges]
-        adj = csr_matrix((np.ones(len(r)), (r, c)), shape=(n, n))
-    else:
-        adj = csr_matrix((n, n))
-    _, comp = connected_components(adj, directed=False)
-    groups = defaultdict(list)
-    for i, ci in enumerate(comp):
-        groups[ci].append(i)
+    groups = _greedy_clique_cover(n, edges)
     edge_by_pair = {(e[0], e[1]): (e[2], e[3]) for e in edges}
 
     nodes, fold_rows = [], []
-    for idxs in groups.values():
+    for idxs in groups:
         if len(idxs) == 1:
             d = datasets[idxs[0]]
             node = dict(d)

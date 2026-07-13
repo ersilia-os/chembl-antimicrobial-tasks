@@ -104,11 +104,6 @@ target_dictionary = target_dictionary[
     target_dictionary["organism"].str.contains(pathogen, case=False, na=False)
 ]
 target_info = target_dictionary.set_index("tid")[["pref_name", "organism", "target_type", "chembl_id"]].to_dict("index")
-target_synonym_map = (
-    target_dictionary.set_index("tid")["synonyms"]
-    .apply(lambda s: s.split(";") if isinstance(s, str) and s else [])
-    .to_dict()
-)
 
 # Pre-built index and prefix list for resolve_target_chembl_id (O(1) lookup)
 def _build_lookup_index(df):
@@ -378,27 +373,6 @@ def build_extraction_context(assay_triplet):
         "doc_pubmed_id": str(di.get("pubmed_id", "")) if isinstance(di, dict) else "",
         "doc_doi": di.get("doi", "") if isinstance(di, dict) else ""
     }
-
-
-def build_pathogen_target_list(pathogen_name):
-    """Build compact list of known SINGLE PROTEIN targets for the pathogen.
-
-    target_dictionary is already filtered to the pathogen at load time, so
-    we only need to restrict to SINGLE PROTEIN target type here.
-    """
-    pathogen_targets = target_dictionary[
-        target_dictionary['target_type'] == 'SINGLE PROTEIN'
-    ].copy()
-
-    if len(pathogen_targets) == 0:
-        return ""
-
-    lines = [f"\nKnown {pathogen_name} SINGLE PROTEIN targets (use ONLY these ChEMBL IDs for SINGLE PROTEIN assignments):"]
-    for _, row in pathogen_targets.iterrows():
-        syns = target_synonym_map.get(row['tid'], [])
-        syn_str = f" (also known as: {', '.join(syns)})" if syns else ""
-        lines.append(f"  {row['chembl_id']}: {row['pref_name']}{syn_str}")
-    return "\n".join(lines)
 
 
 def build_organism_context(pathogen_name, organism_chembl_id):

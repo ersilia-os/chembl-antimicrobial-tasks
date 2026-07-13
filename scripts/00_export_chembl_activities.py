@@ -2,12 +2,14 @@
 Step 00 — Export ChEMBL tables and generate curation summaries.
 
 Exports 13 raw tables from a local PostgreSQL ChEMBL installation to CSV
-(data/chembl_activities/). Then generates frequency-count summary CSVs of
-key activity fields (saved to output/stage1/).
+(data/chembl_activities/). Then writes summary/reference CSVs to output/stage1/:
+  00_activity_comments.csv, 00_standard_text.csv, 00_activity_std_units.csv — frequency counts
+      that inform the manual curation process (see IMPORTANT below)
+  00_standard_units.csv                  — standard_units frequency counts
+  00_assay_descriptions.csv              — assay_id -> assay description
+  00_target_dictionary_synonyms.csv      — target_dictionary with a parsed 'synonyms' column
 
-IMPORTANT: The summary files produced here (00_activity_comments.csv,
-00_standard_text.csv, 00_activity_std_units.csv) inform the manual curation process.
-After running this step, a curator must create/update:
+IMPORTANT: After running this step, a curator must create/update from the summary files:
   config/activity_comments_manual_curation.csv   (required by step 05)
   config/standard_text_manual_curation.csv        (required by step 05)
 """

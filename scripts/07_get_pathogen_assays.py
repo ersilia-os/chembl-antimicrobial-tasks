@@ -5,7 +5,8 @@ import os
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import STAGE1PATH
-from pathogen_utils import load_pathogen, load_manual_assays, load_excluded_assays, load_assay_metadata, build_assays_info
+from pathogen_utils import (load_pathogen, load_manual_assays, load_excluded_assays,
+                            load_excluded_organism_terms, load_assay_metadata, build_assays_info)
 
 print("Step 07")
 
@@ -40,6 +41,25 @@ if excluded_assays:
     ].reset_index(drop=True)
     n_excluded = before - len(chembl_pathogen)
     print(f"  Excluded {n_excluded} activities from {len(excluded_assays)} blocked assay(s)")
+
+# Drop activities whose TARGET organism matches a per-pathogen exclude term. The step-07 substring
+# match over-includes for genus-level codes (e.g. "Campylobacter" also matches H. pylori's synonym
+# "Campylobacter pylori"; "Enterobacter" matches the family "Enterobacteriaceae"). We match on
+# target_organism only: it is the reliable taxonomic field and identifies 100% of the confirmed
+# off-target leak, whereas assay_organism is sometimes mangled (e.g. genuine "Enterobacter cloacae"
+# assays carry a corrupted "enterobacteriaceae cloacae" assay_organism) so matching it would drop
+# real data. Manually-included assays are exempt (explicit inclusion overrides the fuzzy exclusion).
+exclude_terms = load_excluded_organism_terms(pathogen_code)
+if exclude_terms:
+    before = len(chembl_pathogen)
+    tgt = chembl_pathogen["target_organism"].fillna("").str.lower()
+    term_mask = pd.Series(False, index=chembl_pathogen.index)
+    for t in exclude_terms:
+        term_mask |= tgt.str.contains(t, regex=False)
+    term_mask &= ~chembl_pathogen["assay_chembl_id"].isin(manual_assays)
+    chembl_pathogen = chembl_pathogen[~term_mask].reset_index(drop=True)
+    n_org_excluded = before - len(chembl_pathogen)
+    print(f"  Excluded {n_org_excluded} activities by target_organism term(s) {sorted(exclude_terms)}")
 
 if chembl_pathogen.empty:
     raise SystemExit(f"No activities found for pathogen '{pathogen}'. Check pathogens.csv.")

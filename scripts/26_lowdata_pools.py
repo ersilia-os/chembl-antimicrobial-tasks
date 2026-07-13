@@ -90,11 +90,17 @@ def deferred_categories(pathogen_code):
 
 
 def process(pathogen_code, cutoffs):
+    out = os.path.join(output_base, "stage4", pathogen_code)
+    # Clear stale catch-all pools up front (all categories): a category kept as a catch-all in a
+    # previous run but now modelled is no longer deferred, so it is not rewritten below and would
+    # otherwise leave a stale 26_pools/<cat> that step 27 double-counts.
+    for cat in CATEGORIES:
+        for f in glob.glob(os.path.join(out, "26_pools", cat, "*.csv.gz")):
+            os.remove(f)
     cats = deferred_categories(pathogen_code)
     if not cats:
         return []
     print(f"Step 26 - {pathogen_code} ({load_pathogen(pathogen_code)}): deferred {cats}")
-    out = os.path.join(output_base, "stage4", pathogen_code)
     rows = []
     for cat in cats:
         ds, ik2info = load_binarised_datasets(os.path.join(out, "22_binarised", cat))

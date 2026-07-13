@@ -307,7 +307,18 @@ def build(pathogen_code):
         if key not in retained_keys:
             continue
         direction = dir_lookup[key]
-        ded = dedup_most_active_by_inchikey(g[keep_cols], direction, preserve_qualifier=True)
+        # Numeric records with no InChIKey have no molecule identity and cannot be placed;
+        # drop them here (mirrors the recovered-inactive path, which filters inchikey.notna()
+        # at line ~180). Without this, dedup_most_active_by_inchikey's drop_duplicates(subset=
+        # "inchikey") treats every null-InChIKey compound as the same molecule and collapses
+        # them into ONE phantom row (keeping only the most-active value), silently losing the
+        # rest. n_mol_numeric is already computed with nunique() (which excludes NaN), so the
+        # written file now matches the reported count.
+        g = g[g["inchikey"].notna()]
+        if len(g):
+            ded = dedup_most_active_by_inchikey(g[keep_cols], direction, preserve_qualifier=True)
+        else:
+            ded = pd.DataFrame(columns=keep_cols)
         ded["category"] = cat_lookup[key]
         assay_chembl_id, activity_type = key
         # append recovered qualitative-inactive molecules (no numeric value); they

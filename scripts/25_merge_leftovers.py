@@ -103,6 +103,14 @@ def process(pathogen_code):
     ntot = {r.category: int(r.n_total) for r in part.itertuples(index=False)}
 
     all_summary, all_members, all_log, coverage, all_conflicts = [], [], [], {}, []
+    # Clear stale pool dirs up front for BOTH categories: a category modelled in a previous run
+    # (wrote 25_pools/<cat>) but now deferred (0 modelled) is `continue`-skipped below and would
+    # otherwise leave a stale pool that step 27 double-counts.
+    for _cat in CATEGORIES:
+        _pdir = os.path.join(out, "25_pools", _cat)
+        os.makedirs(_pdir, exist_ok=True)
+        for _f in glob.glob(os.path.join(_pdir, "*.csv.gz")):
+            os.remove(_f)
     for category in CATEGORIES:
         cvc = cv[(cv.category == category)]
         modelled = cvc[cvc.modelled]
@@ -183,10 +191,7 @@ def process(pathogen_code):
                                 "score": round(best_score, 4) if best_pid is not None else np.nan,
                                 "outcome": "deferred_low_fit"})
 
-        # --- batch-merge per pool + AUROC-non-decrease guard ---
-        os.makedirs(os.path.join(out, "25_pools", category), exist_ok=True)
-        for f in glob.glob(os.path.join(out, "25_pools", category, "*.csv.gz")):
-            os.remove(f)
+        # --- batch-merge per pool + AUROC-non-decrease guard --- (25_pools/<cat> cleared up front)
         cov_before, cov_after = set(), set()
         ik_npools, ik_bins = defaultdict(int), defaultdict(set)   # cross-pool label-conflict diagnostic
         for pid, P in pool.items():

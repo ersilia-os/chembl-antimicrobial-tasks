@@ -41,7 +41,7 @@ def prepare_harmonized_types_map(activity_std_units):
     Harmonization strips underscores, spaces, dots, slashes and uppercases the result,
     collapsing variants like 'IC 50', 'ic_50', 'IC/50' -> 'IC50'.
 
-    Produces data/01_harmonized_types_map.csv as a human-readable reference (not consumed by downstream pipeline steps).
+    Produces output/stage1/01_harmonized_types_map.csv as a human-readable reference (not consumed by downstream pipeline steps).
     """
     unique_types = activity_std_units["standard_type"].dropna().unique()
     flat = pd.DataFrame({

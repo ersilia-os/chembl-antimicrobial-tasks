@@ -10,16 +10,16 @@ import os
 # Define root directory
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
-from default import STAGE1PATH
+from default import STAGE1PATH, FP_RADIUS, FP_BITS
 
-def clip_sparse(vect, nBits=2048):
+def clip_sparse(vect, nBits=FP_BITS):
     MAX_I8 = 127
     arr = np.zeros(nBits, dtype=np.int8)
     for i, v in vect.GetNonzeroElements().items():
         arr[i] = min(v, MAX_I8)
     return arr
 
-def smiles_to_ecfp(smiles, radius=3, nBits=2048):
+def smiles_to_ecfp(smiles, radius=FP_RADIUS, nBits=FP_BITS):
     mfpgen = rdFingerprintGenerator.GetMorganGenerator(radius=radius, fpSize=nBits)
     output_smiles, X = [], []
     for info in tqdm(smiles):
@@ -43,6 +43,13 @@ print("Step 06")
 print("Loading data")
 compound_info = pd.read_csv(os.path.join(STAGE1PATH, "02_compound_info.csv"))
 compounds_standardized = pd.read_csv(os.path.join(STAGE1PATH, "03_compound_info_standardized.csv"), low_memory=True)
+# 03 writes standardized structures row-aligned to 02 with no join key, so re-attach by position.
+# Guard: a future filter/sort/dedup in step 03 would silently misalign every molecule's structure;
+# assert the row counts still match so that breakage is loud, not silent. (A keyed merge on
+# molregno is the proper fix, deferred to the next stage-1 re-run.)
+assert len(compounds_standardized) == len(compound_info), (
+    f"03_compound_info_standardized rows ({len(compounds_standardized)}) != 02_compound_info rows "
+    f"({len(compound_info)}) - positional re-attach would misalign structures; re-run step 03")
 compound_info['standardized_smiles'] = compounds_standardized['standardized_smiles']
 compound_info['standardized_MW'] = compounds_standardized['standardized_MW']
 compound_info["molregno"] = compound_info["molregno"].astype(str)

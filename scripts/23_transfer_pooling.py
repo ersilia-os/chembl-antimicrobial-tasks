@@ -98,10 +98,13 @@ CATEGORIES = ["DR", "SP"]
 POOL_RULE = "bidirectional"
 POOL_THRESHOLD = 0.75
 
-# Near-duplicate folding (pre-transfer). Fold datasets with >= NEAR_DUP_OVERLAP containment
-# (shared / min size) and < NEAR_DUP_DISCORD shared-label discordance into one dataset, over ALL
-# datasets (incl. degenerate/small). Transfer is blind to near-duplicates (no disjoint test set),
-# so without this they fragment into singletons. NEAR_DUP_MAXPOST caps candidate generation only.
+# Near-duplicate folding (pre-transfer). An edge joins two datasets with >= NEAR_DUP_OVERLAP
+# containment (shared / min size) and < NEAR_DUP_DISCORD shared-label discordance; datasets are
+# then folded by CLIQUE COVER (every pair inside a fold group satisfies the edge test directly),
+# NOT connected components - so a bridging dataset can no longer transitively fold two datasets
+# that fail the test between themselves. Runs over ALL datasets (incl. degenerate/small): transfer
+# is blind to near-duplicates (no disjoint test set), so without folding they fragment into
+# singletons. NEAR_DUP_MAXPOST caps candidate generation only.
 NEAR_DUP_OVERLAP = 0.90
 NEAR_DUP_DISCORD = 0.20
 NEAR_DUP_MAXPOST = 100

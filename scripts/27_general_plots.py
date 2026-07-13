@@ -851,7 +851,7 @@ def build_master_table(codes):
             return "modelled", r["grown_auroc"], r["ar_after"], r["pool_id_25"]
         if r["catchall_kept"] == True:
             return "catch-all", r["catchall_auroc"], r["catchall_ar"], f'{r["category"]}_catchall'
-        if pd.notna(r["pool_id_23"]) and (r["modelled"] is True):
+        if pd.notna(r["pool_id_23"]) and (r["modelled"] == True):
             return "modelled", r["auroc_24"], r["ar_24"], r["pool_id_23"]
         return "uncovered", np.nan, np.nan, np.nan
     res = m.apply(resolve, axis=1, result_type="expand")
@@ -1501,6 +1501,42 @@ def make_lowdata_overview(codes, out_dir):
 _FATE = [("modelled", "turquoise"), ("catch-all", "periwinkle"), ("uncovered", "silver")]
 
 
+def _pool_iks(pool_dir):
+    """Union of inchikeys across the pool files in a directory (empty set if none)."""
+    s = set()
+    for f in glob.glob(os.path.join(pool_dir, "*.csv.gz")):
+        s |= set(pd.read_csv(f, usecols=["inchikey"])["inchikey"])
+    return s
+
+
+def _chemspace_fate(code, stage4_dir):
+    """Per-pathogen UNIQUE-molecule fractions by final fate (modelled / catch-all / uncovered).
+
+    modelled = molecules in a step-25 pool; catch-all = molecules in a step-26 catch-all not already
+    modelled; uncovered = the rest of the category chemical space. Summed over DR+SP with each
+    category's n_total as denominator (same chemical-space convention as 23_chemspace_partition; a
+    molecule tested in both categories counts once per category). Returns {fate: fraction} or None."""
+    part_f = os.path.join(stage4_dir, code, "23_chemspace_partition.csv")
+    if not os.path.exists(part_f):
+        return None
+    ntot = {r.category: int(r.n_total) for r in pd.read_csv(part_f).itertuples(index=False)}
+    cnt = {"modelled": 0, "catch-all": 0, "uncovered": 0}
+    total = 0
+    for cat in ("DR", "SP"):
+        t = ntot.get(cat, 0)
+        if not t:
+            continue
+        mod = _pool_iks(os.path.join(stage4_dir, code, "25_pools", cat))
+        cal = _pool_iks(os.path.join(stage4_dir, code, "26_pools", cat)) - mod
+        cnt["modelled"] += len(mod)
+        cnt["catch-all"] += len(cal)
+        cnt["uncovered"] += max(0, t - len(mod) - len(cal))
+        total += t
+    if not total:
+        return None
+    return {k: cnt[k] / total for k in cnt}
+
+
 def make_pipeline_summary(master, codes, out_dir):
     """Cross-step summary from the master table (2x3): the fold->pool->merge consolidation
     funnel, overall coverage, final-pool AUROC and active/inactive ratio, and per-pathogen
@@ -1585,14 +1621,26 @@ def make_pipeline_summary(master, codes, out_dir):
     ax.set_xticks([0, 1]); ax.set_xticklabels(["DR", "SP"]); ax.set_ylim(-0.02, 1.02)
     stylia.label(ax, xlabel="", ylabel="active ratio", title="Final pool active ratio", abc="D")
 
-    # E. per-pathogen dataset fate (fraction)
+    # E. per-pathogen fate: two stacked bars per pathogen - a thicker bar by DATASET count (top)
+    #    and a thinner bar by CHEMICAL SPACE (unique molecules; bottom). The two diverge for
+    #    small-data pathogens with many tiny overlapping assays (e.g. smansoni): a large uncovered
+    #    dataset fraction can still be a small uncovered fraction of the actual chemistry.
     ax = axs.next()
-    y = np.arange(len(order)); lefts = np.zeros(len(order))
-    for k, _c in _FATE:
+    stage4_dir = os.path.dirname(out_dir)
+    cs_fate = {c: _chemspace_fate(c, stage4_dir) for c in order}
+    y = np.arange(len(order))
+    h, off_ds, off_cs = 0.40, -0.21, 0.21                     # equal-thickness bars: datasets top, chem space bottom
+    lefts = np.zeros(len(order))
+    for k, _c in _FATE:                                       # top bar: by dataset count
         fr = np.array([(m[m.pathogen == c].final_status == k).mean() for c in order])
-        ax.barh(y, fr, left=lefts, color=fcol[k]); lefts += fr
+        ax.barh(y + off_ds, fr, height=h, left=lefts, color=fcol[k]); lefts += fr
+    lefts = np.zeros(len(order))
+    for k, _c in _FATE:                                       # bottom bar: by chemical space
+        fr = np.array([(cs_fate[c][k] if cs_fate[c] else 0.0) for c in order])
+        ax.barh(y + off_cs, fr, height=h, left=lefts, color=fcol[k]); lefts += fr
     ax.set_yticks(y); ax.set_yticklabels([abbr[c] for c in order]); ax.invert_yaxis()
-    stylia.label(ax, xlabel="fraction of datasets", ylabel="", title="Dataset fate by pathogen", abc="E")
+    ax.set_xlim(0, 1)
+    stylia.label(ax, xlabel="fraction (datasets | chem space)", ylabel="", title="Fate by pathogen", abc="E")
 
     # F. final-pool counts per pathogen, DR vs SP
     ax = axs.next()

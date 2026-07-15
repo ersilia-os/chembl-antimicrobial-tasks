@@ -1123,8 +1123,8 @@ def plot_merge_coverage(ax, ps, codes, colors, category, abc):
     ax.bar(x, vals, color=[colors[c] for c in codes])
     ax.set_xticks(x); ax.set_xticklabels(codes, rotation=90)
     compact_yaxis(ax)
-    stylia.label(ax, xlabel="", ylabel="molecules added",
-                 title=f"Step-25 molecules absorbed - {cat_label(category)}", abc=abc)
+    stylia.label(ax, xlabel="", ylabel="activities added",
+                 title=f"Step-25 activities absorbed - {cat_label(category)}", abc=abc)
 
 
 def make_merge_overview(codes, out_dir):
@@ -1575,7 +1575,7 @@ def make_pipeline_summary(master, codes, out_dir):
 
     # B. overall coverage by datasets and by molecules
     ax = axs.next()
-    metrics = [("datasets", np.ones(len(m))), ("molecules", m["ds_n_molecules"].to_numpy(float))]
+    metrics = [("datasets", np.ones(len(m))), ("activities", m["ds_n_molecules"].to_numpy(float))]
     xb = np.arange(len(metrics)); bottoms = np.zeros(len(metrics))
     for k, _c in _FATE:
         v = np.array([w[m["final_status"].values == k].sum() / w.sum() for _, w in metrics])

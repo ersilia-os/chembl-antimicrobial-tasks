@@ -13,6 +13,11 @@ DR,CC50,umol.L-1
 DR,GI50,umol.L-1
 DR,POTENCY,umol.L-1
 DR,LC50,umol.L-1
+DR,XC50,umol.L-1
+DR,EC90,umol.L-1
+DR,MBC,umol.L-1
+DR,MBC90,umol.L-1
+DR,MFC,umol.L-1
 SP,ACTIVITY,%
 SP,IZ,mm
 SP,INHIBITION,%

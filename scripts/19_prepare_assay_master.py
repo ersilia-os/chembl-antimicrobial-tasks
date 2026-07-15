@@ -405,6 +405,8 @@ def _generate_m_comment(nkey, dtype, has_cutoff, target_type_extra, considered, 
 
         if failure_reason == "excluded_pubchem_assay":
             return "Not considered for M: assay has a PubChem counterpart and is modelled independently"
+        elif failure_reason == "excluded_manual_assay":
+            return "Not considered for M: assay manually excluded (counter-screen / flagged)"
         elif failure_reason == "excluded_no_target_chembl_id":
             return "Not considered for M: SINGLE PROTEIN assay with no curated target_chembl_id"
         elif failure_reason == "insufficient_compatible_assays":

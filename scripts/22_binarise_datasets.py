@@ -360,7 +360,7 @@ def process(pathogen_code):
         lambda ax: RatioHistOne(ax, sp, "SP", "Active ratio — Single Point", abc="B"),
         lambda ax: RatioVsSizePlot(ax, df, abc="C"),
         lambda ax: CompositionPlot(ax, comp_ds, "datasets", "Class composition (datasets)", abc="D"),
-        lambda ax: CompositionPlot(ax, comp_mol, "molecules", "Class composition (molecules)", abc="E"),
+        lambda ax: CompositionPlot(ax, comp_mol, "activities", "Class composition (activities)", abc="E"),
         lambda ax: ActiveMoleculesPlot(ax, act_mol, abc="F"),
     ])
 

@@ -9,7 +9,8 @@ import os
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import CONFIGPATH, STAGE3PATH
-from pathogen_utils import load_pathogen, load_expert_cutoffs, extra_curation_target_type, add_target_type_curated
+from pathogen_utils import (load_pathogen, load_expert_cutoffs, extra_curation_target_type,
+                            add_target_type_curated, load_target_type_overrides)
 from dataset_utils import (
     get_assay_data, get_cut_value, count_relations,
     get_assay_data_quantitative, get_assay_data_qualitative,
@@ -31,9 +32,11 @@ STAGE2 = os.path.join(root, "..", "output", "stage2", pathogen_code)
 assays_cleaned = pd.read_csv(os.path.join(STAGE2, "08_assays_cleaned.csv"))
 parameters = pd.read_csv(os.path.join(STAGE2, "09_assays_parameters_full.csv"))
 assays_cleaned = add_target_type_curated(assays_cleaned, parameters)
+tt_overrides = load_target_type_overrides()
 assays_cleaned['target_type_curated_extra'] = [
-    extra_curation_target_type(i, j)
-    for i, j in zip(assays_cleaned['target_type'], assays_cleaned['target_type_curated'])
+    extra_curation_target_type(i, j, assay_id=aid, overrides=tt_overrides)
+    for i, j, aid in zip(assays_cleaned['target_type'], assays_cleaned['target_type_curated'],
+                         assays_cleaned['assay_id'])
 ]
 
 # Exclude COADD-sourced assays: single-shot CO-ADD antimicrobial screens are not used

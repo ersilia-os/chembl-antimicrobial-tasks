@@ -504,7 +504,7 @@ class RebinEffectPlot(BasePlot):
         super().__init__(ax, abc)
         cats = [c for c in CATEGORIES if (ps["category"] == c).any()]
         if not cats:
-            self._empty(ylabel="molecules", title="Conservative rebinarisation"); return
+            self._empty(ylabel="activities", title="Conservative rebinarisation"); return
         x = np.arange(len(cats))
         active = np.array([int(ps[ps.category == c]["n_active"].sum()) for c in cats], dtype=float)
         proof = np.array([int(ps[ps.category == c]["n_proof_demoted"].sum()) for c in cats], dtype=float)
@@ -529,7 +529,7 @@ class RebinEffectPlot(BasePlot):
         _xticks(ax, [cat_label(c) for c in cats])
         _headroom(ax, totals, frac=0.22)
         compact_yaxis(ax)
-        self._label(xlabel="", ylabel="molecules", title="Conservative rebinarisation")
+        self._label(xlabel="", ylabel="activities", title="Conservative rebinarisation")
         axis_legend(ax, [("active", pc.color("active")), ("lost: prove-the-hit", pc.named("amber")),
                          ("lost: averaging", pc.named("periwinkle"))],
                     loc="upper right", anchor=(0.98, 0.98), frame=True)

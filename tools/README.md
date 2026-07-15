@@ -90,3 +90,17 @@ merge — read directly from the pool files (does not re-implement the resolutio
 - Run: `python tools/pooling_conflict_report.py [codes...]`
 - Reads: `stage4/<code>/` `23_pool_members.csv`, `23_pools/`, `22_binarised/`. Writes:
   `docs/<date>_step23-conflict-perpool.csv` + `-summary.csv`.
+
+### `redundant_conflict_audit.py`
+Whether step-25 `redundant` leftovers (dropped because all their molecules are already in a modelled
+pool) silently lose signal, and whether the step-25 pool-growth policy itself changes labels. Three
+sub-analyses: **conflicts** (raw leftover-vs-pool label comparison — consensus/strict/any + a driver
+breakdown by activity_type), **merge-flip** (merge each leftover into every containing pool and
+re-binarise via `merge_datasets`; reports flip_vs_delivered / flip_marginal / delivered_ne_remerge),
+**reaverage** (pool-wide, de-duplicated: what fraction of shipped labels would flip if step 25
+re-averaged its members instead of "base wins"). Findings: raw conflict 38 % (MIC-driven) but only
+~17 % would change a shipped label (~10 % marginal), and re-averaging pool-wide changes just 0.04 %.
+- Run: `python tools/redundant_conflict_audit.py [all|conflicts|merge-flip|reaverage] [codes...]`
+- Reads: `stage4/<code>/` `25_merge_log.csv`, `25_pool_members.csv`, `25_pools/`, `22_binarised/`,
+  `22_binarisation_summary.csv`. Writes: `docs/2026-07-15_redundant-{conflicts,mergeflip,reaverage}_*.csv`
+  + `.png`. Write-up: `docs/2026-07-15_redundant-conflict-diagnostics.md`.

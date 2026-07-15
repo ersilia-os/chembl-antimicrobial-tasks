@@ -221,7 +221,7 @@ class PoolStatusPlot(BasePlot):
         super().__init__(ax, abc)
         cats = [c for c in CATEGORIES if (summ.category == c).any()]
         if not cats:
-            self._empty(ylabel="molecules", title="Pool modelling status"); return
+            self._empty(ylabel="activities", title="Pool modelling status"); return
         x = np.arange(len(cats))
         bottom = np.zeros(len(cats))
         recs = []
@@ -239,7 +239,7 @@ class PoolStatusPlot(BasePlot):
         _xticks(ax, [cat_label(c) for c in cats])
         ax.set_ylim(0, bottom.max() * 1.08 if bottom.max() else 1)   # headroom for the count labels
         compact_yaxis(ax)
-        self._label(xlabel="", ylabel="molecules (pool sum)", title="Pool modelling status")
+        self._label(xlabel="", ylabel="activities (pool sum)", title="Pool modelling status")
         # legend sits at the top over the shorter bar (right if the rightmost bar is the
         # shorter, else left) so it never overlaps the taller stack's count annotations.
         if int(np.argmin(bottom)) >= len(bottom) / 2:

@@ -8,7 +8,7 @@ import os
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import CONFIGPATH, DECOY_RATIO, STAGE1PATH, STAGE3PATH
-from pathogen_utils import load_pathogen, load_expert_cutoffs, load_pubchem_assays, strain_norm_key, load_strain_equivalences
+from pathogen_utils import load_pathogen, load_expert_cutoffs, load_pubchem_assays, load_excluded_assays, strain_norm_key, load_strain_equivalences
 from dataset_utils import make_dataset_filename
 from model_utils import load_ecfp_all, load_all_gz_csvs_from_zip, KFoldTrain, TrainRF, add_decoys, downsample_negatives
 
@@ -186,6 +186,12 @@ pubchem_excluded_rows = not_accepted[not_accepted["assay_id"].isin(pubchem_assay
 if pubchem_assays:
     not_accepted = not_accepted[~not_accepted["assay_id"].isin(pubchem_assays)].copy()
 
+# Manually excluded assays (counter-screens / flagged) are never modelled — exclude from merging
+excluded_assays = load_excluded_assays(pathogen_code)
+manual_excluded_rows = not_accepted[not_accepted["assay_id"].isin(excluded_assays)].copy() if excluded_assays else pd.DataFrame()
+if excluded_assays:
+    not_accepted = not_accepted[~not_accepted["assay_id"].isin(excluded_assays)].copy()
+
 filtered_organism = not_accepted[not_accepted["target_type_curated_extra"] == "ORGANISM"].copy()
 
 # Strain-known ORGANISM: group by strain (no bao_label — ORGANISM target type is sufficient)
@@ -249,6 +255,18 @@ for _, row in pubchem_excluded_rows.iterrows():
         "group_size": 0,
         "group_compounds": 0,
         "failure_reason": "excluded_pubchem_assay",
+        "group_keys": "",
+    })
+
+for _, row in manual_excluded_rows.iterrows():
+    merging_analysis.append({
+        "assay_id": row["assay_id"],
+        "activity_type": row["activity_type"],
+        "unit": row["unit"] if isinstance(row["unit"], str) else None,
+        "target_type": row["target_type_curated_extra"],
+        "group_size": 0,
+        "group_compounds": 0,
+        "failure_reason": "excluded_manual_assay",
         "group_keys": "",
     })
 

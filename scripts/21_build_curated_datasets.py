@@ -94,8 +94,9 @@ import stylia
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from pathogen_utils import (
-    load_pathogen, load_pubchem_assays,
+    load_pathogen, load_pubchem_assays, load_excluded_assays,
     strain_norm_key, load_strain_equivalences, extra_curation_target_type,
+    load_target_type_overrides,
 )
 from default import CONFIGPATH, MIN_MOLECULES, COADD_SOURCE_LABEL, KEPT_TARGET_TYPE, STAGE4PATH
 from dataset_utils import (
@@ -146,6 +147,7 @@ def build(pathogen_code):
     counts = pd.read_csv(os.path.join(stage2_dir, "07_compound_counts.csv.gz"),
                          usecols=["compound_chembl_id", "inchikey"])
     pubchem_ids = load_pubchem_assays(pathogen_code)
+    excluded_ids = load_excluded_assays(pathogen_code)
 
     cid2ik = dict(zip(counts["compound_chembl_id"], counts["inchikey"]))
     acts["inchikey"] = acts["compound_chembl_id"].map(cid2ik)
@@ -168,6 +170,7 @@ def build(pathogen_code):
     print(f"  activities: {len(acts)} | assays: {acts['assay_chembl_id'].nunique()} "
           f"| compounds w/o InChIKey: {n_missing_ik}")
     print(f"  PubChem-superseded assays listed: {len(pubchem_ids)}")
+    print(f"  Manually excluded assays listed: {len(excluded_ids)}")
 
     # --- per-pair aggregation -----------------------------------------------
     num = acts[acts["is_numeric"]]
@@ -250,34 +253,39 @@ def build(pathogen_code):
     pairs["assay_strain_norm"] = strain_norm_key(
         pairs["assay_strain_curated"], pairs["atcc_id"],
         load_strain_equivalences(pathogen_code))            # mirrors step 19:47-49
+    tt_overrides = load_target_type_overrides()
     pairs["target_type_curated_extra"] = [
-        extra_curation_target_type(tt, ttc)
-        for tt, ttc in zip(pairs["target_type"], pairs["target_type_curated"])
+        extra_curation_target_type(tt, ttc, assay_id=aid, overrides=tt_overrides)
+        for tt, ttc, aid in zip(pairs["target_type"], pairs["target_type_curated"],
+                                pairs["assay_chembl_id"])
     ]                                                       # mirrors step 13:33-35
 
     # --- ordered curation filters -------------------------------------------
     # discard_step: 0 = retained; otherwise the first failing step (reason recorded).
-    # Steps 4 (uncategorized) and 5 (undefined direction) are endpoint-quality gates:
-    # they run after single-unit (unit-dependent) and before the source/size gates, so
-    # every retained pair is DR/SP with a defined single direction (guards the write-step
-    # dedup and step 22's binarisation).
+    # Step 1 (manual exclusion) runs first so a flagged assay is always reported as excluded,
+    # never incidentally as one of the quality gates. Steps 5 (uncategorized) and 6 (undefined
+    # direction) are endpoint-quality gates: they run after single-unit (unit-dependent) and
+    # before the source/size gates, so every retained pair is DR/SP with a defined single
+    # direction (guards the write-step dedup and step 22's binarisation).
     def decide(r):
+        if r["assay_chembl_id"] in excluded_ids:
+            return 1, "manually excluded (counter-screen / flagged)"
         if r["target_type_curated_extra"] != KEPT_TARGET_TYPE:
-            return 1, f"not ORGANISM ({r['target_type_curated_extra']})"
+            return 2, f"not ORGANISM ({r['target_type_curated_extra']})"
         if r["n_numeric"] == 0:
-            return 2, "no quantitative data (qualitative-only)"
+            return 3, "no quantitative data (qualitative-only)"
         if r["n_numeric_units"] > 1:
-            return 3, "multiple units (incompatible, not pooled)"
+            return 4, "multiple units (incompatible, not pooled)"
         if r["category"] == "UNCATEGORIZED":
-            return 4, "uncategorized ((activity_type, unit) not in DR/SP)"
+            return 5, "uncategorized ((activity_type, unit) not in DR/SP)"
         if pd.isna(r["direction"]) or int(r["direction"]) not in (-1, 1):
-            return 5, f"undefined direction ({r['direction']})"
+            return 6, f"undefined direction ({r['direction']})"
         if r["source_label"] == COADD_SOURCE_LABEL:
-            return 6, "Co-ADD"
+            return 7, "Co-ADD"
         if r["assay_chembl_id"] in pubchem_ids:
-            return 7, "superseded by PubChem"
+            return 8, "superseded by PubChem"
         if r["n_mol_dataset"] <= MIN_MOLECULES:
-            return 8, f"<= {MIN_MOLECULES} molecules"
+            return 9, f"<= {MIN_MOLECULES} molecules"
         return 0, ""
 
     decided = pairs.apply(decide, axis=1, result_type="expand")

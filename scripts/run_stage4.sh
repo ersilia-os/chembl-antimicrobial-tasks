@@ -4,6 +4,8 @@
 # Per-pathogen data block (dependency chain): 21 -> 22 -> 23 -> 24 -> 25.
 # Then the general/reporting block once, over ALL pathogens on disk: 26 (low-data catch-all,
 # loops pathogens internally), 27 (ALL cross-pathogen figures), 28 (dataset trace/flow audit).
+# (The redundant-leftover vs pool conflict audit is a standalone tool, not a pipeline step:
+#  tools/redundant_conflict_audit.py — see docs/2026-07-15_redundant-conflict-diagnostics.md.)
 # Embedding figures need step 12 output (skipped gracefully if absent).
 #
 # Usage: run_stage4.sh [pathogen_codes...]   (default: all codes in config/pathogens.csv)

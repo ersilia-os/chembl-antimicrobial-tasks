@@ -5,7 +5,7 @@ import os
 root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(root, "..", "src"))
 from default import STAGE1PATH
-from pathogen_utils import (load_pathogen, load_manual_assays, load_excluded_assays,
+from pathogen_utils import (load_pathogen, load_manual_assays,
                             load_excluded_organism_terms, load_assay_metadata, build_assays_info)
 
 print("Step 07")
@@ -33,14 +33,11 @@ chembl_pathogen = chembl[
     chembl["assay_chembl_id"].isin(manual_assays)
 ].reset_index(drop=True)
 
-excluded_assays = load_excluded_assays(pathogen_code)
-if excluded_assays:
-    before = len(chembl_pathogen)
-    chembl_pathogen = chembl_pathogen[
-        ~chembl_pathogen["assay_chembl_id"].isin(excluded_assays)
-    ].reset_index(drop=True)
-    n_excluded = before - len(chembl_pathogen)
-    print(f"  Excluded {n_excluded} activities from {len(excluded_assays)} blocked assay(s)")
+# NOTE: manual assay-level exclusions (config/assays_to_exclude/) are NOT applied here.
+# Step 07 keeps all data for the pathogen; those assays are discarded downstream at step 21
+# (curated-dataset gate) and excluded from merging at step 16. Only the TARGET-organism term
+# exclusions below (taxonomy leaks) are enforced at this stage, since they concern whether an
+# assay belongs to this pathogen at all.
 
 # Drop activities whose TARGET organism matches a per-pathogen exclude term. The step-07 substring
 # match over-includes for genus-level codes (e.g. "Campylobacter" also matches H. pylori's synonym

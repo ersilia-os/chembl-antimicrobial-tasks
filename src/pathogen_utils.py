@@ -235,6 +235,38 @@ def load_excluded_assays(pathogen_code):
     return set(line.strip() for line in open(path) if line.strip())
 
 
+def load_target_type_overrides():
+    """Return the manual per-assay target-type overrides as {assay_id -> label}.
+
+    Reads config/target_type_overrides.csv (header: assay_id,target_type). Each row forces the
+    final `target_type_curated_extra` label of a specific assay, overriding ChEMBL's raw
+    target_type and the step-09 curation. This corrects assays that ChEMBL labels ORGANISM but
+    are actually target/pathway-directed (e.g. enzyme screens): setting them to SINGLE PROTEIN
+    drops them from the Stage-4 ORGANISM-only datasets. Consulted by extra_curation_target_type().
+
+    Returns an empty dict if the file does not exist. Raises ValueError on a missing/misnamed
+    column, an unrecognised label, or a duplicate assay_id. Assay IDs not present in a given
+    per-pathogen run are simply never matched (the config is global; each run only sees its own
+    assays), so unknown IDs here are the normal case and are not validated.
+    """
+    path = os.path.join(CONFIGPATH, "target_type_overrides.csv")
+    if not os.path.exists(path):
+        return {}
+    df = pd.read_csv(path)
+    expected = {"assay_id", "target_type"}
+    if set(df.columns) != expected:
+        raise ValueError(f"{path}: expected columns {sorted(expected)}, got {list(df.columns)}")
+    valid = {"ORGANISM", "SINGLE PROTEIN", "DISCARDED"}
+    overrides = {}
+    for aid, tt in zip(df["assay_id"].astype(str).str.strip(), df["target_type"].astype(str).str.strip().str.upper()):
+        if tt not in valid:
+            raise ValueError(f"{path}: target_type '{tt}' for {aid} not in {sorted(valid)}")
+        if aid in overrides:
+            raise ValueError(f"{path}: duplicate assay_id '{aid}'")
+        overrides[aid] = tt
+    return overrides
+
+
 def load_excluded_organism_terms(pathogen_code):
     """Return the lowercased organism substrings to exclude for a pathogen.
 
@@ -432,12 +464,16 @@ def reference_cutoff(cutoff_list, unit):
     return cutoff_list[idx] if len(cutoff_list) > idx else cutoff_list[-1]
 
 
-def extra_curation_target_type(target_type, target_type_curated):
+def extra_curation_target_type(target_type, target_type_curated, assay_id=None, overrides=None):
     """
     Enforce simplified curation rules for ChEMBL assay target types.
 
     Collapses the LLM-curated target type to one of:
     SINGLE PROTEIN, ORGANISM, or DISCARDED.
+
+    A manual per-assay override (see load_target_type_overrides) takes precedence over every
+    rule below: if `assay_id` is listed in `overrides`, that label is returned unchanged. This
+    corrects assays ChEMBL labels ORGANISM but that are actually target/pathway-directed.
 
     Rules
     -----
@@ -453,12 +489,19 @@ def extra_curation_target_type(target_type, target_type_curated):
         Raw ChEMBL target type.
     target_type_curated : str
         LLM- or human-proposed curated target type (from step 09).
+    assay_id : str, optional
+        ChEMBL assay ID of the record; used to look up a manual override.
+    overrides : dict, optional
+        {assay_id -> label} manual overrides from load_target_type_overrides().
 
     Returns
     -------
     str
         "SINGLE PROTEIN", "ORGANISM", or "DISCARDED".
     """
+    if overrides and assay_id in overrides:
+        return overrides[assay_id]
+
     if not isinstance(target_type_curated, str):
         return 'DISCARDED'
 

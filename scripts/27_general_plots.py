@@ -40,8 +40,8 @@ Outputs (output/stage4/general_plots/):
     27_merge_overview.png             step-25 merge per pathogen (3x2, DR/SP): baseline→grown AUROC,
                                       leftover outcome mix, molecules absorbed
     27_final_data_overlap.png         final-pool overlap per pathogen (2x2, DR/SP): pairwise Jaccard
-                                      overlap % + molecule-level cross-pool label conflict
-                                      (conflicting / total unique molecules)
+                                      overlap % + molecule-level cross-pool label conflict, grouped
+                                      bars normalised over all unique molecules and over actives
     27_final_data_overlap.csv         tidy per-pool-pair table (n_shared, jaccard, discrepancy)
     27_activity_ratio.png             active ratio through the pipeline (2x2): stage distribution
                                       22→26 (DR/SP) + per-pathogen seed→final pool ratio
@@ -170,6 +170,26 @@ def plot_chembl_coverage(ax, related, total, n_pathogens, abc):
     stylia.label(ax, xlabel="", ylabel="",
                  title=f"Chem-space related to the {n_pathogens} pathogens\n"
                        f"({related:,} of {total:,} bioactive ChEMBL compounds)", abc=abc)
+
+
+def export_chembl_coverage(results, total_chembl, out_dir):
+    """Persist the ChEMBL-coverage donut inputs as a small CSV so the figure can be rebuilt
+    downstream (e.g. the ersilia-model-hub-paper repo) WITHOUT the full cleaned datasets.
+
+    One row per pathogen with its cleaned-InChIKey count, plus an ``ALL`` row whose count is the
+    union across pathogens — the donut's ``related`` value. ``total_bioactive_compounds`` (the
+    donut denominator) and ``chembl_db`` repeat on every row so the file is self-contained.
+    """
+    rows = [{"pathogen": r["code"], "n_cleaned_inchikeys": len(r["all_iks"]), "is_union": False}
+            for r in results]
+    union = len(set().union(*[r["all_iks"] for r in results])) if results else 0
+    rows.append({"pathogen": "ALL", "n_cleaned_inchikeys": union, "is_union": True})
+    df = pd.DataFrame(rows)
+    df["total_bioactive_compounds"] = total_chembl
+    df["chembl_db"] = DATABASE_NAME
+    path = os.path.join(out_dir, "27_chembl_coverage.csv")
+    df.to_csv(path, index=False)
+    print(f"  coverage csv -> {path}")
 
 
 def molecule_region_colors():
@@ -395,6 +415,7 @@ def make_curation_comparison(results, out_dir):
     fig, axs = stylia.create_figure(1, 1, width=0.5, height=0.5)
     plot_chembl_coverage(axs.next(), related, total_chembl, len(results), abc=None)
     stylia.save_figure(os.path.join(out_dir, "27_curation_frac_chembl.png"))
+    export_chembl_coverage(results, total_chembl, out_dir)  # small CSV for downstream reuse
 
     # 2. Chemical-space overlap heatmaps (square): cleaned vs retained molecules.
     fig, axs = stylia.create_figure(1, 2, width=1.0, height=0.55)
@@ -1160,8 +1181,10 @@ def _final_pool_stats(codes):
     """Load each pathogen's FINAL pools (25 grown + 26 catch-all) ONCE and derive, per category:
       - pairs : one row per pool pair sharing >=1 molecule (n_shared, Jaccard %, discrepancy %);
       - counts: n_pools, n_pairs (all C(n,2)), n_overlap (pairs sharing >=1 molecule);
-      - confl : molecule-level n_unique_molecules / n_in_multiple_pools / n_conflicting_label over
-                the SAME combined pool set (so C/D matches A/B, catch-all included).
+      - confl : molecule-level n_unique_molecules / n_active_molecules / n_in_multiple_pools /
+                n_conflicting_label over the SAME combined pool set (so C/D matches A/B, catch-all
+                included). n_active_molecules = molecules labelled active (bin==1) in >=1 pool; used
+                as the alternative denominator for the active-normalised conflict rate in C/D.
     Discrepancy = % of the shared InChIKeys whose binary label (`bin`) disagrees; a molecule is
     'conflicting' if it appears in >1 pool with >1 distinct bin."""
     pairs, counts, confl = [], [], []
@@ -1181,6 +1204,7 @@ def _final_pool_stats(codes):
                     ik_bins[ik].add(int(b))
             if ik_npools:
                 confl.append(dict(pathogen=code, category=cat, n_unique_molecules=len(ik_npools),
+                                  n_active_molecules=sum(1 for ik in ik_bins if 1 in ik_bins[ik]),
                                   n_in_multiple_pools=sum(1 for n in ik_npools.values() if n > 1),
                                   n_conflicting_label=sum(1 for ik, n in ik_npools.items()
                                                           if n > 1 and len(ik_bins[ik]) > 1)))
@@ -1234,27 +1258,38 @@ def plot_pair_box(ax, sub, codes, colors, value_col, title, ylabel, abc, logy=Fa
 
 
 def plot_mol_conflict(ax, lc, codes, category, abc):
-    """Stacked bar per pathogen over its FINAL-pool unique molecules: the fraction reused in
-    >=2 pools, split into consistent vs conflicting labels. Bar height = reuse rate; the crimson
-    (bottom) segment = conflicting molecules / total unique molecules — i.e. the cross-pool
-    label conflict normalised over the whole dataset (not just the shared molecules), so it is
-    free of the 1-shared-molecule artifact the pairwise discrepancy has. Computed over the same
-    final-pool set as A/B (25 grown + 26 catch-all)."""
+    """Grouped bars per pathogen over the FINAL-pool molecules (25 grown + 26 catch-all).
+
+    Left bar (over ALL unique molecules): the fraction reused in >=2 pools, split into consistent
+    (turquoise) vs conflicting (crimson) labels. Bar height = reuse rate; the crimson segment =
+    conflicting molecules / total unique molecules — the cross-pool label conflict normalised over
+    the whole dataset (not just the shared molecules), so it is free of the 1-shared-molecule
+    artifact the pairwise discrepancy has.
+
+    Right bar (periwinkle, over ACTIVE molecules): conflicting molecules / molecules active in >=1 pool
+    (n_active_molecules). Every conflicting molecule is active-somewhere, so this is a strict subset
+    ratio in [0, 1]. Reads as 'share of all active calls contradicted by another pool'. Directly
+    comparable to the left bar's crimson segment (same numerator, active-only denominator)."""
     sub = lc[lc["category"] == category].set_index("pathogen")
     x = np.arange(len(codes))
+    w = 0.4
 
-    def frac(c, num):
+    def frac(c, num, den="n_unique_molecules"):
         if c not in sub.index:
             return 0.0
-        tot = sub.loc[c, "n_unique_molecules"]
+        tot = sub.loc[c, den]
         return float(sub.loc[c, num] / tot) if tot else 0.0
 
+    # left bar: reuse rate over ALL unique molecules (conflicting + consistent-reused)
     f_conf = np.array([frac(c, "n_conflicting_label") for c in codes])
     f_cons = np.array([(frac(c, "n_in_multiple_pools") - frac(c, "n_conflicting_label")) for c in codes])
-    ax.bar(x, f_conf, color=pc.named("crimson"), label="reused, conflicting")
-    ax.bar(x, f_cons, bottom=f_conf, color=pc.named("turquoise"), label="reused, consistent")
+    ax.bar(x - w / 2, f_conf, width=w, color=pc.named("crimson"))
+    ax.bar(x - w / 2, f_cons, width=w, bottom=f_conf, color=pc.named("turquoise"))
+    # right bar: conflict rate over ACTIVE molecules (single bar, distinct colour)
+    f_conf_act = np.array([frac(c, "n_conflicting_label", den="n_active_molecules") for c in codes])
+    ax.bar(x + w / 2, f_conf_act, width=w, color=pc.named("periwinkle"))
     ax.set_xticks(x); ax.set_xticklabels(codes, rotation=90)
-    stylia.label(ax, xlabel="", ylabel="fraction of unique molecules",
+    stylia.label(ax, xlabel="", ylabel="fraction of molecules",
                  title=f"Cross-pool label conflict - {cat_label(category)}", abc=abc)
 
 
@@ -1262,9 +1297,9 @@ def make_final_data_overlap(codes, out_dir):
     """Per-pathogen molecule sharing + label conflicts between the FINAL pools (2x2, DR left /
     SP right):
         row 1  pairwise Jaccard overlap % (log) between pool pairs sharing >=1 molecule;
-        row 2  cross-pool label conflict at the MOLECULE level (stacked bar per pathogen: reuse
-               rate split into consistent vs conflicting, the conflicting segment = conflicting
-               molecules / total unique molecules).
+        row 2  cross-pool label conflict at the MOLECULE level (grouped bars per pathogen: left =
+               reuse rate over ALL unique molecules split into consistent vs conflicting; right
+               (periwinkle) = conflicting molecules / active molecules).
     Writes the tidy pairwise table (incl. per-pair discrepancy) to 27_final_data_overlap.csv."""
     pairs, counts, confl = _final_pool_stats(codes)
     if pairs.empty and confl.empty:
@@ -1282,9 +1317,10 @@ def make_final_data_overlap(codes, out_dir):
     if not confl.empty:
         plot_mol_conflict(axs.next(), confl, codes, "DR", "C")
         plot_mol_conflict(axs.next(), confl, codes, "SP", "D")
-        figure_legend(fig, [("reused, conflicting", pc.named("crimson")),
-                            ("reused, consistent", pc.named("turquoise"))],
-                      loc="upper center", anchor=(0.5, -0.01), ncol=2)
+        figure_legend(fig, [("reused, conflicting (/ all)", pc.named("crimson")),
+                            ("reused, consistent (/ all)", pc.named("turquoise")),
+                            ("conflicting / actives", pc.named("periwinkle"))],
+                      loc="upper center", anchor=(0.5, -0.01), ncol=3)
     stylia.save_figure(os.path.join(out_dir, "27_final_data_overlap.png"))
     print(f"  figure -> {os.path.join(out_dir, '27_final_data_overlap.png')}")
 
